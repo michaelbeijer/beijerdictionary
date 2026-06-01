@@ -28,8 +28,11 @@ if (apiBase) {
 	}
 }
 
-const langsOf = (s) =>
-	[s.source_lang, s.target_lang].filter(Boolean).map((x) => String(x).toUpperCase()).join(' ↔ ') || '—';
+const langsOf = (s) => {
+	const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
+		.filter(Boolean).map((x) => String(x).toUpperCase());
+	return codes.length ? codes.join(codes.length === 2 ? ' ↔ ' : ' · ') : '—';
+};
 const badgeClassOf = (s) => {
 	const lic = (s.licence || 'unknown').toLowerCase();
 	return ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
@@ -104,8 +107,11 @@ const intro = counts
 		sources = JSON.parse(document.getElementById('wb-sources-data').textContent || '[]');
 	} catch { sources = []; }
 
-	const langsOf = (s) =>
-		[s.source_lang, s.target_lang].filter(Boolean).map((x) => String(x).toUpperCase()).join(' ↔ ') || '—';
+	const langsOf = (s) => {
+		const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
+			.filter(Boolean).map((x) => String(x).toUpperCase());
+		return codes.length ? codes.join(codes.length === 2 ? ' ↔ ' : ' · ') : '—';
+	};
 
 	function renderTable(list) {
 		const wrap = document.getElementById('wb-sources-wrap');
@@ -144,6 +150,8 @@ const intro = counts
 		const rows = [
 			['Publisher',       s.publisher],
 			['Year',            s.year],
+			['Languages',       (s.languages && s.languages.length
+				? s.languages.map((c) => String(c).toUpperCase()).join(' · ') : null)],
 			['Source language', s.source_lang],
 			['Target language', s.target_lang],
 			['Domain',          s.primary_domain],
