@@ -159,6 +159,11 @@ const intro = counts
 			'</dl>' +
 			(s.description ? `<div class="desc">${escapeHtml(s.description)}</div>` : '');
 		dlg.showModal();
+		// Move focus into the dialog body instead of letting showModal()
+		// auto-focus the × button (which draws a focus ring around it). Focus
+		// stays trapped in the modal, so this is still keyboard/SR-friendly.
+		body.setAttribute('tabindex', '-1');
+		body.focus();
 	}
 
 	function wireRows() {

@@ -312,7 +312,13 @@ dialog.wb-detail::backdrop {
 	cursor: pointer;
 	color: rgb(var(--muted));
 	padding: 0 0.2em;
+	border-radius: 6px;
 }
+.wb-close:hover { color: rgb(var(--text)); }
+/* Keyboard users still get a ring on the × when they Tab to it; mouse-opened
+   dialogs focus the body (tabindex -1) instead, so no stray ring on open. */
+.wb-close:focus:not(:focus-visible) { outline: none; }
+#wb-detail-body:focus { outline: none; }
 #wb-detail-body h3 {
 	margin: 0 0 0.3em;
 	font-size: 1.3em;
