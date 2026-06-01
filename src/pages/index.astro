@@ -15,7 +15,6 @@ const apiBase = (
 	description="A curated, searchable multilingual terminology database for technical translators — Dutch ↔ English and more, with full provenance."
 >
 	<section class="wb-hero">
-		<h1>Beijerterm</h1>
 		<p class="wb-tag">
 			A curated, searchable multilingual terminology database for technical
 			translators — with full provenance for every source.
@@ -62,15 +61,16 @@ const apiBase = (
 	   to elements present in the static template. All selectors are wb-* prefixed,
 	   so global scope is safe. */
 	.wb-hero {
-		margin: 0 0 3em;
-	}
-	.wb-hero h1 {
-		margin-bottom: 0.1em;
+		margin: 1.6em 0 2.2em;
 	}
 	.wb-tag {
 		color: rgb(var(--muted));
 		margin-top: 0;
 		line-height: 1.6;
+	}
+	.wb-hero .wb-tag {
+		font-size: 1.12em;
+		max-width: 46em;
 	}
 	.wb-search {
 		margin-top: 1.6em;
@@ -225,6 +225,19 @@ const apiBase = (
 		border-radius: 99px;
 		margin-right: 0.3em;
 		font-weight: 600;
+	}
+	.wb-card-meta .pill-src {
+		font-family: inherit;
+		font-size: inherit;
+		line-height: inherit;
+		color: rgb(var(--muted));
+		background: transparent;
+		cursor: pointer;
+		vertical-align: baseline;
+	}
+	.wb-card-meta .pill-src:hover {
+		color: rgb(var(--text));
+		border-color: rgb(var(--text));
 	}
 	.wb-related {
 		margin-top: 0.45em;
@@ -518,7 +531,7 @@ const apiBase = (
 
 		const meta_ = [
 			...[...group.domains].slice(0, 1).map(escapeHtml),
-			...[...group.sources].map((s) => `<span class="pill">${escapeHtml(s)}</span>`),
+			...[...group.sources].map((s) => `<button type="button" class="pill pill-src" data-slug="${escapeHtml(s)}" title="View this source's details">${escapeHtml(s)}</button>`),
 		].join(' · ');
 
 		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
@@ -710,6 +723,15 @@ const apiBase = (
 			direction = { src: direction.tgt, tgt: direction.src };
 			updateDirButtons();
 			rerender();
+		});
+
+		// A source chip inside a result card jumps to the Sources tab and opens
+		// that source's metadata. Delegated, since cards are re-rendered often.
+		document.getElementById('wb-results').addEventListener('click', (ev) => {
+			const chip = ev.target.closest('.pill-src');
+			if (!chip) return;
+			setView('sources');
+			openDetail(chip.dataset.slug);
 		});
 	}
 

@@ -53,7 +53,7 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 	</head>
 	<body>
 		<header class="site-head">
-			<a class="wordmark" href="/">Beijerterm</a>
+			<h1 class="wordmark"><a href="/">Beijerterm</a></h1>
 			<nav class="site-tools">
 				<button id="width-toggle" type="button" class="tool-btn">Wide</button>
 				<button id="theme-toggle" type="button" class="tool-btn icon" aria-label="Toggle dark mode">🌙</button>
@@ -164,11 +164,12 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				width: var(--page-width); max-width: calc(100% - 2em); margin: auto;
 				padding: 1.1em 1em 0;
 			}
-			.site-head .wordmark {
-				font-weight: 700; font-size: 1.15em; color: rgb(var(--text));
+			.site-head h1.wordmark {
+				margin: 0; font-weight: 700; font-size: 1.15em; line-height: 1.2;
 				letter-spacing: -0.01em;
 			}
-			.site-head .wordmark:hover { text-decoration: none; }
+			.site-head .wordmark a { color: rgb(var(--text)); }
+			.site-head .wordmark a:hover { text-decoration: none; }
 			.site-tools {
 				display: flex; align-items: center; gap: 0.55em;
 			}
