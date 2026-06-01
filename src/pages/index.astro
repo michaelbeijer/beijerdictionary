@@ -20,43 +20,33 @@ const apiBase = (
 			A curated, searchable multilingual terminology database for technical
 			translators — with full provenance for every source.
 		</p>
+		<nav class="wb-tabs" aria-label="Views">
+			<button type="button" class="wb-tab active" data-view="search">Search</button>
+			<button type="button" class="wb-tab" data-view="sources">Sources</button>
+		</nav>
+	</section>
 
+	<section id="view-search" class="wb-view">
 		<div class="wb-search">
 			<label class="sr-only" for="wb-q">Search Beijerterm</label>
-			<input
-				id="wb-q"
-				type="search"
-				placeholder="Search…"
-				autocomplete="off"
-				spellcheck="false"
-				autocapitalize="off"
-				inputmode="search"
-			/>
+			<input id="wb-q" type="search" placeholder="Search…" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
 			<div class="wb-controls">
-				<div id="wb-dir" class="wb-dir" aria-label="Search direction">
-					<!-- populated by JS from the search API's /meta endpoint -->
-				</div>
+				<div id="wb-dir" class="wb-dir" aria-label="Search direction"></div>
 				<button id="wb-swap" type="button" class="wb-swap" aria-label="Swap direction">⇄</button>
 			</div>
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
+		<div id="wb-results" class="wb-results" hidden></div>
+		<p id="wb-hint" class="wb-hint">Type a term above to search the database.</p>
+	</section>
 
-		</section>
-
-	<div class="wb-layout">
-		<div class="wb-main">
-			<div id="wb-results" class="wb-results" hidden></div>
-			<p id="wb-hint" class="wb-hint">Type a term in the box above to search the database.</p>
+	<section id="view-sources" class="wb-view" hidden>
+		<h2>Sources behind Beijerterm</h2>
+		<p class="wb-tag">The glossaries, term lists and reference works behind the search — click any source for its full publication metadata.</p>
+		<div id="wb-sources-wrap">
+			<p class="wb-loading">Loading sources…</p>
 		</div>
-
-		<aside class="wb-sources">
-			<h2>Sources</h2>
-			<p class="wb-sources-tag">The glossaries and term lists behind the search — click any for its full publication metadata.</p>
-			<div id="wb-sources-wrap">
-				<p class="wb-loading">Loading sources…</p>
-			</div>
-		</aside>
-	</div>
+	</section>
 
 	<dialog id="wb-detail" class="wb-detail">
 		<form method="dialog">
@@ -274,20 +264,35 @@ const apiBase = (
 		background: rgba(0, 0, 0, 0.02);
 	}
 
-	/* Two-column layout: results (main) left, sources sidebar right.
-	   Single column on narrow screens, with sources below the results. */
-	.wb-layout {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 2em;
-		align-items: start;
+	/* Tab bar: Search | Sources. */
+	.wb-tabs {
+		display: flex;
+		gap: 0.4em;
+		margin-top: 1.4em;
+		border-bottom: 1px solid rgb(var(--border));
 	}
-	@media (min-width: 880px) {
-		.wb-layout {
-			grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-		}
+	.wb-tab {
+		font: inherit;
+		font-weight: 600;
+		font-size: 0.98em;
+		cursor: pointer;
+		background: transparent;
+		border: none;
+		border-bottom: 2px solid transparent;
+		color: rgb(var(--muted));
+		padding: 0.5em 0.9em;
+		margin-bottom: -1px;
 	}
-	.wb-main { min-width: 0; }
+	.wb-tab:hover { color: rgb(var(--text)); }
+	.wb-tab.active {
+		color: rgb(var(--text));
+		border-bottom-color: rgb(var(--accent));
+	}
+
+	/* Views — only one shown at a time (hidden attribute toggles). */
+	.wb-view { margin-top: 1.6em; }
+	.wb-view[hidden] { display: none; }
+
 	.wb-hint {
 		color: rgb(var(--muted));
 		font-size: 0.95em;
@@ -296,51 +301,42 @@ const apiBase = (
 	.wb-results[hidden] + .wb-hint { display: block; }
 	.wb-results:not([hidden]) + .wb-hint { display: none; }
 
-	.wb-sources h2 {
-		margin-bottom: 0.3em;
-	}
-	.wb-sources-tag {
-		color: rgb(var(--muted));
-		font-size: 0.88em;
-		line-height: 1.5;
-		margin: 0 0 0.8em;
-	}
-	#wb-sources-wrap {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25em;
-	}
+	#view-sources h2 { margin: 0 0 0.3em; }
 	.wb-loading {
 		color: rgb(var(--muted));
 	}
-	/* Sidebar source entries. */
-	.wb-src {
-		display: block;
+
+	/* Full sources table — all metadata at a glance. */
+	table.wb-sources-table {
 		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.92em;
+	}
+	.wb-sources-table th,
+	.wb-sources-table td {
+		padding: 0.55em 0.7em;
 		text-align: left;
-		font: inherit;
-		cursor: pointer;
-		background: transparent;
-		border: none;
 		border-bottom: 1px solid rgb(var(--border));
-		padding: 0.6em 0.2em;
+		vertical-align: top;
 	}
-	.wb-src:last-child { border-bottom: none; }
-	.wb-src:hover { background: rgba(0, 0, 0, 0.025); }
-	.wb-src-name {
-		display: block;
+	.wb-sources-table th {
 		font-weight: 600;
-		font-size: 0.95em;
-		color: rgb(var(--text));
-		line-height: 1.35;
-	}
-	.wb-src-meta {
-		display: block;
-		margin-top: 0.2em;
-		font-size: 0.78em;
 		color: rgb(var(--muted));
-		font-variant-numeric: tabular-nums;
+		font-size: 0.85em;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		white-space: nowrap;
 	}
+	.wb-sources-table td.num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+	.wb-sources-table th.num { text-align: right; }
+	.wb-sources-table td.langs { white-space: nowrap; }
+	.wb-sources-table td:first-child { font-weight: 600; }
+	.wb-sources-table tr.clickable { cursor: pointer; }
+	.wb-sources-table tbody tr.clickable:hover { background: rgba(0, 0, 0, 0.03); }
 	.wb-badge {
 		display: inline-block;
 		padding: 0.05em 0.45em;
@@ -559,20 +555,29 @@ const apiBase = (
 			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
 			return;
 		}
-		// Compact list for the sidebar (the full 6-column table doesn't fit a
-		// narrow column). Each source is a button → opens the metadata dialog.
-		wrap.innerHTML = sources.map((s) => {
+		// Full table — every source's metadata at a glance. Row → metadata dialog.
+		const rows = sources.map((s) => {
 			const langs = [s.source_lang, s.target_lang]
-				.filter(Boolean).join(' ↔ ').toUpperCase() || '—';
+				.filter(Boolean).join('&nbsp;↔&nbsp;').toUpperCase() || '—';
 			const lic = (s.licence || 'unknown').toLowerCase();
 			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
 			const n = (s.entry_count || 0).toLocaleString('en-GB');
-			return `<button type="button" class="wb-src" data-slug="${escapeHtml(s.slug)}">
-				<span class="wb-src-name">${escapeHtml(s.title || s.slug)}</span>
-				<span class="wb-src-meta">${langs} · ${n} entries <span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></span>
-			</button>`;
+			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
+				<td>${escapeHtml(s.title || s.slug)}</td>
+				<td>${escapeHtml(s.author || '—')}</td>
+				<td class="num">${escapeHtml(String(s.year || '—'))}</td>
+				<td class="langs">${langs}</td>
+				<td class="num">${n}</td>
+				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
+			</tr>`;
 		}).join('');
-		wrap.querySelectorAll('.wb-src').forEach((el) => {
+		wrap.innerHTML = `<table class="wb-sources-table">
+			<thead><tr>
+				<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
+			</tr></thead>
+			<tbody>${rows}</tbody>
+		</table>`;
+		wrap.querySelectorAll('tr.clickable').forEach((el) => {
 			el.addEventListener('click', () => openDetail(el.dataset.slug));
 		});
 	}
@@ -708,6 +713,26 @@ const apiBase = (
 		});
 	}
 
+	function setView(view) {
+		document.querySelectorAll('.wb-tab').forEach((b) => {
+			b.classList.toggle('active', b.dataset.view === view);
+		});
+		document.getElementById('view-search').hidden = view !== 'search';
+		document.getElementById('view-sources').hidden = view !== 'sources';
+		if (view === 'search') {
+			const input = document.getElementById('wb-q');
+			if (input) input.focus();
+		}
+	}
+
+	function bindTabs() {
+		document.querySelectorAll('.wb-tab').forEach((b) => {
+			b.addEventListener('click', () => setView(b.dataset.view));
+		});
+		// Allow deep-linking straight to the Sources tab via #sources.
+		if (location.hash === '#sources') setView('sources');
+	}
+
 	async function main() {
 		const counts = document.getElementById('wb-counts');
 		if (!apiBase) {
@@ -733,6 +758,7 @@ const apiBase = (
 		renderSources(meta.sources || []);
 		updateDirButtons();
 		bindSearch();
+		bindTabs();
 		updateCounts(null);
 
 		// Deep-link support: ?q=…&from=nl&to=en runs a search on load. This is
