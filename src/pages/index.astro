@@ -15,6 +15,7 @@ const apiBase = (
 	description="A curated, searchable multilingual terminology database for technical translators — Dutch ↔ English and more, with full provenance."
 >
 	<section class="wb-hero">
+		<h1>Beijerterm</h1>
 		<p class="wb-tag">
 			A curated, searchable multilingual terminology database for technical
 			translators — with full provenance for every source.
@@ -61,15 +62,17 @@ const apiBase = (
 	   to elements present in the static template. All selectors are wb-* prefixed,
 	   so global scope is safe. */
 	.wb-hero {
-		margin: 1.6em 0 2.2em;
+		margin: 0.6em 0 2.6em;
+	}
+	.wb-hero h1 {
+		font-size: 2.4em;
+		letter-spacing: -0.02em;
+		margin: 0 0 0.12em;
 	}
 	.wb-tag {
 		color: rgb(var(--muted));
 		margin-top: 0;
 		line-height: 1.6;
-	}
-	.wb-hero .wb-tag {
-		font-size: 1.12em;
 		max-width: 46em;
 	}
 	.wb-search {
