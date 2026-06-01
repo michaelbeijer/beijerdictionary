@@ -1,0 +1,116 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+	title="How Beijerterm works — behind the terminology database"
+	description="How Beijerterm works: server-side search with full provenance, semicolon-synonym handling, the sources behind it, and what's planned (concept grounding and more open resources)."
+>
+	<section class="wb-hero">
+		<h1>How Beijerterm works</h1>
+		<p class="wb-tag">
+			What's behind the search box — where the terms come from, how they're
+			searched, and what's planned next.
+		</p>
+	</section>
+
+	<div class="about">
+		<h2>What it is</h2>
+		<p>
+			Beijerterm is a curated, multilingual terminology database for technical
+			translators — Dutch&nbsp;↔&nbsp;English to start, more to come. Every term
+			pair carries full <strong>provenance</strong>: you can always see which
+			glossary or reference work it came from, with author, year, languages,
+			entry count and licence. It's free to search here, and built into
+			<a href="https://supervertaler.com" rel="noopener">Supervertaler</a> as a
+			SuperLookup resource.
+		</p>
+
+		<h2>How search works</h2>
+		<p>
+			Search runs <strong>on the server</strong>, not in your browser. When you
+			type, only the matching results are sent back — the full dataset never
+			leaves the server. Behind the scenes it uses SQLite's full-text search
+			(FTS5), so it stays fast whether the database holds ten thousand entries
+			or a million. Results are <strong>direction-aware</strong> (Dutch&nbsp;→&nbsp;English
+			or the reverse) and grouped by headword, so every equivalent and synonym
+			for a term shows together on one card.
+		</p>
+
+		<h2>Synonyms</h2>
+		<p>
+			Source glossaries often list several synonyms in one cell, separated by a
+			semicolon — for example <em>windturbine; WEC</em> →
+			<em>wind energy converter; wind turbine; WEC; WT; WTG</em>. Beijerterm
+			splits these apart, so each synonym becomes independently searchable and
+			they surface as one another's equivalents. (The importer can be told which
+			character separates synonyms on each side — semicolon, pipe, and so on.)
+		</p>
+
+		<h2>The sources</h2>
+		<p>
+			Everything is assembled from curated source files — published glossaries,
+			term lists and reference works — each imported with its own column mapping
+			and bibliographic metadata. Nothing is scraped or auto-aggregated. You can
+			browse the full list, with provenance for each, on the
+			<a href="/sources/">Sources</a> page. Term pairs are reorganised into a
+			single curated database and served only as isolated, per-query snippets.
+		</p>
+
+		<h2>Under the hood</h2>
+		<p>
+			The site is a small static front-end; the database lives in
+			<strong>Cloudflare D1</strong> (edge SQLite) behind a lightweight API that
+			returns only what each query needs. A private data core handles importing,
+			normalising, de-duplicating and cleaning the source files before anything
+			is published — so the live database is always a vetted snapshot of the
+			curated master copy.
+		</p>
+
+		<h2>What's planned</h2>
+		<p>
+			Two things are scaffolded but not yet switched on:
+		</p>
+		<ul>
+			<li>
+				<strong>Concept grounding.</strong> Linking entries to open lexical
+				resources such as <a href="https://en-word.net/" rel="noopener">Open
+				English WordNet</a> (and its Dutch counterpart) to power richer synonym
+				grouping and "related term" suggestions.
+			</li>
+			<li>
+				<strong>More open terminology.</strong> Selectively folding in openly
+				licensed resources (for example the EU's <abbr title="InterActive Terminology for Europe">IATE</abbr>
+				export) where the licence allows and the quality is worth it.
+			</li>
+		</ul>
+		<p class="about-note">
+			This page describes the current state honestly — when those features go
+			live, it'll be updated to say so.
+		</p>
+
+		<p class="about-back"><a href="/">← Back to search</a></p>
+	</div>
+</Base>
+
+<style>
+	.about {
+		max-width: 46em;
+		line-height: 1.7;
+	}
+	.about h2 {
+		margin-top: 1.6em;
+		font-size: 1.25em;
+	}
+	.about p { margin: 0.6em 0; }
+	.about ul { margin: 0.6em 0; padding-left: 1.2em; }
+	.about li { margin: 0.4em 0; }
+	.about-note {
+		color: rgb(var(--muted));
+		font-size: 0.92em;
+	}
+	.about-back {
+		margin-top: 2em;
+		font-weight: 600;
+	}
+</style>

@@ -236,6 +236,10 @@
 	color: rgb(var(--muted));
 }
 
+.site-foot-links { margin-top: 0.6em; }
+.site-foot-links a { color: rgb(var(--muted)); }
+.site-foot-links a:hover { color: rgb(var(--text)); }
+
 /* Full sources table — all metadata at a glance. */
 table.wb-sources-table {
 	width: 100%;
