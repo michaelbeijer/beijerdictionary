@@ -31,7 +31,7 @@ if (apiBase) {
 const langsOf = (s) => {
 	const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
 		.filter(Boolean).map((x) => String(x).toUpperCase());
-	return codes.length ? codes.join(codes.length === 2 ? ' ↔ ' : ' · ') : '—';
+	return codes.length ? codes.join(' · ') : '—';
 };
 const badgeClassOf = (s) => {
 	const lic = (s.licence || 'unknown').toLowerCase();
@@ -110,7 +110,7 @@ const intro = counts
 	const langsOf = (s) => {
 		const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
 			.filter(Boolean).map((x) => String(x).toUpperCase());
-		return codes.length ? codes.join(codes.length === 2 ? ' ↔ ' : ' · ') : '—';
+		return codes.length ? codes.join(' · ') : '—';
 	};
 
 	function renderTable(list) {
@@ -151,9 +151,8 @@ const intro = counts
 			['Publisher',       s.publisher],
 			['Year',            s.year],
 			['Languages',       (s.languages && s.languages.length
-				? s.languages.map((c) => String(c).toUpperCase()).join(' · ') : null)],
-			['Source language', s.source_lang],
-			['Target language', s.target_lang],
+				? s.languages.map((c) => String(c).toUpperCase()).join(' · ')
+				: [s.source_lang, s.target_lang].filter(Boolean).map((c) => String(c).toUpperCase()).join(' · ') || null)],
 			['Domain',          s.primary_domain],
 			['Subject tags',    s.subject_tags],
 			['Licence',         s.licence],
