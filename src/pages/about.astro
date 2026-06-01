@@ -18,7 +18,8 @@ import Base from '../layouts/Base.astro';
 		<h2>What it is</h2>
 		<p>
 			Beijerterm is a curated, multilingual terminology database for technical
-			translators — Dutch&nbsp;↔&nbsp;English to start, more to come. Every term
+			translators, spanning Dutch, English, German, French and Spanish, with
+			more languages added as new sources arrive. Every term
 			pair carries full <strong>provenance</strong>: you can always see which
 			glossary or reference work it came from, with author, year, languages,
 			entry count and licence. It's free to search here, and built into
@@ -32,19 +33,20 @@ import Base from '../layouts/Base.astro';
 			type, only the matching results are sent back — the full dataset never
 			leaves the server. Behind the scenes it uses SQLite's full-text search
 			(FTS5), so it stays fast whether the database holds ten thousand entries
-			or a million. Results are <strong>direction-aware</strong> (Dutch&nbsp;→&nbsp;English
-			or the reverse) and grouped by headword, so every equivalent and synonym
-			for a term shows together on one card.
+			or a million. You pick the <strong>source and target language</strong> with
+			the From / To selectors (any available pair, in either direction), and
+			results are grouped by headword, so every equivalent and synonym for a
+			term shows together on one card.
 		</p>
 
 		<h2>Synonyms</h2>
 		<p>
 			Source glossaries often list several synonyms in one cell, separated by a
-			semicolon — for example <em>windturbine; WEC</em> →
+			delimiter such as a semicolon or a slash: for example <em>windturbine; WEC</em> →
 			<em>wind energy converter; wind turbine; WEC; WT; WTG</em>. Beijerterm
 			splits these apart, so each synonym becomes independently searchable and
-			they surface as one another's equivalents. (The importer can be told which
-			character separates synonyms on each side — semicolon, pipe, and so on.)
+			they surface as one another's equivalents. (Each source can declare its own
+			separator — semicolon, slash, pipe, and so on.)
 		</p>
 
 		<h2>The sources</h2>
