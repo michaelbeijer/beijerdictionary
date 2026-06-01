@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import ViewTabs from '../components/ViewTabs.astro';
 
 // Search API base. Production sets PUBLIC_WORDBOOK_API to the deployed Worker
 // URL; in `astro dev` it falls back to a local Worker on :8787. The terminology
@@ -20,13 +21,10 @@ const apiBase = (
 			A curated, searchable multilingual terminology database for technical
 			translators — with full provenance for every source.
 		</p>
-		<nav class="wb-tabs" aria-label="Views">
-			<button type="button" class="wb-tab active" data-view="search">Search</button>
-			<button type="button" class="wb-tab" data-view="sources">Sources</button>
-		</nav>
+		<ViewTabs current="search" />
 	</section>
 
-	<section id="view-search" class="wb-view">
+	<section class="wb-view">
 		<div class="wb-search">
 			<label class="sr-only" for="wb-q">Search Beijerterm</label>
 			<input id="wb-q" type="search" placeholder="Search…" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
@@ -39,388 +37,7 @@ const apiBase = (
 		<div id="wb-results" class="wb-results" hidden></div>
 		<p id="wb-hint" class="wb-hint">Type a term above to search the database.</p>
 	</section>
-
-	<section id="view-sources" class="wb-view" hidden>
-		<h2>Sources behind Beijerterm</h2>
-		<p class="wb-tag">The glossaries, term lists and reference works behind the search — click any source for its full publication metadata.</p>
-		<div id="wb-sources-wrap">
-			<p class="wb-loading">Loading sources…</p>
-		</div>
-	</section>
-
-	<dialog id="wb-detail" class="wb-detail">
-		<form method="dialog">
-			<button class="wb-close" aria-label="Close">×</button>
-		</form>
-		<div id="wb-detail-body"></div>
-	</dialog>
 </Base>
-
-<style is:global>
-	/* is:global is REQUIRED: the result cards, sources table, etc. are injected
-	   by the client script via innerHTML, and Astro's scoped styles only apply
-	   to elements present in the static template. All selectors are wb-* prefixed,
-	   so global scope is safe. */
-	.wb-hero {
-		margin: 0.6em 0 2.6em;
-	}
-	.wb-hero h1 {
-		font-size: 2.4em;
-		letter-spacing: -0.02em;
-		margin: 0 0 0.12em;
-	}
-	.wb-tag {
-		color: rgb(var(--muted));
-		margin-top: 0;
-		line-height: 1.6;
-		max-width: 46em;
-	}
-	.wb-search {
-		margin-top: 1.6em;
-	}
-	#wb-q {
-		width: 100%;
-		font-size: 1.15em;
-		padding: 0.7em 0.9em;
-		border: 1px solid rgb(var(--border));
-		border-radius: 8px;
-		background: rgb(var(--bg));
-		color: rgb(var(--text));
-		font-family: var(--font-body);
-		box-sizing: border-box;
-	}
-	#wb-q:focus {
-		outline: none;
-		border-color: rgb(var(--text));
-	}
-	.wb-controls {
-		display: flex;
-		align-items: center;
-		gap: 0.4em;
-		margin-top: 0.55em;
-		flex-wrap: wrap;
-	}
-	.wb-dir {
-		display: inline-flex;
-		gap: 0.25em;
-	}
-	.wb-dir button {
-		font: inherit;
-		font-size: 0.78em;
-		padding: 0.25em 0.7em;
-		border: 1px solid rgb(var(--border));
-		border-radius: 99px;
-		background: rgb(var(--bg));
-		color: rgb(var(--muted));
-		cursor: pointer;
-		letter-spacing: 0.04em;
-	}
-	.wb-dir button:hover {
-		color: rgb(var(--text));
-	}
-	.wb-dir button.active {
-		background: rgb(var(--text));
-		color: rgb(var(--bg));
-		border-color: rgb(var(--text));
-	}
-	.wb-swap {
-		font-size: 1.05em;
-		padding: 0.1em 0.55em;
-		border: 1px solid rgb(var(--border));
-		border-radius: 99px;
-		background: rgb(var(--bg));
-		color: rgb(var(--muted));
-		cursor: pointer;
-	}
-	.wb-swap:hover {
-		color: rgb(var(--text));
-	}
-	.wb-counts {
-		margin-top: 0.55em;
-		color: rgb(var(--muted));
-		font-size: 0.85em;
-	}
-
-	.wb-results {
-		margin-top: 1.2em;
-		border: 1px solid rgb(var(--border));
-		border-radius: 8px;
-		overflow: hidden;
-	}
-	.wb-results[hidden] {
-		display: none;
-	}
-
-	/* Headword card: one card per unique source-language headword. */
-	.wb-card {
-		padding: 0.85em 1em;
-		border-bottom: 1px solid rgb(var(--border));
-	}
-	.wb-card:last-child {
-		border-bottom: none;
-	}
-	.wb-headword {
-		font-size: 1.05em;
-		font-weight: 600;
-		color: rgb(var(--text));
-	}
-	.wb-headword .qual {
-		font-weight: 400;
-		color: rgb(var(--muted));
-		font-size: 0.85em;
-		margin-left: 0.2em;
-	}
-	.wb-equivs {
-		margin-top: 0.25em;
-		font-size: 0.97em;
-		line-height: 1.55;
-		color: rgb(var(--text));
-	}
-	.wb-equivs .arrow {
-		color: rgb(var(--muted));
-		margin-right: 0.3em;
-	}
-	.wb-equivs .e {
-		display: inline;
-	}
-	.wb-equivs .e + .e::before {
-		content: "·";
-		color: rgb(var(--muted));
-		margin: 0 0.35em;
-	}
-	.wb-equivs .e.hit {
-		font-weight: 700;
-	}
-	.wb-equivs .qual {
-		color: rgb(var(--muted));
-		font-size: 0.85em;
-		margin-left: 0.2em;
-	}
-	.wb-def {
-		margin-top: 0.4em;
-		font-size: 0.9em;
-		line-height: 1.5;
-		color: rgb(var(--muted));
-	}
-	.wb-def .d + .d::before {
-		content: '';
-		display: block;
-		height: 0.25em;
-	}
-	.wb-def .d.hit {
-		color: rgb(var(--text));
-	}
-	.wb-def .d-more {
-		font-style: italic;
-		opacity: 0.8;
-	}
-	.wb-card-meta {
-		margin-top: 0.5em;
-		font-size: 0.7em;
-		color: rgb(var(--muted));
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-	.wb-card-meta .pill {
-		display: inline-block;
-		padding: 0.05em 0.55em;
-		border: 1px solid rgb(var(--border));
-		border-radius: 99px;
-		margin-right: 0.3em;
-		font-weight: 600;
-	}
-	.wb-card-meta .pill-src {
-		font-family: inherit;
-		font-size: inherit;
-		line-height: inherit;
-		text-transform: inherit;
-		letter-spacing: inherit;
-		color: rgb(var(--muted));
-		background: transparent;
-		cursor: pointer;
-		vertical-align: baseline;
-	}
-	.wb-card-meta .pill-src:hover {
-		color: rgb(var(--text));
-		border-color: rgb(var(--text));
-	}
-	.wb-related {
-		margin-top: 0.45em;
-		font-size: 0.83em;
-		color: rgb(var(--muted));
-		line-height: 1.5;
-	}
-	.wb-related .label {
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		font-size: 0.85em;
-		margin-right: 0.4em;
-	}
-	.wb-related a {
-		color: rgb(var(--text));
-		text-decoration: none;
-		border-bottom: 1px dotted rgb(var(--border));
-		cursor: pointer;
-	}
-	.wb-related a:hover {
-		border-bottom-color: rgb(var(--text));
-	}
-	.wb-related .sep {
-		margin: 0 0.3em;
-	}
-	.wb-empty {
-		padding: 0.9em;
-		color: rgb(var(--muted));
-		font-size: 0.95em;
-		text-align: center;
-	}
-	.wb-more {
-		padding: 0.6em 0.9em;
-		text-align: center;
-		font-size: 0.85em;
-		color: rgb(var(--muted));
-		background: var(--subtle);
-	}
-
-	/* Tab bar: Search | Sources. */
-	.wb-tabs {
-		display: flex;
-		gap: 0.4em;
-		margin-top: 1.4em;
-		border-bottom: 1px solid rgb(var(--border));
-	}
-	.wb-tab {
-		font: inherit;
-		font-weight: 600;
-		font-size: 0.98em;
-		cursor: pointer;
-		background: transparent;
-		border: none;
-		border-bottom: 2px solid transparent;
-		color: rgb(var(--muted));
-		padding: 0.5em 0.9em;
-		margin-bottom: -1px;
-	}
-	.wb-tab:hover { color: rgb(var(--text)); }
-	.wb-tab.active {
-		color: rgb(var(--text));
-		border-bottom-color: rgb(var(--accent));
-	}
-
-	/* Views — only one shown at a time (hidden attribute toggles). */
-	.wb-view { margin-top: 1.6em; }
-	.wb-view[hidden] { display: none; }
-
-	.wb-hint {
-		color: rgb(var(--muted));
-		font-size: 0.95em;
-		padding: 0.4em 0;
-	}
-	.wb-results[hidden] + .wb-hint { display: block; }
-	.wb-results:not([hidden]) + .wb-hint { display: none; }
-
-	#view-sources h2 { margin: 0 0 0.3em; }
-	.wb-loading {
-		color: rgb(var(--muted));
-	}
-
-	/* Full sources table — all metadata at a glance. */
-	table.wb-sources-table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.92em;
-	}
-	.wb-sources-table th,
-	.wb-sources-table td {
-		padding: 0.55em 0.7em;
-		text-align: left;
-		border-bottom: 1px solid rgb(var(--border));
-		vertical-align: top;
-	}
-	.wb-sources-table th {
-		font-weight: 600;
-		color: rgb(var(--muted));
-		font-size: 0.85em;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		white-space: nowrap;
-	}
-	.wb-sources-table td.num {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
-		white-space: nowrap;
-	}
-	.wb-sources-table th.num { text-align: right; }
-	.wb-sources-table td.langs { white-space: nowrap; }
-	.wb-sources-table td:first-child { font-weight: 600; }
-	.wb-sources-table tr.clickable { cursor: pointer; }
-	.wb-sources-table tbody tr.clickable:hover { background: var(--subtle); }
-	.wb-badge {
-		display: inline-block;
-		padding: 0.05em 0.45em;
-		border: 1px solid rgb(var(--border));
-		border-radius: 99px;
-		font-size: 0.72em;
-		color: rgb(var(--muted));
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		vertical-align: middle;
-	}
-	.wb-badge.restricted { color: #a45200; border-color: #f0c89a; background: #fff7ec; }
-	.wb-badge.permissive { color: #0a6b34; border-color: #b3e1c6; background: #eef9f1; }
-	.wb-badge.own-work   { color: #0a4f95; border-color: #bcd9f3; background: #eef4fa; }
-
-	dialog.wb-detail {
-		max-width: 560px;
-		width: calc(100% - 2em);
-		border: 1px solid rgb(var(--border));
-		border-radius: 10px;
-		padding: 1.4em 1.6em;
-		font-family: var(--font-body);
-		color: rgb(var(--text));
-	}
-	dialog.wb-detail::backdrop {
-		background: rgba(0, 0, 0, 0.35);
-	}
-	.wb-close {
-		float: right;
-		background: none;
-		border: none;
-		font-size: 1.4em;
-		line-height: 1;
-		cursor: pointer;
-		color: rgb(var(--muted));
-		padding: 0 0.2em;
-	}
-	#wb-detail-body h3 {
-		margin: 0 0 0.3em;
-		font-size: 1.3em;
-	}
-	#wb-detail-body .author {
-		color: rgb(var(--muted));
-		margin-bottom: 1em;
-	}
-	#wb-detail-body dl {
-		display: grid;
-		grid-template-columns: max-content 1fr;
-		gap: 0.35em 0.9em;
-		margin: 0;
-		font-size: 0.92em;
-	}
-	#wb-detail-body dt {
-		color: rgb(var(--muted));
-		font-weight: 600;
-	}
-	#wb-detail-body dd {
-		margin: 0;
-	}
-	#wb-detail-body .desc {
-		margin-top: 1em;
-		font-size: 0.92em;
-		line-height: 1.55;
-		color: rgb(var(--text));
-	}
-</style>
 
 <script define:vars={{ apiBase }}>
 	// ────────────────────────────────────────────────────────────────────
@@ -534,9 +151,11 @@ const apiBase = (
 			  }).join('') + (defs.length > 2 ? ' <span class="d-more">+' + (defs.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
 
+		// Source chips link to that source on the Sources page (/sources#slug),
+		// which opens its metadata. Plain links, so they work without JS too.
 		const meta_ = [
 			...[...group.domains].slice(0, 1).map(escapeHtml),
-			...[...group.sources].map((s) => `<button type="button" class="pill pill-src" data-slug="${escapeHtml(s)}" title="View this source's details">${escapeHtml(s)}</button>`),
+			...[...group.sources].map((s) => `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`),
 		].join(' · ');
 
 		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
@@ -565,64 +184,6 @@ const apiBase = (
 				? `<div class="wb-more">Showing ${MAX_RESULTS} of ${groups.length} headwords.</div>`
 				: '');
 		box.hidden = false;
-	}
-
-	function renderSources(sources) {
-		const wrap = document.getElementById('wb-sources-wrap');
-		if (!sources.length) {
-			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
-			return;
-		}
-		// Full table — every source's metadata at a glance. Row → metadata dialog.
-		const rows = sources.map((s) => {
-			const langs = [s.source_lang, s.target_lang]
-				.filter(Boolean).map((x) => String(x).toUpperCase()).join('&nbsp;↔&nbsp;') || '—';
-			const lic = (s.licence || 'unknown').toLowerCase();
-			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
-			const n = (s.entry_count || 0).toLocaleString('en-GB');
-			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
-				<td>${escapeHtml(s.title || s.slug)}</td>
-				<td>${escapeHtml(s.author || '—')}</td>
-				<td class="num">${escapeHtml(String(s.year || '—'))}</td>
-				<td class="langs">${langs}</td>
-				<td class="num">${n}</td>
-				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
-			</tr>`;
-		}).join('');
-		wrap.innerHTML = `<table class="wb-sources-table">
-			<thead><tr>
-				<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
-			</tr></thead>
-			<tbody>${rows}</tbody>
-		</table>`;
-		wrap.querySelectorAll('tr.clickable').forEach((el) => {
-			el.addEventListener('click', () => openDetail(el.dataset.slug));
-		});
-	}
-
-	function openDetail(slug) {
-		const s = meta.sources.find((x) => x.slug === slug);
-		if (!s) return;
-		const dlg = document.getElementById('wb-detail');
-		const body = document.getElementById('wb-detail-body');
-		const rows = [
-			['Publisher',       s.publisher],
-			['Year',            s.year],
-			['Source language', s.source_lang],
-			['Target language', s.target_lang],
-			['Domain',          s.primary_domain],
-			['Subject tags',    s.subject_tags],
-			['Licence',         s.licence],
-			['Entries',         (s.entry_count || 0).toLocaleString('en-GB')],
-		].filter(([, v]) => v != null && v !== '');
-		body.innerHTML =
-			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
-			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
-			'<dl>' +
-			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
-			'</dl>' +
-			(s.description ? `<div class="desc">${escapeHtml(s.description)}</div>` : '');
-		dlg.showModal();
 	}
 
 	function updateDirButtons() {
@@ -729,51 +290,18 @@ const apiBase = (
 			updateDirButtons();
 			rerender();
 		});
-
-		// A source chip inside a result card jumps to the Sources tab and opens
-		// that source's metadata. Delegated, since cards are re-rendered often.
-		document.getElementById('wb-results').addEventListener('click', (ev) => {
-			const chip = ev.target.closest('.pill-src');
-			if (!chip) return;
-			setView('sources');
-			openDetail(chip.dataset.slug);
-		});
-	}
-
-	function setView(view) {
-		document.querySelectorAll('.wb-tab').forEach((b) => {
-			b.classList.toggle('active', b.dataset.view === view);
-		});
-		document.getElementById('view-search').hidden = view !== 'search';
-		document.getElementById('view-sources').hidden = view !== 'sources';
-		if (view === 'search') {
-			const input = document.getElementById('wb-q');
-			if (input) input.focus();
-		}
-	}
-
-	function bindTabs() {
-		document.querySelectorAll('.wb-tab').forEach((b) => {
-			b.addEventListener('click', () => setView(b.dataset.view));
-		});
-		// Allow deep-linking straight to the Sources tab via #sources.
-		if (location.hash === '#sources') setView('sources');
 	}
 
 	async function main() {
 		const counts = document.getElementById('wb-counts');
 		if (!apiBase) {
 			counts.textContent = 'Search API not configured (set PUBLIC_WORDBOOK_API).';
-			document.getElementById('wb-sources-wrap').innerHTML =
-				'<p class="wb-loading">Search API not configured.</p>';
 			return;
 		}
 		try {
 			meta = await getJSON('/meta');
 		} catch (err) {
 			counts.textContent = 'Could not reach the Beijerterm search API. ' + err.message;
-			document.getElementById('wb-sources-wrap').innerHTML =
-				'<p class="wb-loading">Could not load sources.</p>';
 			return;
 		}
 		const dirs = discoverDirections(meta.lang_pairs || []);
@@ -782,10 +310,8 @@ const apiBase = (
 			return;
 		}
 		direction = dirs[0];
-		renderSources(meta.sources || []);
 		updateDirButtons();
 		bindSearch();
-		bindTabs();
 		updateCounts(null);
 
 		// Deep-link support: ?q=…&from=nl&to=en runs a search on load. This is

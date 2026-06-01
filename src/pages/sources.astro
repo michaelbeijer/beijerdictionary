@@ -1,0 +1,190 @@
+---
+import Base from '../layouts/Base.astro';
+import ViewTabs from '../components/ViewTabs.astro';
+
+// Sources page. We fetch /meta at BUILD time and render the table into static
+// HTML, so the source list is in the page Google receives (indexable) and
+// shows instantly. Only source *metadata* is exposed here — never the bulk
+// terminology, which stays behind the search API. A small client script opens
+// each source's detail dialog, and re-fetches at runtime if a build couldn't
+// reach the API (graceful fallback, so the page is never empty).
+const apiBase = (
+	import.meta.env.PUBLIC_WORDBOOK_API ||
+	(import.meta.env.DEV ? 'http://127.0.0.1:8787' : '')
+).replace(/\/$/, '');
+
+let sources = [];
+let counts = null;
+if (apiBase) {
+	try {
+		const res = await fetch(apiBase + '/meta');
+		if (res.ok) {
+			const data = await res.json();
+			sources = data.sources || [];
+			counts = data.counts || null;
+		}
+	} catch {
+		// Leave sources empty — the client script will fetch and render.
+	}
+}
+
+const langsOf = (s) =>
+	[s.source_lang, s.target_lang].filter(Boolean).map((x) => String(x).toUpperCase()).join(' ↔ ') || '—';
+const badgeClassOf = (s) => {
+	const lic = (s.licence || 'unknown').toLowerCase();
+	return ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
+};
+
+const intro = counts
+	? `The ${counts.sources.toLocaleString('en-GB')} glossaries, term lists and reference works behind the search — ${counts.entries.toLocaleString('en-GB')} entries in all. Click any source for its full publication metadata.`
+	: 'The glossaries, term lists and reference works behind the search — click any source for its full publication metadata.';
+---
+
+<Base
+	title="Sources behind Beijerterm — glossaries & term lists"
+	description="The curated glossaries, term lists and reference works behind Beijerterm — author, year, languages, entry count and licence for every source."
+>
+	<section class="wb-hero">
+		<h1>Sources behind Beijerterm</h1>
+		<p class="wb-tag">{intro}</p>
+		<ViewTabs current="sources" />
+	</section>
+
+	<section class="wb-view">
+		<div id="wb-sources-wrap">
+			{sources.length ? (
+				<table class="wb-sources-table">
+					<thead>
+						<tr>
+							<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
+						</tr>
+					</thead>
+					<tbody>
+						{sources.map((s) => (
+							<tr class="clickable" data-slug={s.slug}>
+								<td>{s.title || s.slug}</td>
+								<td>{s.author || '—'}</td>
+								<td class="num">{s.year || '—'}</td>
+								<td class="langs">{langsOf(s)}</td>
+								<td class="num">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
+								<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			) : (
+				<p class="wb-loading">Loading sources…</p>
+			)}
+		</div>
+	</section>
+
+	<dialog id="wb-detail" class="wb-detail">
+		<form method="dialog">
+			<button class="wb-close" aria-label="Close">×</button>
+		</form>
+		<div id="wb-detail-body"></div>
+	</dialog>
+</Base>
+
+<script type="application/json" id="wb-sources-data" is:inline set:html={JSON.stringify(sources)}></script>
+
+<script define:vars={{ apiBase }}>
+	// The source list is server-rendered above. This script only adds the
+	// interactive detail dialog (and a client fallback if the build shipped no
+	// data). It reads the embedded JSON — no per-visit API call when the build
+	// already has the data.
+
+	const escapeHtml = (s) =>
+		(s ?? '').replace(/[&<>"']/g, (c) => ({
+			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+		}[c]));
+
+	let sources = [];
+	try {
+		sources = JSON.parse(document.getElementById('wb-sources-data').textContent || '[]');
+	} catch { sources = []; }
+
+	const langsOf = (s) =>
+		[s.source_lang, s.target_lang].filter(Boolean).map((x) => String(x).toUpperCase()).join(' ↔ ') || '—';
+
+	function renderTable(list) {
+		const wrap = document.getElementById('wb-sources-wrap');
+		if (!list.length) {
+			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
+			return;
+		}
+		const rows = list.map((s) => {
+			const lic = (s.licence || 'unknown').toLowerCase();
+			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
+			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
+				<td>${escapeHtml(s.title || s.slug)}</td>
+				<td>${escapeHtml(s.author || '—')}</td>
+				<td class="num">${escapeHtml(String(s.year || '—'))}</td>
+				<td class="langs">${langsOf(s)}</td>
+				<td class="num">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
+				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
+			</tr>`;
+		}).join('');
+		wrap.innerHTML = `<table class="wb-sources-table">
+			<thead><tr>
+				<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
+			</tr></thead>
+			<tbody>${rows}</tbody>
+		</table>`;
+	}
+
+	function openDetail(slug) {
+		const s = sources.find((x) => x.slug === slug);
+		if (!s) return;
+		const dlg = document.getElementById('wb-detail');
+		const body = document.getElementById('wb-detail-body');
+		const rows = [
+			['Publisher',       s.publisher],
+			['Year',            s.year],
+			['Source language', s.source_lang],
+			['Target language', s.target_lang],
+			['Domain',          s.primary_domain],
+			['Subject tags',    s.subject_tags],
+			['Licence',         s.licence],
+			['Entries',         (s.entry_count || 0).toLocaleString('en-GB')],
+		].filter(([, v]) => v != null && v !== '');
+		body.innerHTML =
+			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
+			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
+			'<dl>' +
+			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
+			'</dl>' +
+			(s.description ? `<div class="desc">${escapeHtml(s.description)}</div>` : '');
+		dlg.showModal();
+	}
+
+	function wireRows() {
+		document.querySelectorAll('#wb-sources-wrap tr.clickable').forEach((el) => {
+			el.addEventListener('click', () => openDetail(el.dataset.slug));
+		});
+	}
+
+	async function main() {
+		// Fallback: a build that couldn't reach the API ships no rows — fetch now.
+		if (!sources.length && apiBase) {
+			try {
+				const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
+				if (r.ok) {
+					const d = await r.json();
+					sources = d.sources || [];
+					renderTable(sources);
+				}
+			} catch {
+				document.getElementById('wb-sources-wrap').innerHTML =
+					'<p class="wb-loading">Could not load sources right now.</p>';
+			}
+		}
+		wireRows();
+
+		// A source chip on the search page links here as /sources#slug — open it.
+		const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+		if (hash) openDetail(hash);
+	}
+
+	main();
+</script>
