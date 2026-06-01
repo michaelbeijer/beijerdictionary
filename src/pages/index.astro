@@ -29,8 +29,11 @@ const apiBase = (
 			<label class="sr-only" for="wb-q">Search Beijerterm</label>
 			<input id="wb-q" type="search" placeholder="Search…" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
 			<div class="wb-controls">
-				<div id="wb-dir" class="wb-dir" aria-label="Search direction"></div>
-				<button id="wb-swap" type="button" class="wb-swap" aria-label="Swap direction">⇄</button>
+				<label class="sr-only" for="wb-from">From language</label>
+				<select id="wb-from" class="wb-lang" aria-label="From language"></select>
+				<button id="wb-swap" type="button" class="wb-swap" aria-label="Swap languages">⇄</button>
+				<label class="sr-only" for="wb-to">To language</label>
+				<select id="wb-to" class="wb-lang" aria-label="To language"></select>
 			</div>
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
@@ -186,24 +189,43 @@ const apiBase = (
 		box.hidden = false;
 	}
 
-	function updateDirButtons() {
-		const wrap = document.getElementById('wb-dir');
-		const dirs = discoverDirections(meta.lang_pairs || []);
-		wrap.innerHTML = dirs.map((d) => {
-			const active = direction && d.src === direction.src && d.tgt === direction.tgt;
-			return `<button data-src="${d.src}" data-tgt="${d.tgt}" class="${active ? 'active' : ''}">
-				${escapeHtml(langName(d.src))} → ${escapeHtml(langName(d.tgt))}
-			</button>`;
-		}).join('');
-		wrap.querySelectorAll('button').forEach((b) => {
-			b.addEventListener('click', () => {
-				direction = { src: b.dataset.src, tgt: b.dataset.tgt };
-				updateDirButtons();
-				rerender();
-			});
-		});
+	// Adjacency map: source-lang → sorted list of target-langs it pairs with.
+	// Built from the discovered directions so the To dropdown only ever offers
+	// languages that actually have data with the chosen From language.
+	function langAdjacency() {
+		const adj = new Map();
+		for (const d of discoverDirections(meta.lang_pairs || [])) {
+			if (!adj.has(d.src)) adj.set(d.src, new Set());
+			adj.get(d.src).add(d.tgt);
+		}
+		return adj;
+	}
+
+	const byName = (a, b) => langName(a).localeCompare(langName(b));
+
+	// Populate the From/To dropdowns to reflect `direction`. Two languages
+	// scale to two dropdowns; twenty pairs no longer mean twenty buttons.
+	function updateDirControls() {
+		const fromSel = document.getElementById('wb-from');
+		const toSel = document.getElementById('wb-to');
+		const adj = langAdjacency();
+		const froms = [...adj.keys()].sort(byName);
+		if (!froms.length) return;
+		if (!direction || !adj.has(direction.src)) {
+			direction = { src: froms[0], tgt: [...adj.get(froms[0])].sort(byName)[0] };
+		}
+		fromSel.innerHTML = froms
+			.map((c) => `<option value="${c}">${escapeHtml(langName(c))}</option>`).join('');
+		fromSel.value = direction.src;
+
+		const tos = [...(adj.get(direction.src) || [])].sort(byName);
+		if (!tos.includes(direction.tgt)) direction.tgt = tos[0];
+		toSel.innerHTML = tos
+			.map((c) => `<option value="${c}">${escapeHtml(langName(c))}</option>`).join('');
+		toSel.value = direction.tgt;
+
 		const input = document.getElementById('wb-q');
-		if (direction) {
+		if (input && direction) {
 			input.placeholder = `Search ${langName(direction.src)} → ${langName(direction.tgt)} (press /)`;
 		}
 	}
@@ -284,11 +306,24 @@ const apiBase = (
 			}
 		});
 
+		document.getElementById('wb-from').addEventListener('change', (ev) => {
+			direction = { src: ev.target.value, tgt: direction.tgt };
+			updateDirControls();   // re-derives valid To options for the new From
+			rerender();
+		});
+		document.getElementById('wb-to').addEventListener('change', (ev) => {
+			direction.tgt = ev.target.value;
+			rerender();
+		});
 		document.getElementById('wb-swap').addEventListener('click', () => {
 			if (!direction) return;
-			direction = { src: direction.tgt, tgt: direction.src };
-			updateDirButtons();
-			rerender();
+			const adj = langAdjacency();
+			// Swap only if the reverse direction actually has data.
+			if (adj.get(direction.tgt) && adj.get(direction.tgt).has(direction.src)) {
+				direction = { src: direction.tgt, tgt: direction.src };
+				updateDirControls();
+				rerender();
+			}
 		});
 	}
 
@@ -309,8 +344,9 @@ const apiBase = (
 			counts.textContent = 'No language pairs available.';
 			return;
 		}
-		direction = dirs[0];
-		updateDirButtons();
+		// Sensible default: Dutch → English if present, else the first pair.
+		direction = dirs.find((d) => d.src === 'nl' && d.tgt === 'en') || dirs[0];
+		updateDirControls();
 		bindSearch();
 		updateCounts(null);
 
@@ -325,7 +361,7 @@ const apiBase = (
 			const match = dirs.find((d) => d.src === from && d.tgt === to);
 			if (match) {
 				direction = match;
-				updateDirButtons();
+				updateDirControls();
 			}
 		}
 		const q = params.get('q');

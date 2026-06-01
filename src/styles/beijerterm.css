@@ -42,6 +42,17 @@
 	margin-top: 0.55em;
 	flex-wrap: wrap;
 }
+.wb-lang {
+	font: inherit;
+	font-size: 0.9em;
+	padding: 0.3em 0.55em;
+	border: 1px solid rgb(var(--border));
+	border-radius: 7px;
+	background: rgb(var(--bg));
+	color: rgb(var(--text));
+	cursor: pointer;
+}
+.wb-lang:hover { border-color: rgb(var(--text)); }
 .wb-dir {
 	display: inline-flex;
 	gap: 0.25em;
