@@ -267,6 +267,15 @@ table.wb-sources-table {
 .wb-sources-table td:first-child { font-weight: 600; }
 .wb-sources-table tr.clickable { cursor: pointer; }
 .wb-sources-table tbody tr.clickable:hover { background: var(--subtle); }
+/* Flash + linger the row you just had open, after closing its dialog. */
+@keyframes wb-row-flash {
+	0%   { background-color: rgba(var(--accent), 0.22); }
+	70%  { background-color: rgba(var(--accent), 0.22); }
+	100% { background-color: transparent; }
+}
+.wb-sources-table tbody tr.wb-flash td {
+	animation: wb-row-flash 1.8s ease-out;
+}
 .wb-badge {
 	display: inline-block;
 	padding: 0.05em 0.45em;

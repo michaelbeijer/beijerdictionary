@@ -133,9 +133,12 @@ const intro = counts
 		</table>`;
 	}
 
+	let lastSlug = null;
+
 	function openDetail(slug) {
 		const s = sources.find((x) => x.slug === slug);
 		if (!s) return;
+		lastSlug = slug;
 		const dlg = document.getElementById('wb-detail');
 		const body = document.getElementById('wb-detail-body');
 		const rows = [
@@ -164,6 +167,23 @@ const intro = counts
 		});
 	}
 
+	// When the dialog closes (× / Esc), scroll its row into view and flash it,
+	// so you can see which source you were just looking at.
+	function bindDialogClose() {
+		const dlg = document.getElementById('wb-detail');
+		dlg.addEventListener('close', () => {
+			if (!lastSlug) return;
+			const row = document.querySelector(
+				'#wb-sources-wrap tr[data-slug="' + (window.CSS && CSS.escape ? CSS.escape(lastSlug) : lastSlug) + '"]'
+			);
+			if (!row) return;
+			row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			row.classList.remove('wb-flash');
+			void row.offsetWidth; // reflow so the animation restarts each time
+			row.classList.add('wb-flash');
+		});
+	}
+
 	async function main() {
 		// Fallback: a build that couldn't reach the API ships no rows — fetch now.
 		if (!sources.length && apiBase) {
@@ -180,6 +200,7 @@ const intro = counts
 			}
 		}
 		wireRows();
+		bindDialogClose();
 
 		// A source chip on the search page links here as /sources#slug — open it.
 		const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
