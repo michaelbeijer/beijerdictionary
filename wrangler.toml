@@ -1,0 +1,9 @@
+# Cloudflare deployment as a static-assets Worker (Workers Builds flow).
+# `npm run build` produces dist/; `npx wrangler deploy` uploads it as static
+# assets served at the edge. No Worker script — this is a pure static site.
+# (`public/_redirects` → dist/_redirects handles /home → /.)
+name = "beijerterm"
+compatibility_date = "2024-09-23"
+
+[assets]
+directory = "./dist"
