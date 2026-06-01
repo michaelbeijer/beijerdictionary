@@ -712,6 +712,27 @@ const apiBase = (
 		updateDirButtons();
 		bindSearch();
 		updateCounts(null);
+
+		// Deep-link support: ?q=…&from=nl&to=en runs a search on load. This is
+		// how Beijerterm embeds as a SuperLookup web resource (and makes search
+		// URLs shareable). `from`/`to` are ISO 639-1 codes; if they match a known
+		// direction it's selected, otherwise the default direction is kept.
+		const params = new URLSearchParams(location.search);
+		const from = (params.get('from') || '').toLowerCase();
+		const to = (params.get('to') || '').toLowerCase();
+		if (from && to) {
+			const match = dirs.find((d) => d.src === from && d.tgt === to);
+			if (match) {
+				direction = match;
+				updateDirButtons();
+			}
+		}
+		const q = params.get('q');
+		if (q) {
+			const input = document.getElementById('wb-q');
+			input.value = q;
+			runSearch();
+		}
 	}
 
 	main();
