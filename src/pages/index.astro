@@ -558,7 +558,7 @@ const apiBase = (
 		// Full table — every source's metadata at a glance. Row → metadata dialog.
 		const rows = sources.map((s) => {
 			const langs = [s.source_lang, s.target_lang]
-				.filter(Boolean).join('&nbsp;↔&nbsp;').toUpperCase() || '—';
+				.filter(Boolean).map((x) => String(x).toUpperCase()).join('&nbsp;↔&nbsp;') || '—';
 			const lic = (s.licence || 'unknown').toLowerCase();
 			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
 			const n = (s.entry_count || 0).toLocaleString('en-GB');
