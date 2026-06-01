@@ -1,0 +1,718 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Search API base. Production sets PUBLIC_WORDBOOK_API to the deployed Worker
+// URL; in `astro dev` it falls back to a local Worker on :8787. The terminology
+// data is never shipped to the browser — only per-query result snippets.
+const apiBase = (
+	import.meta.env.PUBLIC_WORDBOOK_API ||
+	(import.meta.env.DEV ? 'http://127.0.0.1:8787' : '')
+).replace(/\/$/, '');
+---
+
+<Base
+	title="Beijerterm — multilingual terminology for technical translators"
+	description="A curated, searchable multilingual terminology database for technical translators — Dutch ↔ English and more, with full provenance."
+>
+	<section class="wb-hero">
+		<h1>Beijerterm</h1>
+		<p class="wb-tag">
+			A curated, searchable multilingual terminology database for technical
+			translators — with full provenance for every source.
+		</p>
+
+		<div class="wb-search">
+			<label class="sr-only" for="wb-q">Search Beijerterm</label>
+			<input
+				id="wb-q"
+				type="search"
+				placeholder="Search…"
+				autocomplete="off"
+				spellcheck="false"
+				autocapitalize="off"
+				inputmode="search"
+			/>
+			<div class="wb-controls">
+				<div id="wb-dir" class="wb-dir" aria-label="Search direction">
+					<!-- populated by JS from the search API's /meta endpoint -->
+				</div>
+				<button id="wb-swap" type="button" class="wb-swap" aria-label="Swap direction">⇄</button>
+			</div>
+			<div id="wb-counts" class="wb-counts">Loading…</div>
+		</div>
+
+		<div id="wb-results" class="wb-results" hidden></div>
+	</section>
+
+	<section class="wb-sources">
+		<h2>Sources behind Beijerterm</h2>
+		<p class="wb-tag">
+			The glossaries, term lists and reference works behind the search.
+			Click any source for its full publication metadata.
+		</p>
+		<div id="wb-sources-wrap">
+			<p class="wb-loading">Loading sources…</p>
+		</div>
+	</section>
+
+	<dialog id="wb-detail" class="wb-detail">
+		<form method="dialog">
+			<button class="wb-close" aria-label="Close">×</button>
+		</form>
+		<div id="wb-detail-body"></div>
+	</dialog>
+</Base>
+
+<style>
+	.wb-hero {
+		margin: 0 0 3em;
+	}
+	.wb-hero h1 {
+		margin-bottom: 0.1em;
+	}
+	.wb-tag {
+		color: rgb(var(--muted));
+		margin-top: 0;
+		line-height: 1.6;
+	}
+	.wb-search {
+		margin-top: 1.6em;
+	}
+	#wb-q {
+		width: 100%;
+		font-size: 1.15em;
+		padding: 0.7em 0.9em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 8px;
+		background: rgb(var(--bg));
+		color: rgb(var(--text));
+		font-family: var(--font-body);
+		box-sizing: border-box;
+	}
+	#wb-q:focus {
+		outline: none;
+		border-color: rgb(var(--text));
+	}
+	.wb-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+		margin-top: 0.55em;
+		flex-wrap: wrap;
+	}
+	.wb-dir {
+		display: inline-flex;
+		gap: 0.25em;
+	}
+	.wb-dir button {
+		font: inherit;
+		font-size: 0.78em;
+		padding: 0.25em 0.7em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 99px;
+		background: rgb(var(--bg));
+		color: rgb(var(--muted));
+		cursor: pointer;
+		letter-spacing: 0.04em;
+	}
+	.wb-dir button:hover {
+		color: rgb(var(--text));
+	}
+	.wb-dir button.active {
+		background: rgb(var(--text));
+		color: rgb(var(--bg));
+		border-color: rgb(var(--text));
+	}
+	.wb-swap {
+		font-size: 1.05em;
+		padding: 0.1em 0.55em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 99px;
+		background: rgb(var(--bg));
+		color: rgb(var(--muted));
+		cursor: pointer;
+	}
+	.wb-swap:hover {
+		color: rgb(var(--text));
+	}
+	.wb-counts {
+		margin-top: 0.55em;
+		color: rgb(var(--muted));
+		font-size: 0.85em;
+	}
+
+	.wb-results {
+		margin-top: 1.2em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 8px;
+		overflow: hidden;
+	}
+	.wb-results[hidden] {
+		display: none;
+	}
+
+	/* Headword card: one card per unique source-language headword. */
+	.wb-card {
+		padding: 0.85em 1em;
+		border-bottom: 1px solid rgb(var(--border));
+	}
+	.wb-card:last-child {
+		border-bottom: none;
+	}
+	.wb-headword {
+		font-size: 1.05em;
+		font-weight: 600;
+		color: rgb(var(--text));
+	}
+	.wb-headword .qual {
+		font-weight: 400;
+		color: rgb(var(--muted));
+		font-size: 0.85em;
+		margin-left: 0.2em;
+	}
+	.wb-equivs {
+		margin-top: 0.25em;
+		font-size: 0.97em;
+		line-height: 1.55;
+		color: rgb(var(--text));
+	}
+	.wb-equivs .arrow {
+		color: rgb(var(--muted));
+		margin-right: 0.3em;
+	}
+	.wb-equivs .e {
+		display: inline;
+	}
+	.wb-equivs .e + .e::before {
+		content: "·";
+		color: rgb(var(--muted));
+		margin: 0 0.35em;
+	}
+	.wb-equivs .e.hit {
+		font-weight: 700;
+	}
+	.wb-equivs .qual {
+		color: rgb(var(--muted));
+		font-size: 0.85em;
+		margin-left: 0.2em;
+	}
+	.wb-def {
+		margin-top: 0.4em;
+		font-size: 0.9em;
+		line-height: 1.5;
+		color: rgb(var(--muted));
+	}
+	.wb-def .d + .d::before {
+		content: '';
+		display: block;
+		height: 0.25em;
+	}
+	.wb-def .d.hit {
+		color: rgb(var(--text));
+	}
+	.wb-def .d-more {
+		font-style: italic;
+		opacity: 0.8;
+	}
+	.wb-card-meta {
+		margin-top: 0.5em;
+		font-size: 0.7em;
+		color: rgb(var(--muted));
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.wb-card-meta .pill {
+		display: inline-block;
+		padding: 0.05em 0.55em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 99px;
+		margin-right: 0.3em;
+		font-weight: 600;
+	}
+	.wb-related {
+		margin-top: 0.45em;
+		font-size: 0.83em;
+		color: rgb(var(--muted));
+		line-height: 1.5;
+	}
+	.wb-related .label {
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		font-size: 0.85em;
+		margin-right: 0.4em;
+	}
+	.wb-related a {
+		color: rgb(var(--text));
+		text-decoration: none;
+		border-bottom: 1px dotted rgb(var(--border));
+		cursor: pointer;
+	}
+	.wb-related a:hover {
+		border-bottom-color: rgb(var(--text));
+	}
+	.wb-related .sep {
+		margin: 0 0.3em;
+	}
+	.wb-empty {
+		padding: 0.9em;
+		color: rgb(var(--muted));
+		font-size: 0.95em;
+		text-align: center;
+	}
+	.wb-more {
+		padding: 0.6em 0.9em;
+		text-align: center;
+		font-size: 0.85em;
+		color: rgb(var(--muted));
+		background: rgba(0, 0, 0, 0.02);
+	}
+
+	/* Sources table — unchanged from previous version. */
+	.wb-sources h2 {
+		margin-bottom: 0.3em;
+	}
+	#wb-sources-wrap {
+		margin-top: 1em;
+	}
+	.wb-loading {
+		color: rgb(var(--muted));
+	}
+	table.wb-sources-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.92em;
+	}
+	.wb-sources-table th,
+	.wb-sources-table td {
+		text-align: left;
+		padding: 0.55em 0.6em;
+		border-bottom: 1px solid rgb(var(--border));
+		vertical-align: top;
+	}
+	.wb-sources-table th {
+		font-size: 0.78em;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: rgb(var(--muted));
+		font-weight: 600;
+	}
+	.wb-sources-table tr.clickable {
+		cursor: pointer;
+	}
+	.wb-sources-table tr.clickable:hover td {
+		background: rgba(0, 0, 0, 0.025);
+	}
+	.wb-sources-table td.num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+	.wb-sources-table td.langs {
+		font-variant-numeric: tabular-nums;
+		text-transform: uppercase;
+		font-size: 0.85em;
+		color: rgb(var(--muted));
+	}
+	.wb-badge {
+		display: inline-block;
+		padding: 0.05em 0.45em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 99px;
+		font-size: 0.72em;
+		color: rgb(var(--muted));
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		vertical-align: middle;
+	}
+	.wb-badge.restricted { color: #a45200; border-color: #f0c89a; background: #fff7ec; }
+	.wb-badge.permissive { color: #0a6b34; border-color: #b3e1c6; background: #eef9f1; }
+	.wb-badge.own-work   { color: #0a4f95; border-color: #bcd9f3; background: #eef4fa; }
+
+	dialog.wb-detail {
+		max-width: 560px;
+		width: calc(100% - 2em);
+		border: 1px solid rgb(var(--border));
+		border-radius: 10px;
+		padding: 1.4em 1.6em;
+		font-family: var(--font-body);
+		color: rgb(var(--text));
+	}
+	dialog.wb-detail::backdrop {
+		background: rgba(0, 0, 0, 0.35);
+	}
+	.wb-close {
+		float: right;
+		background: none;
+		border: none;
+		font-size: 1.4em;
+		line-height: 1;
+		cursor: pointer;
+		color: rgb(var(--muted));
+		padding: 0 0.2em;
+	}
+	#wb-detail-body h3 {
+		margin: 0 0 0.3em;
+		font-size: 1.3em;
+	}
+	#wb-detail-body .author {
+		color: rgb(var(--muted));
+		margin-bottom: 1em;
+	}
+	#wb-detail-body dl {
+		display: grid;
+		grid-template-columns: max-content 1fr;
+		gap: 0.35em 0.9em;
+		margin: 0;
+		font-size: 0.92em;
+	}
+	#wb-detail-body dt {
+		color: rgb(var(--muted));
+		font-weight: 600;
+	}
+	#wb-detail-body dd {
+		margin: 0;
+	}
+	#wb-detail-body .desc {
+		margin-top: 1em;
+		font-size: 0.92em;
+		line-height: 1.55;
+		color: rgb(var(--text));
+	}
+</style>
+
+<script define:vars={{ apiBase }}>
+	// ────────────────────────────────────────────────────────────────────
+	// Beijerterm search — server-side via the Cloudflare Worker + D1 API.
+	//
+	// The browser NEVER receives the dataset. On load it fetches /meta (the
+	// source inventory + language pairs), and on each keystroke it fetches
+	// /search?q=… which returns only the matching entries. Results are grouped
+	// client-side into one card per headword for the chosen direction.
+	// ────────────────────────────────────────────────────────────────────
+
+	const MAX_RESULTS = 50;
+	const DEBOUNCE_MS = 180;
+
+	const LANG_LABELS = {
+		nl: 'Dutch', en: 'English', de: 'German', fr: 'French',
+		es: 'Spanish', it: 'Italian', pt: 'Portuguese', pl: 'Polish',
+		ru: 'Russian', sv: 'Swedish', no: 'Norwegian', da: 'Danish',
+		fi: 'Finnish', cs: 'Czech', ja: 'Japanese', zh: 'Chinese',
+	};
+	const langName = (c) => LANG_LABELS[c] || (c || '').toUpperCase();
+
+	const fold = (s) =>
+		s == null ? '' : s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
+
+	const escapeHtml = (s) =>
+		(s ?? '').replace(/[&<>"']/g, (c) => ({
+			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+		}[c]));
+
+	// State
+	let meta = { sources: [], lang_pairs: [], counts: { sources: 0, entries: 0 } };
+	let direction = null;        // {src, tgt}
+	let lastEntries = [];        // raw results from the last /search
+	let lastQuery = '';
+	let searchAbort = null;
+	let debounceTimer = null;
+
+	async function getJSON(path, signal) {
+		const r = await fetch(apiBase + path, { signal, headers: { Accept: 'application/json' } });
+		if (!r.ok) throw new Error('API returned ' + r.status);
+		return r.json();
+	}
+
+	function discoverDirections(pairs) {
+		const dirs = [];
+		for (const p of pairs) {
+			dirs.push({ src: p.a, tgt: p.b });
+			dirs.push({ src: p.b, tgt: p.a });
+		}
+		const seen = new Set();
+		return dirs.filter((d) => {
+			const k = d.src + '>' + d.tgt;
+			if (seen.has(k)) return false;
+			seen.add(k);
+			return true;
+		});
+	}
+
+	// Group a flat entry list into ordered headword cards for a direction.
+	// Insertion order preserves the server's bm25 ranking.
+	function groupForDirection(entries, dir) {
+		const index = new Map();
+		const order = [];
+		for (const e of entries) {
+			let head, qHead, equiv, qEquiv;
+			if (e.la === dir.src && e.lb === dir.tgt) {
+				head = e.a; qHead = e.qa; equiv = e.b; qEquiv = e.qb;
+			} else if (e.la === dir.tgt && e.lb === dir.src) {
+				head = e.b; qHead = e.qb; equiv = e.a; qEquiv = e.qa;
+			} else {
+				continue;
+			}
+			if (!head || !equiv) continue;
+			const hf = fold(head);
+			let g = index.get(hf);
+			if (!g) {
+				g = {
+					display: head, headFold: hf, headQual: qHead,
+					equivDisplay: new Map(), qByEquiv: new Map(),
+					sources: new Set(), domains: new Set(), defs: new Set(),
+				};
+				index.set(hf, g);
+				order.push(g);
+			}
+			const ef = fold(equiv);
+			if (!g.equivDisplay.has(ef)) g.equivDisplay.set(ef, equiv);
+			if (qEquiv && !g.qByEquiv.has(ef)) g.qByEquiv.set(ef, qEquiv);
+			if (e.src) String(e.src).split(',').forEach((s) => g.sources.add(s.trim()));
+			if (e.dom) g.domains.add(e.dom);
+			if (e.def) g.defs.add(e.def);
+		}
+		return order;
+	}
+
+	function renderCard(group, query) {
+		const equivList = [...group.equivDisplay.values()].sort((a, b) => a.localeCompare(b));
+		const equivHtml = equivList.map((t) => {
+			const ef = fold(t);
+			const q = group.qByEquiv.get(ef);
+			const isHit = query && fold(t).includes(query);
+			const qSpan = q ? ` <span class="qual">(${escapeHtml(q)})</span>` : '';
+			return `<span class="e${isHit ? ' hit' : ''}">${escapeHtml(t)}${qSpan}</span>`;
+		}).join('');
+
+		const defs = [...group.defs];
+		const defHtml = defs.length
+			? '<div class="wb-def">' + defs.slice(0, 2).map((d) => {
+					const isHit = query && fold(d).includes(query);
+					return '<span class="d' + (isHit ? ' hit' : '') + '">' + escapeHtml(d) + '</span>';
+			  }).join('') + (defs.length > 2 ? ' <span class="d-more">+' + (defs.length - 2) + ' more</span>' : '') + '</div>'
+			: '';
+
+		const meta_ = [
+			...[...group.domains].slice(0, 1).map(escapeHtml),
+			...[...group.sources].map((s) => `<span class="pill">${escapeHtml(s)}</span>`),
+		].join(' · ');
+
+		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
+		return `<article class="wb-card">
+			<div class="wb-headword">${
+				query && group.headFold.includes(query)
+					? `<span class="hit">${escapeHtml(group.display)}</span>`
+					: escapeHtml(group.display)
+			}${qH}</div>
+			<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>
+			${defHtml}
+			${meta_ ? `<div class="wb-card-meta">${meta_}</div>` : ''}
+		</article>`;
+	}
+
+	function renderResults(groups, query) {
+		const box = document.getElementById('wb-results');
+		if (!groups.length) {
+			box.innerHTML = '<p class="wb-empty">No matches.</p>';
+			box.hidden = false;
+			return;
+		}
+		const shown = groups.slice(0, MAX_RESULTS);
+		box.innerHTML = shown.map((g) => renderCard(g, query)).join('')
+			+ (groups.length > MAX_RESULTS
+				? `<div class="wb-more">Showing ${MAX_RESULTS} of ${groups.length} headwords.</div>`
+				: '');
+		box.hidden = false;
+	}
+
+	function renderSources(sources) {
+		const wrap = document.getElementById('wb-sources-wrap');
+		if (!sources.length) {
+			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
+			return;
+		}
+		const head =
+			'<thead><tr>' +
+			'<th>Source</th><th>Author</th><th>Year</th><th>Languages</th>' +
+			'<th class="num">Entries</th><th>Licence</th></tr></thead>';
+		const body = '<tbody>' + sources.map((s) => {
+			const langs = [s.source_lang, s.target_lang]
+				.filter(Boolean).join('&nbsp;↔&nbsp;') || '—';
+			const lic = (s.licence || 'unknown').toLowerCase();
+			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
+			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
+				<td>${escapeHtml(s.title || s.slug)}</td>
+				<td>${escapeHtml(s.author || '—')}</td>
+				<td>${s.year ? escapeHtml(String(s.year)) : '—'}</td>
+				<td class="langs">${langs}</td>
+				<td class="num">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
+				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
+			</tr>`;
+		}).join('') + '</tbody>';
+		wrap.innerHTML = '<table class="wb-sources-table">' + head + body + '</table>';
+		wrap.querySelectorAll('tr.clickable').forEach((tr) => {
+			tr.addEventListener('click', () => openDetail(tr.dataset.slug));
+		});
+	}
+
+	function openDetail(slug) {
+		const s = meta.sources.find((x) => x.slug === slug);
+		if (!s) return;
+		const dlg = document.getElementById('wb-detail');
+		const body = document.getElementById('wb-detail-body');
+		const rows = [
+			['Publisher',       s.publisher],
+			['Year',            s.year],
+			['Source language', s.source_lang],
+			['Target language', s.target_lang],
+			['Domain',          s.primary_domain],
+			['Subject tags',    s.subject_tags],
+			['Licence',         s.licence],
+			['Entries',         (s.entry_count || 0).toLocaleString('en-GB')],
+		].filter(([, v]) => v != null && v !== '');
+		body.innerHTML =
+			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
+			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
+			'<dl>' +
+			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
+			'</dl>' +
+			(s.description ? `<div class="desc">${escapeHtml(s.description)}</div>` : '');
+		dlg.showModal();
+	}
+
+	function updateDirButtons() {
+		const wrap = document.getElementById('wb-dir');
+		const dirs = discoverDirections(meta.lang_pairs || []);
+		wrap.innerHTML = dirs.map((d) => {
+			const active = direction && d.src === direction.src && d.tgt === direction.tgt;
+			return `<button data-src="${d.src}" data-tgt="${d.tgt}" class="${active ? 'active' : ''}">
+				${escapeHtml(langName(d.src))} → ${escapeHtml(langName(d.tgt))}
+			</button>`;
+		}).join('');
+		wrap.querySelectorAll('button').forEach((b) => {
+			b.addEventListener('click', () => {
+				direction = { src: b.dataset.src, tgt: b.dataset.tgt };
+				updateDirButtons();
+				rerender();
+			});
+		});
+		const input = document.getElementById('wb-q');
+		if (direction) {
+			input.placeholder = `Search ${langName(direction.src)} → ${langName(direction.tgt)} (press /)`;
+		}
+	}
+
+	function updateCounts(resultCount) {
+		const counts = document.getElementById('wb-counts');
+		const sN = meta.counts.sources || 0;
+		const eN = meta.counts.entries || 0;
+		let s = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'} · ` +
+			`${eN.toLocaleString('en-GB')} entries`;
+		if (resultCount == null) {
+			s += ' — type to search';
+		} else {
+			s += ` · ${resultCount.toLocaleString('en-GB')} match${resultCount === 1 ? '' : 'es'}`;
+		}
+		counts.textContent = s;
+	}
+
+	function rerender() {
+		if (!lastQuery) {
+			const box = document.getElementById('wb-results');
+			box.hidden = true; box.innerHTML = '';
+			updateCounts(null);
+			return;
+		}
+		const groups = groupForDirection(lastEntries, direction);
+		renderResults(groups, fold(lastQuery));
+		updateCounts(groups.length);
+	}
+
+	async function runSearch() {
+		const input = document.getElementById('wb-q');
+		const box = document.getElementById('wb-results');
+		const q = input.value.trim();
+		lastQuery = q;
+		if (!q) {
+			box.hidden = true; box.innerHTML = '';
+			updateCounts(null);
+			return;
+		}
+		if (searchAbort) searchAbort.abort();
+		searchAbort = new AbortController();
+		try {
+			const data = await getJSON(
+				'/search?q=' + encodeURIComponent(q) + '&limit=' + MAX_RESULTS,
+				searchAbort.signal
+			);
+			lastEntries = data.entries || [];
+			rerender();
+		} catch (err) {
+			if (err.name === 'AbortError') return;
+			box.innerHTML = '<p class="wb-empty">Search is temporarily unavailable.</p>';
+			box.hidden = false;
+		}
+	}
+
+	function bindSearch() {
+		const input = document.getElementById('wb-q');
+		input.addEventListener('input', () => {
+			clearTimeout(debounceTimer);
+			debounceTimer = setTimeout(runSearch, DEBOUNCE_MS);
+		});
+
+		document.addEventListener('keydown', (ev) => {
+			if (ev.key === '/' && document.activeElement !== input) {
+				const tag = (document.activeElement?.tagName || '').toLowerCase();
+				if (tag !== 'input' && tag !== 'textarea') {
+					ev.preventDefault();
+					input.focus();
+					input.select();
+				}
+			}
+			if (ev.key === 'Escape' && document.activeElement === input) {
+				input.value = '';
+				lastQuery = '';
+				document.getElementById('wb-results').hidden = true;
+				updateCounts(null);
+			}
+		});
+
+		document.getElementById('wb-swap').addEventListener('click', () => {
+			if (!direction) return;
+			direction = { src: direction.tgt, tgt: direction.src };
+			updateDirButtons();
+			rerender();
+		});
+	}
+
+	async function main() {
+		const counts = document.getElementById('wb-counts');
+		if (!apiBase) {
+			counts.textContent = 'Search API not configured (set PUBLIC_WORDBOOK_API).';
+			document.getElementById('wb-sources-wrap').innerHTML =
+				'<p class="wb-loading">Search API not configured.</p>';
+			return;
+		}
+		try {
+			meta = await getJSON('/meta');
+		} catch (err) {
+			counts.textContent = 'Could not reach the Beijerterm search API. ' + err.message;
+			document.getElementById('wb-sources-wrap').innerHTML =
+				'<p class="wb-loading">Could not load sources.</p>';
+			return;
+		}
+		const dirs = discoverDirections(meta.lang_pairs || []);
+		if (!dirs.length) {
+			counts.textContent = 'No language pairs available.';
+			return;
+		}
+		direction = dirs[0];
+		renderSources(meta.sources || []);
+		updateDirButtons();
+		bindSearch();
+		updateCounts(null);
+	}
+
+	main();
+</script>

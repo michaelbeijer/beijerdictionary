@@ -1,0 +1,18 @@
+# build output
+dist/
+.astro/
+
+# deps
+node_modules/
+
+# env
+.env
+.env.production
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Claude Code
+.claude/
