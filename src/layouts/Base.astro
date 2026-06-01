@@ -30,11 +30,33 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
+
+		<!-- Apply saved theme + width before first paint to avoid a flash.
+		     ?theme= / ?width= override transiently (not persisted) so UI state is shareable. -->
+		<script is:inline>
+			(function () {
+				try {
+					var p = new URLSearchParams(location.search);
+					var qt = p.get('theme');
+					var t = (qt === 'dark' || qt === 'light') ? qt : localStorage.getItem('bt-theme');
+					if (t !== 'dark' && t !== 'light') {
+						t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					}
+					document.documentElement.setAttribute('data-theme', t);
+					var qw = p.get('width');
+					var w = (qw === 'wide' || qw === 'narrow') ? qw
+						: (localStorage.getItem('bt-width') === 'wide' ? 'wide' : 'narrow');
+					document.documentElement.setAttribute('data-width', w);
+				} catch (e) {}
+			})();
+		</script>
 	</head>
 	<body>
 		<header class="site-head">
 			<a class="wordmark" href="/">Beijerterm</a>
-			<nav>
+			<nav class="site-tools">
+				<button id="width-toggle" type="button" class="tool-btn">Wide</button>
+				<button id="theme-toggle" type="button" class="tool-btn icon" aria-label="Toggle dark mode">🌙</button>
 				<a href="https://beijer.uk" rel="noopener">Michael Beijer</a>
 			</nav>
 		</header>
@@ -52,6 +74,42 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 			</p>
 		</footer>
 
+		<script is:inline>
+			(function () {
+				var root = document.documentElement;
+				var themeBtn = document.getElementById('theme-toggle');
+				var widthBtn = document.getElementById('width-toggle');
+
+				function syncLabels() {
+					var dark = root.getAttribute('data-theme') === 'dark';
+					themeBtn.textContent = dark ? '☀️' : '🌙';
+					themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+					themeBtn.setAttribute('title', dark ? 'Switch to light mode' : 'Switch to dark mode');
+
+					var wide = root.getAttribute('data-width') === 'wide';
+					widthBtn.textContent = wide ? 'Narrow' : 'Wide';
+					widthBtn.setAttribute('aria-label', wide ? 'Switch to narrow layout' : 'Switch to wide layout');
+					widthBtn.setAttribute('title', wide ? 'Switch to narrow layout' : 'Switch to wide layout');
+				}
+
+				themeBtn.addEventListener('click', function () {
+					var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+					root.setAttribute('data-theme', next);
+					try { localStorage.setItem('bt-theme', next); } catch (e) {}
+					syncLabels();
+				});
+
+				widthBtn.addEventListener('click', function () {
+					var next = root.getAttribute('data-width') === 'wide' ? 'narrow' : 'wide';
+					root.setAttribute('data-width', next);
+					try { localStorage.setItem('bt-width', next); } catch (e) {}
+					syncLabels();
+				});
+
+				syncLabels();
+			})();
+		</script>
+
 		<style is:global>
 			:root {
 				--bg: 255, 255, 255;
@@ -59,7 +117,20 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				--muted: 90, 90, 90;
 				--border: 225, 225, 225;
 				--accent: 51, 102, 204;
+				--subtle: rgba(0, 0, 0, 0.03);
+				--page-width: 820px;
 				--font: 'Inter', system-ui, -apple-system, sans-serif;
+			}
+			html[data-theme='dark'] {
+				--bg: 20, 21, 24;
+				--text: 232, 233, 236;
+				--muted: 150, 152, 158;
+				--border: 52, 54, 60;
+				--accent: 124, 169, 255;
+				--subtle: rgba(255, 255, 255, 0.06);
+			}
+			html[data-width='wide'] {
+				--page-width: 1320px;
 			}
 			* { box-sizing: border-box; }
 			body {
@@ -69,9 +140,10 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				color: rgb(var(--text));
 				font-size: 18px;
 				line-height: 1.7;
+				transition: background-color 0.15s ease, color 0.15s ease;
 			}
 			main {
-				width: 820px;
+				width: var(--page-width);
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 2.5em 1em 4em;
@@ -89,7 +161,7 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 			}
 			.site-head {
 				display: flex; align-items: center; justify-content: space-between;
-				width: 820px; max-width: calc(100% - 2em); margin: auto;
+				width: var(--page-width); max-width: calc(100% - 2em); margin: auto;
 				padding: 1.1em 1em 0;
 			}
 			.site-head .wordmark {
@@ -97,9 +169,20 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				letter-spacing: -0.01em;
 			}
 			.site-head .wordmark:hover { text-decoration: none; }
-			.site-head nav a { font-size: 0.9em; color: rgb(var(--muted)); }
+			.site-tools {
+				display: flex; align-items: center; gap: 0.55em;
+			}
+			.site-tools a { font-size: 0.9em; color: rgb(var(--muted)); }
+			.tool-btn {
+				font: inherit; font-size: 0.8em; cursor: pointer;
+				background: transparent; color: rgb(var(--muted));
+				border: 1px solid rgb(var(--border)); border-radius: 7px;
+				padding: 0.28em 0.62em; line-height: 1.3;
+			}
+			.tool-btn:hover { color: rgb(var(--text)); border-color: rgb(var(--text)); }
+			.tool-btn.icon { padding: 0.28em 0.5em; font-size: 0.95em; }
 			.site-foot {
-				width: 820px; max-width: calc(100% - 2em); margin: 2em auto 3em;
+				width: var(--page-width); max-width: calc(100% - 2em); margin: 2em auto 3em;
 				padding: 1.5em 1em 0; border-top: 1px solid rgb(var(--border));
 				color: rgb(var(--muted)); font-size: 0.85em; line-height: 1.6;
 			}
