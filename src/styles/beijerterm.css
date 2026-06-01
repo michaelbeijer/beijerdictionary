@@ -236,9 +236,27 @@
 	color: rgb(var(--muted));
 }
 
-.site-foot-links { margin-top: 0.6em; }
-.site-foot-links a { color: rgb(var(--muted)); }
-.site-foot-links a:hover { color: rgb(var(--text)); }
+.site-foot-links {
+	margin-top: 1em;
+	display: flex;
+	gap: 0.5em;
+	flex-wrap: wrap;
+}
+.site-foot-links a {
+	display: inline-block;
+	padding: 0.4em 0.95em;
+	border: 1px solid rgb(var(--border));
+	border-radius: 8px;
+	color: rgb(var(--muted));
+	font-size: 0.9em;
+	font-weight: 600;
+	text-decoration: none;
+}
+.site-foot-links a:hover {
+	color: rgb(var(--text));
+	border-color: rgb(var(--text));
+	text-decoration: none;
+}
 
 /* Full sources table — all metadata at a glance. */
 table.wb-sources-table {
