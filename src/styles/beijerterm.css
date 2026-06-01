@@ -257,6 +257,14 @@
 	border-color: rgb(var(--text));
 	text-decoration: none;
 }
+/* [hidden] must win over the inline-block above. */
+.site-foot-links a[hidden] { display: none; }
+/* Owner-only Admin button: lighter + dashed, visually set apart. */
+.site-foot-links a.admin-link {
+	border-style: dashed;
+	opacity: 0.6;
+}
+.site-foot-links a.admin-link:hover { opacity: 1; }
 
 /* Full sources table — all metadata at a glance. */
 table.wb-sources-table {
