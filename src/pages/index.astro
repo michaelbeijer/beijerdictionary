@@ -41,19 +41,22 @@ const apiBase = (
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
 
-		<div id="wb-results" class="wb-results" hidden></div>
-	</section>
+		</section>
 
-	<section class="wb-sources">
-		<h2>Sources behind Beijerterm</h2>
-		<p class="wb-tag">
-			The glossaries, term lists and reference works behind the search.
-			Click any source for its full publication metadata.
-		</p>
-		<div id="wb-sources-wrap">
-			<p class="wb-loading">Loading sources…</p>
+	<div class="wb-layout">
+		<div class="wb-main">
+			<div id="wb-results" class="wb-results" hidden></div>
+			<p id="wb-hint" class="wb-hint">Type a term in the box above to search the database.</p>
 		</div>
-	</section>
+
+		<aside class="wb-sources">
+			<h2>Sources</h2>
+			<p class="wb-sources-tag">The glossaries and term lists behind the search — click any for its full publication metadata.</p>
+			<div id="wb-sources-wrap">
+				<p class="wb-loading">Loading sources…</p>
+			</div>
+		</aside>
+	</div>
 
 	<dialog id="wb-detail" class="wb-detail">
 		<form method="dialog">
@@ -271,51 +274,72 @@ const apiBase = (
 		background: rgba(0, 0, 0, 0.02);
 	}
 
-	/* Sources table — unchanged from previous version. */
+	/* Two-column layout: results (main) left, sources sidebar right.
+	   Single column on narrow screens, with sources below the results. */
+	.wb-layout {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 2em;
+		align-items: start;
+	}
+	@media (min-width: 880px) {
+		.wb-layout {
+			grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+		}
+	}
+	.wb-main { min-width: 0; }
+	.wb-hint {
+		color: rgb(var(--muted));
+		font-size: 0.95em;
+		padding: 0.4em 0;
+	}
+	.wb-results[hidden] + .wb-hint { display: block; }
+	.wb-results:not([hidden]) + .wb-hint { display: none; }
+
 	.wb-sources h2 {
 		margin-bottom: 0.3em;
 	}
+	.wb-sources-tag {
+		color: rgb(var(--muted));
+		font-size: 0.88em;
+		line-height: 1.5;
+		margin: 0 0 0.8em;
+	}
 	#wb-sources-wrap {
-		margin-top: 1em;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25em;
 	}
 	.wb-loading {
 		color: rgb(var(--muted));
 	}
-	table.wb-sources-table {
+	/* Sidebar source entries. */
+	.wb-src {
+		display: block;
 		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.92em;
-	}
-	.wb-sources-table th,
-	.wb-sources-table td {
 		text-align: left;
-		padding: 0.55em 0.6em;
-		border-bottom: 1px solid rgb(var(--border));
-		vertical-align: top;
-	}
-	.wb-sources-table th {
-		font-size: 0.78em;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: rgb(var(--muted));
-		font-weight: 600;
-	}
-	.wb-sources-table tr.clickable {
+		font: inherit;
 		cursor: pointer;
+		background: transparent;
+		border: none;
+		border-bottom: 1px solid rgb(var(--border));
+		padding: 0.6em 0.2em;
 	}
-	.wb-sources-table tr.clickable:hover td {
-		background: rgba(0, 0, 0, 0.025);
+	.wb-src:last-child { border-bottom: none; }
+	.wb-src:hover { background: rgba(0, 0, 0, 0.025); }
+	.wb-src-name {
+		display: block;
+		font-weight: 600;
+		font-size: 0.95em;
+		color: rgb(var(--text));
+		line-height: 1.35;
 	}
-	.wb-sources-table td.num {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
-		white-space: nowrap;
-	}
-	.wb-sources-table td.langs {
-		font-variant-numeric: tabular-nums;
-		text-transform: uppercase;
-		font-size: 0.85em;
+	.wb-src-meta {
+		display: block;
+		margin-top: 0.2em;
+		font-size: 0.78em;
 		color: rgb(var(--muted));
+		font-variant-numeric: tabular-nums;
 	}
 	.wb-badge {
 		display: inline-block;
@@ -535,27 +559,21 @@ const apiBase = (
 			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
 			return;
 		}
-		const head =
-			'<thead><tr>' +
-			'<th>Source</th><th>Author</th><th>Year</th><th>Languages</th>' +
-			'<th class="num">Entries</th><th>Licence</th></tr></thead>';
-		const body = '<tbody>' + sources.map((s) => {
+		// Compact list for the sidebar (the full 6-column table doesn't fit a
+		// narrow column). Each source is a button → opens the metadata dialog.
+		wrap.innerHTML = sources.map((s) => {
 			const langs = [s.source_lang, s.target_lang]
-				.filter(Boolean).join('&nbsp;↔&nbsp;') || '—';
+				.filter(Boolean).join(' ↔ ').toUpperCase() || '—';
 			const lic = (s.licence || 'unknown').toLowerCase();
 			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
-			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
-				<td>${escapeHtml(s.title || s.slug)}</td>
-				<td>${escapeHtml(s.author || '—')}</td>
-				<td>${s.year ? escapeHtml(String(s.year)) : '—'}</td>
-				<td class="langs">${langs}</td>
-				<td class="num">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
-				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
-			</tr>`;
-		}).join('') + '</tbody>';
-		wrap.innerHTML = '<table class="wb-sources-table">' + head + body + '</table>';
-		wrap.querySelectorAll('tr.clickable').forEach((tr) => {
-			tr.addEventListener('click', () => openDetail(tr.dataset.slug));
+			const n = (s.entry_count || 0).toLocaleString('en-GB');
+			return `<button type="button" class="wb-src" data-slug="${escapeHtml(s.slug)}">
+				<span class="wb-src-name">${escapeHtml(s.title || s.slug)}</span>
+				<span class="wb-src-meta">${langs} · ${n} entries <span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></span>
+			</button>`;
+		}).join('');
+		wrap.querySelectorAll('.wb-src').forEach((el) => {
+			el.addEventListener('click', () => openDetail(el.dataset.slug));
 		});
 	}
 
