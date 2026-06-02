@@ -167,6 +167,27 @@
 	font-style: italic;
 	opacity: 0.8;
 }
+/* Notes — secondary to the definition: smaller, indented, slightly dimmer. */
+.wb-notes {
+	margin-top: 0.35em;
+	padding-left: 0.7em;
+	border-left: 2px solid rgb(var(--border));
+	font-size: 0.85em;
+	line-height: 1.45;
+	color: rgb(var(--muted));
+}
+.wb-notes .n + .n::before {
+	content: '';
+	display: block;
+	height: 0.25em;
+}
+.wb-notes .n.hit {
+	color: rgb(var(--text));
+}
+.wb-notes .n-more {
+	font-style: italic;
+	opacity: 0.8;
+}
 .wb-card-meta {
 	margin-top: 0.5em;
 	font-size: 0.7em;
@@ -192,6 +213,17 @@
 	color: rgb(var(--text));
 	border-color: rgb(var(--text));
 	text-decoration: none;
+}
+/* Admin-only Edit pencil next to a source chip (hidden from the public). */
+.wb-card-meta a.wb-edit {
+	text-decoration: none;
+	color: rgb(var(--muted));
+	margin-left: -0.15em;
+	font-size: 1.1em;
+	line-height: 1;
+}
+.wb-card-meta a.wb-edit:hover {
+	color: rgb(var(--accent));
 }
 .wb-empty {
 	padding: 0.9em;

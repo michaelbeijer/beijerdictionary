@@ -55,6 +55,21 @@ const apiBase = (
 	const MAX_RESULTS = 50;
 	const DEBOUNCE_MS = 180;
 
+	// Admin mode (Michael only) — same gate as the footer Admin link in
+	// Base.astro: visit ?admin once to enable it on this browser, ?admin=off to
+	// disable. When on, each result shows an Edit pencil that deep-links to the
+	// LOCAL admin app (only reachable on his machine). The public never sees it.
+	const ADMIN_BASE = 'http://127.0.0.1:8765';
+	let ADMIN = false;
+	try {
+		const ap = new URLSearchParams(location.search);
+		if (ap.has('admin')) {
+			if (ap.get('admin') === 'off') localStorage.removeItem('bt-admin');
+			else localStorage.setItem('bt-admin', '1');
+		}
+		ADMIN = localStorage.getItem('bt-admin') === '1';
+	} catch (e) { /* private mode / no storage — stay public */ }
+
 	const LANG_LABELS = {
 		nl: 'Dutch', en: 'English', de: 'German', fr: 'French',
 		es: 'Spanish', it: 'Italian', pt: 'Portuguese', pl: 'Polish',
@@ -122,6 +137,7 @@ const apiBase = (
 					display: head, headFold: hf, headQual: qHead,
 					equivDisplay: new Map(), qByEquiv: new Map(),
 					sources: new Set(), domains: new Set(), defs: new Set(),
+					notes: new Set(), idBySource: new Map(),
 				};
 				index.set(hf, g);
 				order.push(g);
@@ -129,9 +145,16 @@ const apiBase = (
 			const ef = fold(equiv);
 			if (!g.equivDisplay.has(ef)) g.equivDisplay.set(ef, equiv);
 			if (qEquiv && !g.qByEquiv.has(ef)) g.qByEquiv.set(ef, qEquiv);
-			if (e.src) String(e.src).split(',').forEach((s) => g.sources.add(s.trim()));
+			if (e.src) String(e.src).split(',').forEach((s) => {
+				const slug = s.trim();
+				g.sources.add(slug);
+				// Remember which master entry contributed this source, so the
+				// admin Edit pencil can deep-link straight to that exact entry.
+				if (e.id != null) g.idBySource.set(slug, e.id);
+			});
 			if (e.dom) g.domains.add(e.dom);
 			if (e.def) g.defs.add(e.def);
+			if (e.notes) g.notes.add(e.notes);
 		}
 		return order;
 	}
@@ -154,11 +177,29 @@ const apiBase = (
 			  }).join('') + (defs.length > 2 ? ' <span class="d-more">+' + (defs.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
 
+		const notes = [...group.notes];
+		const notesHtml = notes.length
+			? '<div class="wb-notes">' + notes.slice(0, 2).map((n) => {
+					const isHit = query && fold(n).includes(query);
+					return '<span class="n' + (isHit ? ' hit' : '') + '">' + escapeHtml(n) + '</span>';
+			  }).join('') + (notes.length > 2 ? ' <span class="n-more">+' + (notes.length - 2) + ' more</span>' : '') + '</div>'
+			: '';
+
 		// Source chips link to that source on the Sources page (/sources#slug),
 		// which opens its metadata. Plain links, so they work without JS too.
+		// In admin mode, each chip gets an Edit pencil that opens the local admin
+		// at the exact entry that contributed it.
 		const meta_ = [
 			...[...group.domains].slice(0, 1).map(escapeHtml),
-			...[...group.sources].map((s) => `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`),
+			...[...group.sources].map((s) => {
+				const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
+				if (!ADMIN) return chip;
+				const id = group.idBySource.get(s);
+				const pencil = id != null
+					? ` <a class="wb-edit" href="${ADMIN_BASE}/?edit=${id}" target="_blank" rel="noopener" title="Edit entry #${id} in the local admin">✎</a>`
+					: '';
+				return chip + pencil;
+			}),
 		].join(' · ');
 
 		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
@@ -170,6 +211,7 @@ const apiBase = (
 			}${qH}</div>
 			<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>
 			${defHtml}
+			${notesHtml}
 			${meta_ ? `<div class="wb-card-meta">${meta_}</div>` : ''}
 		</article>`;
 	}
