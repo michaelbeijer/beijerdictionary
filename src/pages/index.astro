@@ -104,6 +104,55 @@ const apiBase = (
 			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 		}[c]));
 
+	// Position-preserving fold: the folded string plus a map from each folded
+	// char index back to the original char index, so a match found in the folded
+	// form can be highlighted in the original text (accents/ligatures included).
+	function foldMap(s) {
+		let folded = '';
+		const map = [];
+		for (let i = 0; i < s.length; i++) {
+			const f = s[i].normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
+			for (let j = 0; j < f.length; j++) { folded += f[j]; map.push(i); }
+		}
+		return { folded, map };
+	}
+	const _isWord = (ch) => !!ch && /[\p{L}\p{N}]/u.test(ch);
+
+	// Highlight whole words that start with any search token (accent/case-folded),
+	// mirroring the FTS prefix-at-word-start match. Returns { html, hit }.
+	function hl(text, tokens) {
+		if (!text) return { html: '', hit: false };
+		if (!tokens || !tokens.length) return { html: escapeHtml(text), hit: false };
+		const { folded, map } = foldMap(text);
+		const ranges = [];
+		for (const tok of tokens) {
+			if (!tok) continue;
+			let from = 0, idx;
+			while ((idx = folded.indexOf(tok, from)) !== -1) {
+				from = idx + tok.length;
+				if (idx > 0 && _isWord(folded[idx - 1])) continue;   // word-start only
+				let e = idx + tok.length;
+				while (e < folded.length && _isWord(folded[e])) e++;  // extend to word end
+				ranges.push([map[idx], e - 1 < map.length ? map[e - 1] + 1 : text.length]);
+			}
+		}
+		if (!ranges.length) return { html: escapeHtml(text), hit: false };
+		ranges.sort((a, b) => a[0] - b[0]);
+		const merged = [ranges[0]];
+		for (let k = 1; k < ranges.length; k++) {
+			const last = merged[merged.length - 1];
+			if (ranges[k][0] <= last[1]) last[1] = Math.max(last[1], ranges[k][1]);
+			else merged.push(ranges[k]);
+		}
+		let out = '', pos = 0;
+		for (const [s, e] of merged) {
+			out += escapeHtml(text.slice(pos, s)) + '<mark>' + escapeHtml(text.slice(s, e)) + '</mark>';
+			pos = e;
+		}
+		out += escapeHtml(text.slice(pos));
+		return { html: out, hit: true };
+	}
+
 	// State
 	let meta = { sources: [], lang_pairs: [], counts: { sources: 0, entries: 0 } };
 	let direction = null;        // {src, tgt}
@@ -250,29 +299,29 @@ const apiBase = (
 		return order;
 	}
 
-	function renderCard(group, query) {
+	function renderCard(group, tokens) {
 		const equivList = [...group.equivDisplay.values()].sort((a, b) => a.localeCompare(b));
 		const equivHtml = equivList.map((t) => {
 			const ef = fold(t);
 			const q = group.qByEquiv.get(ef);
-			const isHit = query && fold(t).includes(query);
+			const h = hl(t, tokens);
 			const qSpan = q ? ` <span class="qual">(${escapeHtml(q)})</span>` : '';
-			return `<span class="e${isHit ? ' hit' : ''}">${escapeHtml(t)}${qSpan}</span>`;
+			return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${qSpan}</span>`;
 		}).join('');
 
 		const defs = [...group.defs];
 		const defHtml = defs.length
 			? '<div class="wb-def">' + defs.slice(0, 2).map((d) => {
-					const isHit = query && fold(d).includes(query);
-					return '<span class="d' + (isHit ? ' hit' : '') + '">' + escapeHtml(d) + '</span>';
+					const h = hl(d, tokens);
+					return '<span class="d' + (h.hit ? ' hit' : '') + '">' + h.html + '</span>';
 			  }).join('') + (defs.length > 2 ? ' <span class="d-more">+' + (defs.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
 
 		const notes = [...group.notes];
 		const notesHtml = notes.length
 			? '<div class="wb-notes">' + notes.slice(0, 2).map((n) => {
-					const isHit = query && fold(n).includes(query);
-					return '<span class="n' + (isHit ? ' hit' : '') + '">' + escapeHtml(n) + '</span>';
+					const h = hl(n, tokens);
+					return '<span class="n' + (h.hit ? ' hit' : '') + '">' + h.html + '</span>';
 			  }).join('') + (notes.length > 2 ? ' <span class="n-more">+' + (notes.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
 
@@ -300,11 +349,7 @@ const apiBase = (
 			.filter((x) => fold(x) !== group.headFold)
 			.map((x) => ` <span class="wb-abbr" title="Abbreviation">${escapeHtml(x)}</span>`).join('');
 		return `<article class="wb-card">
-			<div class="wb-headword">${
-				query && group.headFold.includes(query)
-					? `<span class="hit">${escapeHtml(group.display)}</span>`
-					: escapeHtml(group.display)
-			}${qH}${abbrHtml}</div>
+			<div class="wb-headword">${hl(group.display, tokens).html}${qH}${abbrHtml}</div>
 			${equivList.length ? `<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>` : ''}
 			${defHtml}
 			${notesHtml}
@@ -312,7 +357,7 @@ const apiBase = (
 		</article>`;
 	}
 
-	function renderResults(groups, query) {
+	function renderResults(groups, tokens) {
 		const box = document.getElementById('wb-results');
 		if (!groups.length) {
 			box.innerHTML = '<p class="wb-empty">No matches.</p>';
@@ -320,7 +365,7 @@ const apiBase = (
 			return;
 		}
 		const shown = groups.slice(0, MAX_RESULTS);
-		box.innerHTML = shown.map((g) => renderCard(g, query)).join('')
+		box.innerHTML = shown.map((g) => renderCard(g, tokens)).join('')
 			+ (groups.length > MAX_RESULTS
 				? `<div class="wb-more">Showing ${MAX_RESULTS} of ${groups.length} headwords.</div>`
 				: '');
@@ -403,7 +448,7 @@ const apiBase = (
 			return;
 		}
 		const groups = groupForDirection(lastEntries, direction);
-		renderResults(groups, fold(lastQuery));
+		renderResults(groups, fold(lastQuery).split(/\s+/).filter(Boolean));
 		updateCounts(groups.length);
 	}
 

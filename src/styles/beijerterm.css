@@ -155,6 +155,13 @@
 .wb-equivs .e.hit {
 	font-weight: 700;
 }
+/* Highlight the matched search words within any result text. */
+.wb-card mark {
+	background: rgba(250, 204, 21, 0.45);
+	color: inherit;
+	padding: 0 0.05em;
+	border-radius: 2px;
+}
 .wb-equivs .qual {
 	color: rgb(var(--muted));
 	font-size: 0.85em;
