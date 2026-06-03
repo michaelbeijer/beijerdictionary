@@ -36,6 +36,11 @@ const apiBase = (
 				<select id="wb-to" class="wb-lang" aria-label="To language"></select>
 			</div>
 			<div id="wb-opts" class="wb-opts">
+				<span class="wb-opts-label">Search in:</span>
+				<label><input type="checkbox" id="opt-in-terms" checked /> terms</label>
+				<label><input type="checkbox" id="opt-in-def" /> definitions</label>
+				<label><input type="checkbox" id="opt-in-notes" /> notes</label>
+				<span class="wb-opts-sep" aria-hidden="true"></span>
 				<label><input type="checkbox" id="opt-exact" /> Exact match</label>
 				<label><input type="checkbox" id="opt-case" /> Case-sensitive</label>
 				<label><input type="checkbox" id="opt-accent" /> Accent-sensitive</label>
@@ -116,13 +121,17 @@ const apiBase = (
 	// Search-option checkboxes. The toggle group changes what the API returns,
 	// so flipping any of them re-runs the search (not just a client re-render).
 	const HAS_IDS = { abbr: 'opt-has-abbr', def: 'opt-has-def', notes: 'opt-has-notes' };
-	const OPT_IDS = ['opt-exact', 'opt-case', 'opt-accent', 'opt-whole',
-		...Object.values(HAS_IDS)];
+	const SCOPE_IDS = { terms: 'opt-in-terms', def: 'opt-in-def', notes: 'opt-in-notes' };
+	const OPT_IDS = [...Object.values(SCOPE_IDS), 'opt-exact', 'opt-case', 'opt-accent',
+		'opt-whole', ...Object.values(HAS_IDS)];
 	const isOn = (id) => { const el = document.getElementById(id); return !!(el && el.checked); };
 
 	// Build the &-prefixed query fragment from the current option state.
 	function optsQuery() {
 		const p = [];
+		// "Search in" scope (defaults to terms only when nothing is ticked).
+		const fields = Object.entries(SCOPE_IDS).filter(([, id]) => isOn(id)).map(([k]) => k);
+		if (fields.length) p.push('fields=' + fields.join(','));
 		if (isOn('opt-exact')) p.push('exact=1');
 		if (isOn('opt-whole')) p.push('whole=1');
 		if (isOn('opt-case')) p.push('case=1');
