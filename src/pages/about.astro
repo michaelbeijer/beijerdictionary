@@ -34,9 +34,17 @@ import Base from '../layouts/Base.astro';
 			leaves the server. Behind the scenes it uses SQLite's full-text search
 			(FTS5), so it stays fast whether the database holds ten thousand entries
 			or a million. You pick the <strong>source and target language</strong> with
-			the From / To selectors (any available pair, in either direction), and
-			results are grouped by headword, so every equivalent and synonym for a
-			term shows together on one card.
+			the From / To selectors (any available pair, either direction, or
+			<em>Any</em>); results group by headword so every equivalent and synonym
+			shows on one card, with the words you searched for highlighted.
+		</p>
+		<p>
+			By default only <strong>term text</strong> is searched, to keep results
+			precise. A row of options lets you widen or narrow that: also search in
+			<strong>definitions</strong> or <strong>notes</strong>, require an
+			<strong>exact</strong> or <strong>whole-word</strong> match, make it
+			<strong>case-</strong> or <strong>accent-sensitive</strong>, or show only
+			entries that carry an <strong>abbreviation, definition or notes</strong>.
 		</p>
 
 		<h2>Synonyms</h2>
