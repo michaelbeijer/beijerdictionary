@@ -49,7 +49,7 @@ const intro = counts
 >
 	<section class="wb-hero">
 		<h1>Sources behind Beijerterm</h1>
-		<p class="wb-tag">{intro}</p>
+		<p class="wb-tag" id="wb-intro">{intro}</p>
 		<ViewTabs current="sources" />
 	</section>
 
@@ -202,15 +202,59 @@ const intro = counts
 		});
 	}
 
+	// Stable signature of the list, so we only re-render when something actually
+	// changed (avoids a needless reflow on every visit).
+	const sigList = (list) =>
+		JSON.stringify((list || []).map((s) =>
+			[s.slug, s.title, s.author, s.year, s.entry_count, s.licence, langsOf(s)]));
+
+	// Recompute the hero subtitle from fresh counts (matches the build-time text).
+	function setIntro(counts) {
+		if (!counts) return;
+		const el = document.getElementById('wb-intro');
+		if (!el) return;
+		const n = (x) => Number(x || 0).toLocaleString('en-GB');
+		el.textContent =
+			`The ${n(counts.sources)} glossaries, term lists and reference works behind ` +
+			`the search — ${n(counts.entries)} entries in all. Click any source for its ` +
+			`full publication metadata.`;
+	}
+
+	// Background revalidate: refresh /meta after load so the source list and the
+	// counts self-heal after a D1 data reload, with no site rebuild. The static
+	// render still shows instantly; this only repaints if the data changed.
+	async function revalidate() {
+		if (!apiBase) return;
+		try {
+			const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
+			if (!r.ok) return;
+			const d = await r.json();
+			setIntro(d.counts);
+			const fresh = d.sources || [];
+			if (fresh.length && sigList(fresh) !== sigList(sources)) {
+				sources = fresh;
+				renderTable(sources);
+				wireRows();
+				// Keep a deep-linked dialog correct if the build had missed it.
+				const dlg = document.getElementById('wb-detail');
+				const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+				if (hash && dlg && !dlg.open) openDetail(hash);
+			}
+		} catch { /* offline / API down — keep the static render */ }
+	}
+
 	async function main() {
 		// Fallback: a build that couldn't reach the API ships no rows — fetch now.
+		let didFetch = false;
 		if (!sources.length && apiBase) {
+			didFetch = true;
 			try {
 				const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
 				if (r.ok) {
 					const d = await r.json();
 					sources = d.sources || [];
 					renderTable(sources);
+					setIntro(d.counts);
 				}
 			} catch {
 				document.getElementById('wb-sources-wrap').innerHTML =
@@ -223,6 +267,9 @@ const intro = counts
 		// A source chip on the search page links here as /sources#slug — open it.
 		const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
 		if (hash) openDetail(hash);
+
+		// If we rendered from the baked data, quietly check for newer data.
+		if (!didFetch) revalidate();
 	}
 
 	main();
