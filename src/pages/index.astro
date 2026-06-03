@@ -41,9 +41,10 @@ const apiBase = (
 				<label><input type="checkbox" id="opt-accent" /> Accent-sensitive</label>
 				<label><input type="checkbox" id="opt-whole" /> Whole word</label>
 				<span class="wb-opts-sep" aria-hidden="true"></span>
-				<label><input type="checkbox" id="opt-has-abbr" /> Has abbreviation</label>
-				<label><input type="checkbox" id="opt-has-def" /> Has definition</label>
-				<label><input type="checkbox" id="opt-has-notes" /> Has notes</label>
+				<span class="wb-opts-label">Only entries with:</span>
+				<label><input type="checkbox" id="opt-has-abbr" /> abbreviation</label>
+				<label><input type="checkbox" id="opt-has-def" /> definition</label>
+				<label><input type="checkbox" id="opt-has-notes" /> notes</label>
 			</div>
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
@@ -539,6 +540,7 @@ const apiBase = (
 		white-space: nowrap;
 	}
 	.wb-opts input { cursor: pointer; margin: 0; }
+	.wb-opts-label { color: #777; }
 	.wb-opts-sep {
 		align-self: stretch;
 		width: 1px;
