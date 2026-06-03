@@ -35,6 +35,16 @@ const apiBase = (
 				<label class="sr-only" for="wb-to">To language</label>
 				<select id="wb-to" class="wb-lang" aria-label="To language"></select>
 			</div>
+			<div id="wb-opts" class="wb-opts">
+				<label><input type="checkbox" id="opt-exact" /> Exact match</label>
+				<label><input type="checkbox" id="opt-case" /> Case-sensitive</label>
+				<label><input type="checkbox" id="opt-accent" /> Accent-sensitive</label>
+				<label><input type="checkbox" id="opt-whole" /> Whole word</label>
+				<span class="wb-opts-sep" aria-hidden="true"></span>
+				<label><input type="checkbox" id="opt-has-abbr" /> Has abbreviation</label>
+				<label><input type="checkbox" id="opt-has-def" /> Has definition</label>
+				<label><input type="checkbox" id="opt-has-notes" /> Has notes</label>
+			</div>
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
 		<div id="wb-results" class="wb-results" hidden></div>
@@ -76,6 +86,7 @@ const apiBase = (
 		ru: 'Russian', sv: 'Swedish', no: 'Norwegian', da: 'Danish',
 		fi: 'Finnish', cs: 'Czech', ja: 'Japanese', zh: 'Chinese',
 		la: 'Latin',
+		any: 'Any',
 	};
 	const langName = (c) => LANG_LABELS[c] || (c || '').toUpperCase();
 
@@ -101,6 +112,42 @@ const apiBase = (
 		return r.json();
 	}
 
+	// Search-option checkboxes. The toggle group changes what the API returns,
+	// so flipping any of them re-runs the search (not just a client re-render).
+	const HAS_IDS = { abbr: 'opt-has-abbr', def: 'opt-has-def', notes: 'opt-has-notes' };
+	const OPT_IDS = ['opt-exact', 'opt-case', 'opt-accent', 'opt-whole',
+		...Object.values(HAS_IDS)];
+	const isOn = (id) => { const el = document.getElementById(id); return !!(el && el.checked); };
+
+	// Build the &-prefixed query fragment from the current option state.
+	function optsQuery() {
+		const p = [];
+		if (isOn('opt-exact')) p.push('exact=1');
+		if (isOn('opt-whole')) p.push('whole=1');
+		if (isOn('opt-case')) p.push('case=1');
+		if (isOn('opt-accent')) p.push('accent=1');
+		const has = Object.entries(HAS_IDS).filter(([, id]) => isOn(id)).map(([k]) => k);
+		if (has.length) p.push('has=' + has.join(','));
+		return p.length ? '&' + p.join('&') : '';
+	}
+
+	function saveOpts() {
+		try {
+			const state = {};
+			OPT_IDS.forEach((id) => { state[id] = isOn(id); });
+			localStorage.setItem('bt-search-opts', JSON.stringify(state));
+		} catch { /* ignore */ }
+	}
+	function loadOpts() {
+		try {
+			const state = JSON.parse(localStorage.getItem('bt-search-opts') || '{}');
+			Object.entries(state).forEach(([id, v]) => {
+				const el = document.getElementById(id);
+				if (el) el.checked = !!v;
+			});
+		} catch { /* ignore */ }
+	}
+
 	function discoverDirections(pairs) {
 		const dirs = [];
 		for (const p of pairs) {
@@ -116,27 +163,50 @@ const apiBase = (
 		});
 	}
 
+	// Decide how an entry maps onto the chosen direction: which side is the
+	// headword, which is the equivalent. Honours an "any" wildcard on either
+	// side. Returns null if the entry doesn't belong in this direction.
+	function orientForDirection(e, dir) {
+		const src = dir.src, tgt = dir.tgt;
+		const anyS = src === 'any', anyT = tgt === 'any';
+		const mono = !e.b || !e.lb;
+		if (mono) {
+			// Monolingual entry (term + definition, no second-language equivalent):
+			// show it whenever its single language is on either side (or Any).
+			if (anyS || anyT || e.la === src || e.la === tgt) {
+				return { head: e.a, qHead: e.qa, equiv: null, qEquiv: null, mono: true };
+			}
+			return null;
+		}
+		if (anyS && anyT) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
+		if (!anyS && !anyT) {
+			if (e.la === src && e.lb === tgt) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
+			if (e.la === tgt && e.lb === src) return { head: e.b, qHead: e.qb, equiv: e.a, qEquiv: e.qa, mono: false };
+			return null;
+		}
+		// Exactly one side is "any"; L is the concrete language.
+		const L = anyS ? tgt : src;
+		if (anyT) {
+			// src = L, tgt = Any → the L side is the headword.
+			if (e.la === L) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
+			if (e.lb === L) return { head: e.b, qHead: e.qb, equiv: e.a, qEquiv: e.qa, mono: false };
+		} else {
+			// src = Any, tgt = L → the L side is the equivalent, the other the headword.
+			if (e.lb === L) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
+			if (e.la === L) return { head: e.b, qHead: e.qb, equiv: e.a, qEquiv: e.qa, mono: false };
+		}
+		return null;
+	}
+
 	// Group a flat entry list into ordered headword cards for a direction.
 	// Insertion order preserves the server's bm25 ranking.
 	function groupForDirection(entries, dir) {
 		const index = new Map();
 		const order = [];
 		for (const e of entries) {
-			// Monolingual entry (a term + a definition, no second-language
-			// equivalent): show it whenever its single language is either side
-			// of the chosen direction. It renders as a headword + definition card.
-			const mono = !e.b || !e.lb;
-			let head, qHead, equiv, qEquiv;
-			if (mono) {
-				if (e.la !== dir.src && e.la !== dir.tgt) continue;
-				head = e.a; qHead = e.qa; equiv = null; qEquiv = null;
-			} else if (e.la === dir.src && e.lb === dir.tgt) {
-				head = e.a; qHead = e.qa; equiv = e.b; qEquiv = e.qb;
-			} else if (e.la === dir.tgt && e.lb === dir.src) {
-				head = e.b; qHead = e.qb; equiv = e.a; qEquiv = e.qa;
-			} else {
-				continue;
-			}
+			const o = orientForDirection(e, dir);
+			if (!o) continue;
+			const { head, qHead, equiv, qEquiv, mono } = o;
 			if (!head || (!mono && !equiv)) continue;
 			const hf = fold(head);
 			let g = index.get(hf);
@@ -261,25 +331,38 @@ const apiBase = (
 
 	const byName = (a, b) => langName(a).localeCompare(langName(b));
 
-	// Populate the From/To dropdowns to reflect `direction`. Two languages
-	// scale to two dropdowns; twenty pairs no longer mean twenty buttons.
+	// Every language that appears in any pair (for the "Any" From dropdown).
+	function allLangs() {
+		const s = new Set();
+		for (const p of meta.lang_pairs || []) { s.add(p.a); s.add(p.b); }
+		return [...s];
+	}
+
+	// Populate the From/To dropdowns to reflect `direction`. Both dropdowns lead
+	// with an "Any" option (no language filter on that side). A concrete From
+	// restricts To to languages it actually pairs with; an "Any" From offers all.
 	function updateDirControls() {
 		const fromSel = document.getElementById('wb-from');
 		const toSel = document.getElementById('wb-to');
 		const adj = langAdjacency();
-		const froms = [...adj.keys()].sort(byName);
-		if (!froms.length) return;
-		if (!direction || !adj.has(direction.src)) {
-			direction = { src: froms[0], tgt: [...adj.get(froms[0])].sort(byName)[0] };
-		}
-		fromSel.innerHTML = froms
-			.map((c) => `<option value="${c}">${escapeHtml(langName(c))}</option>`).join('');
+		const langs = allLangs().sort(byName);
+		if (!langs.length) return;
+		const opt = (c) => `<option value="${c}">${escapeHtml(langName(c))}</option>`;
+
+		if (!direction) direction = { src: 'nl', tgt: 'en' };
+
+		const froms = ['any', ...langs];
+		if (!froms.includes(direction.src)) direction.src = froms[0];
+		fromSel.innerHTML = froms.map(opt).join('');
 		fromSel.value = direction.src;
 
-		const tos = [...(adj.get(direction.src) || [])].sort(byName);
-		if (!tos.includes(direction.tgt)) direction.tgt = tos[0];
-		toSel.innerHTML = tos
-			.map((c) => `<option value="${c}">${escapeHtml(langName(c))}</option>`).join('');
+		const tos = direction.src === 'any'
+			? ['any', ...langs]
+			: ['any', ...[...(adj.get(direction.src) || [])].sort(byName)];
+		if (!tos.includes(direction.tgt)) {
+			direction.tgt = (tos.includes('en') && direction.src !== 'en') ? 'en' : tos[0];
+		}
+		toSel.innerHTML = tos.map(opt).join('');
 		toSel.value = direction.tgt;
 
 		const input = document.getElementById('wb-q');
@@ -328,7 +411,7 @@ const apiBase = (
 		searchAbort = new AbortController();
 		try {
 			const data = await getJSON(
-				'/search?q=' + encodeURIComponent(q) + '&limit=' + MAX_RESULTS,
+				'/search?q=' + encodeURIComponent(q) + '&limit=' + MAX_RESULTS + optsQuery(),
 				searchAbort.signal
 			);
 			lastEntries = data.entries || [];
@@ -375,13 +458,17 @@ const apiBase = (
 		});
 		document.getElementById('wb-swap').addEventListener('click', () => {
 			if (!direction) return;
-			const adj = langAdjacency();
-			// Swap only if the reverse direction actually has data.
-			if (adj.get(direction.tgt) && adj.get(direction.tgt).has(direction.src)) {
-				direction = { src: direction.tgt, tgt: direction.src };
-				updateDirControls();
-				rerender();
-			}
+			// Swap freely; updateDirControls() normalises if the reverse pair has
+			// no data (and "Any" can sit on either side).
+			direction = { src: direction.tgt, tgt: direction.src };
+			updateDirControls();
+			rerender();
+		});
+
+		// Option toggles change the API result set → re-run the search.
+		OPT_IDS.forEach((id) => {
+			const el = document.getElementById(id);
+			if (el) el.addEventListener('change', () => { saveOpts(); runSearch(); });
 		});
 	}
 
@@ -405,6 +492,7 @@ const apiBase = (
 		// Sensible default: Dutch → English if present, else the first pair.
 		direction = dirs.find((d) => d.src === 'nl' && d.tgt === 'en') || dirs[0];
 		updateDirControls();
+		loadOpts();        // restore the user's last search-option toggles
 		bindSearch();
 		updateCounts(null);
 
@@ -432,3 +520,31 @@ const apiBase = (
 
 	main();
 </script>
+
+<style>
+	.wb-opts {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem 0.9rem;
+		margin-top: 0.6rem;
+		font-size: 0.85rem;
+		color: #555;
+	}
+	.wb-opts label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		cursor: pointer;
+		white-space: nowrap;
+	}
+	.wb-opts input { cursor: pointer; margin: 0; }
+	.wb-opts-sep {
+		align-self: stretch;
+		width: 1px;
+		min-height: 1.1em;
+		background: currentColor;
+		opacity: 0.25;
+	}
+	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
+</style>
