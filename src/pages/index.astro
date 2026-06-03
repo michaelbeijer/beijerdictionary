@@ -144,7 +144,7 @@ const apiBase = (
 					display: head, headFold: hf, headQual: qHead,
 					equivDisplay: new Map(), qByEquiv: new Map(),
 					sources: new Set(), domains: new Set(), defs: new Set(),
-					notes: new Set(), idBySource: new Map(),
+					notes: new Set(), abbrs: new Set(), idBySource: new Map(),
 				};
 				index.set(hf, g);
 				order.push(g);
@@ -164,6 +164,7 @@ const apiBase = (
 			if (e.dom) g.domains.add(e.dom);
 			if (e.def) g.defs.add(e.def);
 			if (e.notes) g.notes.add(e.notes);
+			if (e.abbr) g.abbrs.add(e.abbr);
 		}
 		return order;
 	}
@@ -212,12 +213,14 @@ const apiBase = (
 		].join(' · ');
 
 		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
+		const abbrHtml = [...group.abbrs]
+			.map((x) => ` <span class="wb-abbr" title="Abbreviation">${escapeHtml(x)}</span>`).join('');
 		return `<article class="wb-card">
 			<div class="wb-headword">${
 				query && group.headFold.includes(query)
 					? `<span class="hit">${escapeHtml(group.display)}</span>`
 					: escapeHtml(group.display)
-			}${qH}</div>
+			}${qH}${abbrHtml}</div>
 			${equivList.length ? `<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>` : ''}
 			${defHtml}
 			${notesHtml}
