@@ -213,7 +213,10 @@ const apiBase = (
 		].join(' · ');
 
 		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
+		// Show the abbreviation chip, unless it's identical to the headword
+		// (a standalone acronym entry, e.g. "FOG", carries itself as its abbr).
 		const abbrHtml = [...group.abbrs]
+			.filter((x) => fold(x) !== group.headFold)
 			.map((x) => ` <span class="wb-abbr" title="Abbreviation">${escapeHtml(x)}</span>`).join('');
 		return `<article class="wb-card">
 			<div class="wb-headword">${
