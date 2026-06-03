@@ -131,8 +131,8 @@ const apiBase = (
 			while ((idx = folded.indexOf(tok, from)) !== -1) {
 				from = idx + tok.length;
 				if (idx > 0 && _isWord(folded[idx - 1])) continue;   // word-start only
-				let e = idx + tok.length;
-				while (e < folded.length && _isWord(folded[e])) e++;  // extend to word end
+				// Mark only the typed characters, not the rest of the word.
+				const e = idx + tok.length;
 				ranges.push([map[idx], e - 1 < map.length ? map[e - 1] + 1 : text.length]);
 			}
 		}
