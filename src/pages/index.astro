@@ -121,15 +121,22 @@ const apiBase = (
 		const index = new Map();
 		const order = [];
 		for (const e of entries) {
+			// Monolingual entry (a term + a definition, no second-language
+			// equivalent): show it whenever its single language is either side
+			// of the chosen direction. It renders as a headword + definition card.
+			const mono = !e.b || !e.lb;
 			let head, qHead, equiv, qEquiv;
-			if (e.la === dir.src && e.lb === dir.tgt) {
+			if (mono) {
+				if (e.la !== dir.src && e.la !== dir.tgt) continue;
+				head = e.a; qHead = e.qa; equiv = null; qEquiv = null;
+			} else if (e.la === dir.src && e.lb === dir.tgt) {
 				head = e.a; qHead = e.qa; equiv = e.b; qEquiv = e.qb;
 			} else if (e.la === dir.tgt && e.lb === dir.src) {
 				head = e.b; qHead = e.qb; equiv = e.a; qEquiv = e.qa;
 			} else {
 				continue;
 			}
-			if (!head || !equiv) continue;
+			if (!head || (!mono && !equiv)) continue;
 			const hf = fold(head);
 			let g = index.get(hf);
 			if (!g) {
@@ -142,9 +149,11 @@ const apiBase = (
 				index.set(hf, g);
 				order.push(g);
 			}
-			const ef = fold(equiv);
-			if (!g.equivDisplay.has(ef)) g.equivDisplay.set(ef, equiv);
-			if (qEquiv && !g.qByEquiv.has(ef)) g.qByEquiv.set(ef, qEquiv);
+			if (equiv) {
+				const ef = fold(equiv);
+				if (!g.equivDisplay.has(ef)) g.equivDisplay.set(ef, equiv);
+				if (qEquiv && !g.qByEquiv.has(ef)) g.qByEquiv.set(ef, qEquiv);
+			}
 			if (e.src) String(e.src).split(',').forEach((s) => {
 				const slug = s.trim();
 				g.sources.add(slug);
@@ -209,7 +218,7 @@ const apiBase = (
 					? `<span class="hit">${escapeHtml(group.display)}</span>`
 					: escapeHtml(group.display)
 			}${qH}</div>
-			<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>
+			${equivList.length ? `<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>` : ''}
 			${defHtml}
 			${notesHtml}
 			${meta_ ? `<div class="wb-card-meta">${meta_}</div>` : ''}

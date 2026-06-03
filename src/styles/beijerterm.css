@@ -420,3 +420,8 @@ dialog.wb-detail::backdrop {
 	line-height: 1.55;
 	color: rgb(var(--text));
 }
+#wb-detail-body .src-url {
+	margin-top: 0.8em;
+	font-size: 0.9em;
+	word-break: break-all;
+}

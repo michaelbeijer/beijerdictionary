@@ -158,12 +158,18 @@ const intro = counts
 			['Licence',         s.licence],
 			['Entries',         (s.entry_count || 0).toLocaleString('en-GB')],
 		].filter(([, v]) => v != null && v !== '');
+		// Clickable source link (only http/https, opened in a new tab).
+		const urlHtml = (s.url && /^https?:\/\//i.test(s.url))
+			? `<div class="src-url">🔗 <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${
+				escapeHtml(s.url.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}</a></div>`
+			: '';
 		body.innerHTML =
 			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
 			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
 			'<dl>' +
 			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
 			'</dl>' +
+			urlHtml +
 			(s.description ? `<div class="desc">${escapeHtml(s.description)}</div>` : '');
 		dlg.showModal();
 		// Move focus into the dialog body instead of letting showModal()
