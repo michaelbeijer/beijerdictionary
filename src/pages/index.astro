@@ -272,12 +272,15 @@ const apiBase = (
 			if (!g) {
 				g = {
 					display: head, headFold: hf,
-					// Equivalents are bucketed by SENSE (the headword-side
-					// qualifier, e.g. "toerekening (van baten in de tijd)"), so a
+					// Equivalents are bucketed into LINES keyed by (sense, source) —
+					// sense = the headword-side qualifier (e.g. "toerekening (van
+					// baten in de tijd)"), source = the dictionary it came from. So a
 					// polysemous headword keeps its glosses instead of flattening
-					// every translation into one undifferentiated list. Map key is
-					// the gloss text ('' = no gloss); insertion order ≈ bm25 rank.
-					senses: new Map(),
+					// every translation into one list, and when several sources share
+					// a headword each keeps its own provenance (source + domain)
+					// instead of one misleading card-level label. Insertion order ≈
+					// bm25 rank.
+					lines: new Map(),
 					sources: new Set(), domains: new Set(), defs: new Set(),
 					notes: new Set(), abbrs: new Set(), idBySource: new Map(),
 				};
@@ -285,11 +288,16 @@ const apiBase = (
 				order.push(g);
 			}
 			if (equiv) {
-				const sk = qHead || '';
-				let s = g.senses.get(sk);
-				if (!s) { s = { qual: qHead || '', equivs: new Map() }; g.senses.set(sk, s); }
+				const lk = (qHead || '') + '' + (e.src || '');
+				let ln = g.lines.get(lk);
+				if (!ln) {
+					ln = { qual: qHead || '', srcKey: e.src || '', domains: new Set(), equivs: new Map(), id: null };
+					g.lines.set(lk, ln);
+				}
 				const ef = fold(equiv);
-				if (!s.equivs.has(ef)) s.equivs.set(ef, { display: equiv, qEquiv: qEquiv || '' });
+				if (!ln.equivs.has(ef)) ln.equivs.set(ef, { display: equiv, qEquiv: qEquiv || '' });
+				if (e.dom) ln.domains.add(e.dom);
+				if (ln.id == null && e.id != null) ln.id = e.id;
 			}
 			if (e.src) String(e.src).split(',').forEach((s) => {
 				const slug = s.trim();
@@ -316,20 +324,44 @@ const apiBase = (
 				return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${qSpan}</span>`;
 			}).join('');
 
-		// Senses that actually have translations. One sense → inline (gloss sits
-		// on the headword, as before). Multiple → one arrow-line per gloss, so the
-		// reader can tell which translations belong to which sense.
-		const equivSenses = [...group.senses.values()].filter((s) => s.equivs.size);
-		const multiSense = equivSenses.length > 1;
+		// A leading "(gloss)" prefix for a sense line (empty when ungloss­ed).
+		const glossPrefix = (q) => q ? `<span class="sense-gloss">(${escapeHtml(q)})</span> ` : '';
+
+		// Per-line provenance (source chip[s] + that line's domain), shown only on
+		// multi-source cards so each translation is tied to where it came from.
+		const renderProv = (line) => {
+			const dom = [...line.domains][0];
+			const domHtml = dom ? `<span class="wb-prov-dom">${escapeHtml(dom)}</span>` : '';
+			const chips = (line.srcKey ? line.srcKey.split(',') : []).map((s) => s.trim()).filter(Boolean).map((s) => {
+				const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
+				if (!ADMIN) return chip;
+				const pencil = line.id != null
+					? ` <a class="wb-edit" href="${ADMIN_BASE}/?edit=${line.id}" target="_blank" rel="noopener" title="Edit entry #${line.id} in the local admin">✎</a>`
+					: '';
+				return chip + pencil;
+			}).join(' ');
+			return (domHtml || chips) ? ` <span class="wb-prov">${domHtml}${chips}</span>` : '';
+		};
+
+		// Lines that actually have translations, keyed by (sense, source).
+		const lines = [...group.lines.values()].filter((l) => l.equivs.size);
+		const multiSrc = group.sources.size > 1;
 
 		let equivBlock = '';
-		if (equivSenses.length === 1) {
-			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(equivSenses[0].equivs)}</div>`;
-		} else if (multiSense) {
-			equivBlock = equivSenses.map((s) => {
-				const gloss = s.qual ? `<span class="sense-gloss">(${escapeHtml(s.qual)})</span> ` : '';
-				return `<div class="wb-equivs wb-sense">${gloss}<span class="arrow">→</span>${renderEquivs(s.equivs)}</div>`;
-			}).join('');
+		if (multiSrc) {
+			// Several sources share this headword → one line per (sense, source),
+			// each tagged with its own provenance so chip↔translation is unambiguous.
+			equivBlock = lines.map((l) =>
+				`<div class="wb-equivs wb-sense">${glossPrefix(l.qual)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>`
+			).join('');
+		} else if (lines.length === 1) {
+			// Single source, single sense → gloss sits inline on the headword.
+			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(lines[0].equivs)}</div>`;
+		} else if (lines.length > 1) {
+			// Single source, several senses → one arrow-line per gloss.
+			equivBlock = lines.map((l) =>
+				`<div class="wb-equivs wb-sense">${glossPrefix(l.qual)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>`
+			).join('');
 		}
 
 		const defs = [...group.defs];
@@ -348,11 +380,11 @@ const apiBase = (
 			  }).join('') + (notes.length > 2 ? ' <span class="n-more">+' + (notes.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
 
-		// Source chips link to that source on the Sources page (/sources#slug),
-		// which opens its metadata. Plain links, so they work without JS too.
-		// In admin mode, each chip gets an Edit pencil that opens the local admin
-		// at the exact entry that contributed it.
-		const meta_ = [
+		// Card-level metadata row: domain + source chips. Shown only on
+		// single-source cards — multi-source cards carry provenance per line
+		// instead (a single aggregated domain there would be misleading, e.g. a
+		// finance term mislabelled with a co-occurring source's domain).
+		const meta_ = multiSrc ? '' : [
 			...[...group.domains].slice(0, 1).map(escapeHtml),
 			...[...group.sources].map((s) => {
 				const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
@@ -365,13 +397,13 @@ const apiBase = (
 			}),
 		].join(' · ');
 
-		// The headword carries its gloss inline only when there is a single sense
-		// (with multiple senses each gloss sits on its own arrow-line instead).
-		// Fall back to the first sense's gloss for monolingual / no-equivalent cards.
-		const allSenses = [...group.senses.values()];
-		const headSense = equivSenses.length === 1 ? equivSenses[0]
-			: (equivSenses.length === 0 && allSenses.length === 1 ? allSenses[0] : null);
-		const qH = headSense && headSense.qual ? ` <span class="qual">(${escapeHtml(headSense.qual)})</span>` : '';
+		// The headword carries its gloss inline only on a single-source, single-sense
+		// card (otherwise each gloss sits on its own arrow-line). Fall back to the
+		// first line's gloss for monolingual / no-equivalent cards.
+		const allLines = [...group.lines.values()];
+		const headLine = (!multiSrc && lines.length === 1) ? lines[0]
+			: (lines.length === 0 && allLines.length === 1 ? allLines[0] : null);
+		const qH = headLine && headLine.qual ? ` <span class="qual">(${escapeHtml(headLine.qual)})</span>` : '';
 		// Show the abbreviation chip, unless it's identical to the headword
 		// (a standalone acronym entry, e.g. "FOG", carries itself as its abbr).
 		const abbrHtml = [...group.abbrs]

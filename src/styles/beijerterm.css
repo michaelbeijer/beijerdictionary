@@ -179,6 +179,19 @@
 	font-size: 0.85em;
 	margin-right: 0.15em;
 }
+/* Per-line provenance on multi-source cards: the source chip(s) and that
+   line's domain, so each translation is tied to where it came from. */
+.wb-prov {
+	margin-left: 0.5em;
+	white-space: nowrap;
+	font-size: 0.82em;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.wb-prov-dom {
+	color: rgb(var(--muted));
+	margin-right: 0.45em;
+}
 .wb-def {
 	margin-top: 0.4em;
 	font-size: 0.9em;
@@ -225,7 +238,9 @@
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 }
-.wb-card-meta .pill {
+/* Pills/chips appear both in the card-level meta row and in per-line
+   provenance (.wb-prov), so these are scoped to the whole card. */
+.wb-card .pill {
 	display: inline-block;
 	padding: 0.05em 0.55em;
 	border: 1px solid rgb(var(--border));
@@ -234,25 +249,25 @@
 	font-weight: 600;
 }
 /* Source chip in a result card → a link to that source on /sources. */
-.wb-card-meta a.pill-src {
+.wb-card a.pill-src {
 	color: rgb(var(--muted));
 	text-decoration: none;
 	cursor: pointer;
 }
-.wb-card-meta a.pill-src:hover {
+.wb-card a.pill-src:hover {
 	color: rgb(var(--text));
 	border-color: rgb(var(--text));
 	text-decoration: none;
 }
 /* Admin-only Edit pencil next to a source chip (hidden from the public). */
-.wb-card-meta a.wb-edit {
+.wb-card a.wb-edit {
 	text-decoration: none;
 	color: rgb(var(--muted));
 	margin-left: -0.15em;
 	font-size: 1.1em;
 	line-height: 1;
 }
-.wb-card-meta a.wb-edit:hover {
+.wb-card a.wb-edit:hover {
 	color: rgb(var(--accent));
 }
 .wb-empty {
