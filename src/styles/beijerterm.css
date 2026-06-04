@@ -167,6 +167,18 @@
 	font-size: 0.85em;
 	margin-left: 0.2em;
 }
+/* One arrow-line per sense for a polysemous headword. The leading gloss tells
+   the reader which sense (e.g. "(van baten in de tijd)") this run belongs to. */
+.wb-equivs.wb-sense {
+	margin-top: 0.15em;
+	padding-left: 0.9em;
+	text-indent: -0.9em;
+}
+.wb-equivs.wb-sense .sense-gloss {
+	color: rgb(var(--muted));
+	font-size: 0.85em;
+	margin-right: 0.15em;
+}
 .wb-def {
 	margin-top: 0.4em;
 	font-size: 0.9em;

@@ -271,8 +271,13 @@ const apiBase = (
 			let g = index.get(hf);
 			if (!g) {
 				g = {
-					display: head, headFold: hf, headQual: qHead,
-					equivDisplay: new Map(), qByEquiv: new Map(),
+					display: head, headFold: hf,
+					// Equivalents are bucketed by SENSE (the headword-side
+					// qualifier, e.g. "toerekening (van baten in de tijd)"), so a
+					// polysemous headword keeps its glosses instead of flattening
+					// every translation into one undifferentiated list. Map key is
+					// the gloss text ('' = no gloss); insertion order ≈ bm25 rank.
+					senses: new Map(),
 					sources: new Set(), domains: new Set(), defs: new Set(),
 					notes: new Set(), abbrs: new Set(), idBySource: new Map(),
 				};
@@ -280,9 +285,11 @@ const apiBase = (
 				order.push(g);
 			}
 			if (equiv) {
+				const sk = qHead || '';
+				let s = g.senses.get(sk);
+				if (!s) { s = { qual: qHead || '', equivs: new Map() }; g.senses.set(sk, s); }
 				const ef = fold(equiv);
-				if (!g.equivDisplay.has(ef)) g.equivDisplay.set(ef, equiv);
-				if (qEquiv && !g.qByEquiv.has(ef)) g.qByEquiv.set(ef, qEquiv);
+				if (!s.equivs.has(ef)) s.equivs.set(ef, { display: equiv, qEquiv: qEquiv || '' });
 			}
 			if (e.src) String(e.src).split(',').forEach((s) => {
 				const slug = s.trim();
@@ -300,14 +307,30 @@ const apiBase = (
 	}
 
 	function renderCard(group, tokens) {
-		const equivList = [...group.equivDisplay.values()].sort((a, b) => a.localeCompare(b));
-		const equivHtml = equivList.map((t) => {
-			const ef = fold(t);
-			const q = group.qByEquiv.get(ef);
-			const h = hl(t, tokens);
-			const qSpan = q ? ` <span class="qual">(${escapeHtml(q)})</span>` : '';
-			return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${qSpan}</span>`;
-		}).join('');
+		// Render one sense's equivalents (sorted) as a "· "-joined run of chips,
+		// each optionally carrying its own equivalent-side qualifier.
+		const renderEquivs = (equivs) =>
+			[...equivs.values()].sort((a, b) => a.display.localeCompare(b.display)).map(({ display, qEquiv }) => {
+				const h = hl(display, tokens);
+				const qSpan = qEquiv ? ` <span class="qual">(${escapeHtml(qEquiv)})</span>` : '';
+				return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${qSpan}</span>`;
+			}).join('');
+
+		// Senses that actually have translations. One sense → inline (gloss sits
+		// on the headword, as before). Multiple → one arrow-line per gloss, so the
+		// reader can tell which translations belong to which sense.
+		const equivSenses = [...group.senses.values()].filter((s) => s.equivs.size);
+		const multiSense = equivSenses.length > 1;
+
+		let equivBlock = '';
+		if (equivSenses.length === 1) {
+			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(equivSenses[0].equivs)}</div>`;
+		} else if (multiSense) {
+			equivBlock = equivSenses.map((s) => {
+				const gloss = s.qual ? `<span class="sense-gloss">(${escapeHtml(s.qual)})</span> ` : '';
+				return `<div class="wb-equivs wb-sense">${gloss}<span class="arrow">→</span>${renderEquivs(s.equivs)}</div>`;
+			}).join('');
+		}
 
 		const defs = [...group.defs];
 		const defHtml = defs.length
@@ -342,7 +365,13 @@ const apiBase = (
 			}),
 		].join(' · ');
 
-		const qH = group.headQual ? ` <span class="qual">(${escapeHtml(group.headQual)})</span>` : '';
+		// The headword carries its gloss inline only when there is a single sense
+		// (with multiple senses each gloss sits on its own arrow-line instead).
+		// Fall back to the first sense's gloss for monolingual / no-equivalent cards.
+		const allSenses = [...group.senses.values()];
+		const headSense = equivSenses.length === 1 ? equivSenses[0]
+			: (equivSenses.length === 0 && allSenses.length === 1 ? allSenses[0] : null);
+		const qH = headSense && headSense.qual ? ` <span class="qual">(${escapeHtml(headSense.qual)})</span>` : '';
 		// Show the abbreviation chip, unless it's identical to the headword
 		// (a standalone acronym entry, e.g. "FOG", carries itself as its abbr).
 		const abbrHtml = [...group.abbrs]
@@ -350,7 +379,7 @@ const apiBase = (
 			.map((x) => ` <span class="wb-abbr" title="Abbreviation">${escapeHtml(x)}</span>`).join('');
 		return `<article class="wb-card">
 			<div class="wb-headword">${hl(group.display, tokens).html}${qH}${abbrHtml}</div>
-			${equivList.length ? `<div class="wb-equivs"><span class="arrow">→</span>${equivHtml}</div>` : ''}
+			${equivBlock}
 			${defHtml}
 			${notesHtml}
 			${meta_ ? `<div class="wb-card-meta">${meta_}</div>` : ''}
