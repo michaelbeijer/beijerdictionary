@@ -345,6 +345,19 @@ const apiBase = (
 			`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`
 		).join(' ');
 
+		// A source chip (link to /sources#slug) + admin Edit pencil. Reused by the
+		// card meta row and to surface sources that contribute only a monolingual
+		// entry (definition with no equivalent → no line of their own).
+		const srcChip = (s) => {
+			const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
+			if (!ADMIN) return chip;
+			const id = group.idBySource.get(s);
+			const pencil = id != null
+				? ` <a class="wb-edit" href="${ADMIN_BASE}/?edit=${id}" target="_blank" rel="noopener" title="Edit entry #${id} in the local admin">✎</a>`
+				: '';
+			return chip + pencil;
+		};
+
 		// Per-line provenance (source chip[s] + that line's domain), shown only on
 		// multi-source cards so each translation is tied to where it came from.
 		const renderProv = (line) => {
@@ -364,6 +377,13 @@ const apiBase = (
 		// Lines that actually have translations, keyed by (sense, source).
 		const lines = [...group.lines.values()].filter((l) => l.equivs.size);
 		const multiSrc = group.sources.size > 1;
+
+		// Sources that contributed ONLY a monolingual entry (a definition with no
+		// equivalent) have no line of their own, so on a multi-source card their
+		// source chip would otherwise never show. Collect them to surface below.
+		const lineSrcs = new Set();
+		lines.forEach((l) => (l.srcKey ? l.srcKey.split(',') : []).forEach((s) => lineSrcs.add(s.trim())));
+		const monoSrcs = [...group.sources].filter((s) => s && !lineSrcs.has(s));
 
 		let equivBlock = '';
 		if (multiSrc) {
@@ -404,22 +424,18 @@ const apiBase = (
 		// finance term mislabelled with a co-occurring source's domain).
 		const meta_ = multiSrc ? '' : [
 			...[...group.domains].slice(0, 1).map(escapeHtml),
-			...[...group.sources].map((s) => {
-				const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
-				if (!ADMIN) return chip;
-				const id = group.idBySource.get(s);
-				const pencil = id != null
-					? ` <a class="wb-edit" href="${ADMIN_BASE}/?edit=${id}" target="_blank" rel="noopener" title="Edit entry #${id} in the local admin">✎</a>`
-					: '';
-				return chip + pencil;
-			}),
+			...[...group.sources].map(srcChip),
 			...(refChips ? [refChips] : []),
 		].join(' · ');
 
 		// On multi-source cards the meta row is suppressed (provenance is per
-		// line), so surface any reference links on their own trailing row.
-		const refsRow = (multiSrc && refChips)
-			? `<div class="wb-card-meta">${refChips}</div>` : '';
+		// line), so surface on a trailing row: the source chips for any
+		// monolingual-only contributors (which have no line of their own) plus
+		// any reference links. This is what attributes e.g. an ERA definition to
+		// the ERA-RAILWAY source on a card it shares with bilingual sources.
+		const refsRow = (multiSrc && (monoSrcs.length || refChips))
+			? `<div class="wb-card-meta">${[...monoSrcs.map(srcChip), ...(refChips ? [refChips] : [])].join(' · ')}</div>`
+			: '';
 
 		// The headword carries its gloss inline only on a single-source, single-sense
 		// card (otherwise each gloss sits on its own arrow-line). Fall back to the
