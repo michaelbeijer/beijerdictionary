@@ -247,7 +247,9 @@
    provenance (.wb-prov), so these are scoped to the whole card. */
 .wb-card .pill {
 	display: inline-block;
-	padding: 0.05em 0.55em;
+	padding: 0.2em 0.6em;
+	line-height: 1.1;
+	vertical-align: baseline;
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
 	margin-right: 0.3em;
