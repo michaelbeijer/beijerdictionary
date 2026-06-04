@@ -12,14 +12,14 @@ const apiBase = (
 ---
 
 <Base
-	title="Beijerterm — multilingual terminology for technical translators"
-	description="A curated, searchable multilingual terminology database for technical translators — Dutch ↔ English and more, with full provenance."
+	title="Beijerterm – multilingual terminology for technical translators"
+	description="A curated, searchable multilingual terminology database for technical translators – Dutch ↔ English and more, with full provenance."
 >
 	<section class="wb-hero">
 		<h1>Beijerterm</h1>
 		<p class="wb-tag">
 			A curated, searchable multilingual terminology database for technical
-			translators — with full provenance for every source.
+			translators – with full provenance for every source.
 		</p>
 		<ViewTabs current="search" />
 	</section>
@@ -494,7 +494,7 @@ const apiBase = (
 		let s = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'} · ` +
 			`${eN.toLocaleString('en-GB')} entries`;
 		if (resultCount == null) {
-			s += ' — type to search';
+			s += ' – type to search';
 		} else {
 			s += ` · ${resultCount.toLocaleString('en-GB')} match${resultCount === 1 ? '' : 'es'}`;
 		}
