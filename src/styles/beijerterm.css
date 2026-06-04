@@ -190,7 +190,12 @@
 }
 .wb-prov-dom {
 	color: rgb(var(--muted));
-	margin-right: 0.45em;
+	margin-right: 0.55em;
+}
+/* Guarantee a gap between the domain text and the first source chip even when
+   the domain is empty / wraps. */
+.wb-prov .pill {
+	margin-left: 0.1em;
 }
 .wb-def {
 	margin-top: 0.4em;
@@ -247,6 +252,7 @@
 	border-radius: 99px;
 	margin-right: 0.3em;
 	font-weight: 600;
+	background: var(--subtle);
 }
 /* Source chip in a result card → a link to that source on /sources. */
 .wb-card a.pill-src {
