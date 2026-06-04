@@ -247,9 +247,11 @@
    provenance (.wb-prov), so these are scoped to the whole card. */
 .wb-card .pill {
 	display: inline-block;
-	padding: 0.2em 0.6em;
-	line-height: 1.1;
-	vertical-align: baseline;
+	/* Slightly more top than bottom padding: the all-caps labels have no
+	   descenders, so even padding makes them read high in the pill. */
+	padding: 0.32em 0.6em 0.22em;
+	line-height: 1;
+	vertical-align: middle;
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
 	margin-right: 0.3em;
