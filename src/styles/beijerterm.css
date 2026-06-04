@@ -215,6 +215,43 @@
 	font-style: italic;
 	opacity: 0.8;
 }
+/* Attributed definition block: a definition with its own notes + provenance
+   (source chip[s] + reference link[s]), so each definition on a mixed card is
+   tied to the source it came from. */
+.wb-defblock {
+	margin-top: 0.5em;
+}
+.wb-defblock .wb-def {
+	margin-top: 0;   /* the block provides the top spacing */
+}
+.wb-def.hit {
+	color: rgb(var(--text));
+}
+.wb-def-note {
+	margin-top: 0.15em;
+	padding-left: 0.7em;
+	border-left: 2px solid rgb(var(--border));
+	font-size: 0.85em;
+	line-height: 1.45;
+	color: rgb(var(--muted));
+}
+.wb-def-note.hit {
+	color: rgb(var(--text));
+}
+.wb-def-prov {
+	margin-top: 0.3em;
+	font-size: 0.7em;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: rgb(var(--muted));
+}
+.wb-def-more {
+	margin-top: 0.4em;
+	font-size: 0.85em;
+	font-style: italic;
+	opacity: 0.8;
+	color: rgb(var(--muted));
+}
 /* Notes — secondary to the definition: smaller, indented, slightly dimmer. */
 .wb-notes {
 	margin-top: 0.35em;

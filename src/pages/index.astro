@@ -281,9 +281,16 @@ const apiBase = (
 					// instead of one misleading card-level label. Insertion order ≈
 					// bm25 rank.
 					lines: new Map(),
-					sources: new Set(), domains: new Set(), defs: new Set(),
-					notes: new Set(), abbrs: new Set(), links: new Set(),
-					idBySource: new Map(),
+					// Definitions are attributed: each distinct definition is a block
+					// keyed by its text, carrying the notes, reference link(s) and
+					// source(s) of the entries that share it — so on a card with
+					// several sources you can tell which definition (and which link)
+					// came from which source. Notes/links from entries that have NO
+					// definition stay "loose" (shown card-level).
+					defBlocks: new Map(),
+					looseNotes: new Set(), looseLinks: new Set(),
+					sources: new Set(), domains: new Set(),
+					abbrs: new Set(), idBySource: new Map(),
 				};
 				index.set(hf, g);
 				order.push(g);
@@ -308,14 +315,30 @@ const apiBase = (
 				if (e.id != null) g.idBySource.set(slug, e.id);
 			});
 			if (e.dom) g.domains.add(e.dom);
-			if (e.def) g.defs.add(e.def);
-			if (e.notes) g.notes.add(e.notes);
 			if (e.abbr) g.abbrs.add(e.abbr);
-			// Per-entry reference URL(s) → 🔗 chips. The field is free TEXT, so
-			// split on whitespace and keep only real http(s) links.
-			if (e.links) String(e.links).split(/\s+/).forEach((u) => {
-				if (/^https?:\/\//i.test(u)) g.links.add(u);
-			});
+			// Per-entry reference URL(s). The field is free TEXT, so split on
+			// whitespace and keep only real http(s) links.
+			const eLinks = e.links
+				? String(e.links).split(/\s+/).filter((u) => /^https?:\/\//i.test(u))
+				: [];
+			const eSrcs = e.src ? String(e.src).split(',').map((s) => s.trim()).filter(Boolean) : [];
+			if (e.def) {
+				// Attribute the definition: bucket by its text and fold in this
+				// entry's notes, links and source(s).
+				const dk = fold(e.def);
+				let blk = g.defBlocks.get(dk);
+				if (!blk) {
+					blk = { def: e.def, notes: new Set(), links: new Set(), sources: new Set() };
+					g.defBlocks.set(dk, blk);
+				}
+				if (e.notes) blk.notes.add(e.notes);
+				eLinks.forEach((u) => blk.links.add(u));
+				eSrcs.forEach((s) => blk.sources.add(s));
+			} else {
+				// No definition → notes/links stay loose (shown card-level).
+				if (e.notes) g.looseNotes.add(e.notes);
+				eLinks.forEach((u) => g.looseLinks.add(u));
+			}
 		}
 		return order;
 	}
@@ -341,9 +364,9 @@ const apiBase = (
 				return /eur-lex\.europa\.eu$/i.test(h) ? 'EUR-Lex' : h;
 			} catch { return 'link'; }
 		};
-		const refChips = [...group.links].map((u) =>
-			`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`
-		).join(' ');
+		const refChip = (u) =>
+			`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`;
+		const refChipsFrom = (set) => [...set].map(refChip).join(' ');
 
 		// A source chip (link to /sources#slug) + admin Edit pencil. Reused by the
 		// card meta row and to surface sources that contribute only a monolingual
@@ -378,12 +401,9 @@ const apiBase = (
 		const lines = [...group.lines.values()].filter((l) => l.equivs.size);
 		const multiSrc = group.sources.size > 1;
 
-		// Sources that contributed ONLY a monolingual entry (a definition with no
-		// equivalent) have no line of their own, so on a multi-source card their
-		// source chip would otherwise never show. Collect them to surface below.
+		// Sources that appear on a translation line (so they're attributed there).
 		const lineSrcs = new Set();
 		lines.forEach((l) => (l.srcKey ? l.srcKey.split(',') : []).forEach((s) => lineSrcs.add(s.trim())));
-		const monoSrcs = [...group.sources].filter((s) => s && !lineSrcs.has(s));
 
 		let equivBlock = '';
 		if (multiSrc) {
@@ -402,39 +422,57 @@ const apiBase = (
 			).join('');
 		}
 
-		const defs = [...group.defs];
-		const defHtml = defs.length
-			? '<div class="wb-def">' + defs.slice(0, 2).map((d) => {
-					const h = hl(d, tokens);
-					return '<span class="d' + (h.hit ? ' hit' : '') + '">' + h.html + '</span>';
-			  }).join('') + (defs.length > 2 ? ' <span class="d-more">+' + (defs.length - 2) + ' more</span>' : '') + '</div>'
-			: '';
+		// Attributed definition blocks: each distinct definition with its own
+		// notes, reference link(s) and source chip(s) — so on a mixed card you can
+		// tell which definition (and which link) came from which source. The source
+		// chip is shown only on multi-source cards (on a single-source card the lone
+		// source is already in the meta row, so it would be redundant); the
+		// reference link is always shown, bound to its definition.
+		const DEF_CAP = 4;
+		const defBlocks = [...group.defBlocks.values()];
+		const defSrcs = new Set();
+		if (multiSrc) defBlocks.forEach((b) => b.sources.forEach((s) => defSrcs.add(s)));
+		const defHtml = defBlocks.slice(0, DEF_CAP).map((blk) => {
+			const dh = hl(blk.def, tokens);
+			const noteHtml = [...blk.notes].slice(0, 2).map((n) => {
+				const h = hl(n, tokens);
+				return `<div class="wb-def-note${h.hit ? ' hit' : ''}">${h.html}</div>`;
+			}).join('');
+			const linkChips = refChipsFrom(blk.links);
+			const srcChips = multiSrc ? [...blk.sources].map(srcChip).join(' ') : '';
+			const prov = [srcChips, linkChips].filter(Boolean).join(' · ');
+			return `<div class="wb-defblock"><div class="wb-def${dh.hit ? ' hit' : ''}">${dh.html}</div>`
+				+ noteHtml
+				+ (prov ? `<div class="wb-def-prov">${prov}</div>` : '')
+				+ '</div>';
+		}).join('') + (defBlocks.length > DEF_CAP
+			? `<div class="wb-def-more">+${defBlocks.length - DEF_CAP} more definition${defBlocks.length - DEF_CAP === 1 ? '' : 's'}</div>`
+			: '');
 
-		const notes = [...group.notes];
-		const notesHtml = notes.length
-			? '<div class="wb-notes">' + notes.slice(0, 2).map((n) => {
+		// Notes from entries with NO definition stay loose (shown card-level).
+		const looseNotes = [...group.looseNotes];
+		const notesHtml = looseNotes.length
+			? '<div class="wb-notes">' + looseNotes.slice(0, 2).map((n) => {
 					const h = hl(n, tokens);
 					return '<span class="n' + (h.hit ? ' hit' : '') + '">' + h.html + '</span>';
-			  }).join('') + (notes.length > 2 ? ' <span class="n-more">+' + (notes.length - 2) + ' more</span>' : '') + '</div>'
+			  }).join('') + (looseNotes.length > 2 ? ' <span class="n-more">+' + (looseNotes.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
+		const looseLinkChips = refChipsFrom(group.looseLinks);
 
-		// Card-level metadata row: domain + source chips. Shown only on
-		// single-source cards — multi-source cards carry provenance per line
-		// instead (a single aggregated domain there would be misleading, e.g. a
-		// finance term mislabelled with a co-occurring source's domain).
+		// Card-level metadata row: domain + source chips + any loose links. Shown
+		// only on single-source cards — multi-source cards carry provenance per
+		// line / per definition block instead.
 		const meta_ = multiSrc ? '' : [
 			...[...group.domains].slice(0, 1).map(escapeHtml),
 			...[...group.sources].map(srcChip),
-			...(refChips ? [refChips] : []),
+			...(looseLinkChips ? [looseLinkChips] : []),
 		].join(' · ');
 
-		// On multi-source cards the meta row is suppressed (provenance is per
-		// line), so surface on a trailing row: the source chips for any
-		// monolingual-only contributors (which have no line of their own) plus
-		// any reference links. This is what attributes e.g. an ERA definition to
-		// the ERA-RAILWAY source on a card it shares with bilingual sources.
-		const refsRow = (multiSrc && (monoSrcs.length || refChips))
-			? `<div class="wb-card-meta">${[...monoSrcs.map(srcChip), ...(refChips ? [refChips] : [])].join(' · ')}</div>`
+		// Multi-source trailing row: only for sources NOT already attributed inline
+		// (neither a translation line nor a definition block) + any loose links.
+		const orphanSrcs = [...group.sources].filter((s) => s && !lineSrcs.has(s) && !defSrcs.has(s));
+		const refsRow = (multiSrc && (orphanSrcs.length || looseLinkChips))
+			? `<div class="wb-card-meta">${[...orphanSrcs.map(srcChip), ...(looseLinkChips ? [looseLinkChips] : [])].join(' · ')}</div>`
 			: '';
 
 		// The headword carries its gloss inline only on a single-source, single-sense
