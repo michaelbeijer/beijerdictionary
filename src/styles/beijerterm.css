@@ -253,6 +253,10 @@
 	padding: 0.22em 0.6em 0.14em;
 	line-height: 1;
 	vertical-align: middle;
+	/* text-indent is inherited; the sense-lines set it negative for their hanging
+	   indent, which would otherwise drag the pill's own text out past its left
+	   edge. Reset it so the label stays inside the pill. */
+	text-indent: 0;
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
 	margin-right: 0.3em;
