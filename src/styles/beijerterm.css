@@ -274,6 +274,17 @@
 	border-color: rgb(var(--text));
 	text-decoration: none;
 }
+/* Reference chip → an external link (e.g. the EU regulation defining a term).
+   Accent-coloured to read as a link, distinct from the muted source chips. */
+.wb-card a.pill-ref {
+	color: rgb(var(--accent));
+	text-decoration: none;
+	cursor: pointer;
+}
+.wb-card a.pill-ref:hover {
+	border-color: rgb(var(--accent));
+	text-decoration: none;
+}
 /* Admin-only Edit pencil next to a source chip (hidden from the public). */
 .wb-card a.wb-edit {
 	text-decoration: none;

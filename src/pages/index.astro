@@ -282,7 +282,8 @@ const apiBase = (
 					// bm25 rank.
 					lines: new Map(),
 					sources: new Set(), domains: new Set(), defs: new Set(),
-					notes: new Set(), abbrs: new Set(), idBySource: new Map(),
+					notes: new Set(), abbrs: new Set(), links: new Set(),
+					idBySource: new Map(),
 				};
 				index.set(hf, g);
 				order.push(g);
@@ -310,6 +311,11 @@ const apiBase = (
 			if (e.def) g.defs.add(e.def);
 			if (e.notes) g.notes.add(e.notes);
 			if (e.abbr) g.abbrs.add(e.abbr);
+			// Per-entry reference URL(s) → 🔗 chips. The field is free TEXT, so
+			// split on whitespace and keep only real http(s) links.
+			if (e.links) String(e.links).split(/\s+/).forEach((u) => {
+				if (/^https?:\/\//i.test(u)) g.links.add(u);
+			});
 		}
 		return order;
 	}
@@ -326,6 +332,18 @@ const apiBase = (
 
 		// A leading "(gloss)" prefix for a sense line (empty when ungloss­ed).
 		const glossPrefix = (q) => q ? `<span class="sense-gloss">(${escapeHtml(q)})</span> ` : '';
+
+		// Per-entry reference link(s) → 🔗 chips (e.g. the EU regulation a railway
+		// term is defined in). Labelled by a friendly host name; dedup'd by the Set.
+		const refLabel = (url) => {
+			try {
+				const h = new URL(url).hostname.replace(/^www\./, '');
+				return /eur-lex\.europa\.eu$/i.test(h) ? 'EUR-Lex' : h;
+			} catch { return 'link'; }
+		};
+		const refChips = [...group.links].map((u) =>
+			`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`
+		).join(' ');
 
 		// Per-line provenance (source chip[s] + that line's domain), shown only on
 		// multi-source cards so each translation is tied to where it came from.
@@ -395,7 +413,13 @@ const apiBase = (
 					: '';
 				return chip + pencil;
 			}),
+			...(refChips ? [refChips] : []),
 		].join(' · ');
+
+		// On multi-source cards the meta row is suppressed (provenance is per
+		// line), so surface any reference links on their own trailing row.
+		const refsRow = (multiSrc && refChips)
+			? `<div class="wb-card-meta">${refChips}</div>` : '';
 
 		// The headword carries its gloss inline only on a single-source, single-sense
 		// card (otherwise each gloss sits on its own arrow-line). Fall back to the
@@ -415,6 +439,7 @@ const apiBase = (
 			${defHtml}
 			${notesHtml}
 			${meta_ ? `<div class="wb-card-meta">${meta_}</div>` : ''}
+			${refsRow}
 		</article>`;
 	}
 
