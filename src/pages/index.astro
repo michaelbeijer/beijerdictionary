@@ -157,6 +157,7 @@ const apiBase = (
 	let meta = { sources: [], lang_pairs: [], counts: { sources: 0, entries: 0 } };
 	let direction = null;        // {src, tgt}
 	let lastEntries = [];        // raw results from the last /search
+	let lastSenses = [];         // consolidated sense groups from the last /search
 	let lastQuery = '';
 	let searchAbort = null;
 	let debounceTimer = null;
@@ -259,7 +260,13 @@ const apiBase = (
 
 	// Group a flat entry list into ordered headword cards for a direction.
 	// Insertion order preserves the server's bm25 ranking.
-	function groupForDirection(entries, dir) {
+	function groupForDirection(entries, dir, senses) {
+		// Consolidated senses (Phase 2): map sense-group id → { label, no, dom }.
+		// When an entry carries a sense id (e.sg), its translation line is keyed by
+		// the sense and labelled with the clean English sense label instead of the
+		// raw qualifier — collapsing the per-(qualifier, source) fragments into one
+		// line per meaning. Entries without a sense fall back to the legacy keying.
+		const senseById = new Map((senses || []).map((s) => [s.id, s]));
 		const index = new Map();
 		const order = [];
 		for (const e of entries) {
@@ -296,15 +303,17 @@ const apiBase = (
 				order.push(g);
 			}
 			if (equiv) {
-				const lk = (qHead || '') + '' + (e.src || '');
+				const sense = (e.sg != null) ? senseById.get(e.sg) : null;
+				const lk = sense ? ('sg:' + sense.id) : ((qHead || '') + '' + (e.src || ''));
 				let ln = g.lines.get(lk);
 				if (!ln) {
-					ln = { qual: qHead || '', srcKey: e.src || '', domains: new Set(), equivs: new Map(), id: null };
+					ln = { qual: sense ? sense.label : (qHead || ''), srcKey: '', domains: new Set(), equivs: new Map(), id: null, senseNo: sense ? sense.no : null, isSense: !!sense };
 					g.lines.set(lk, ln);
 				}
 				const ef = fold(equiv);
 				if (!ln.equivs.has(ef)) ln.equivs.set(ef, { display: equiv, qEquiv: qEquiv || '' });
 				if (e.dom) ln.domains.add(e.dom);
+				if (e.src) { const _s = new Set(ln.srcKey ? ln.srcKey.split(',').map((x) => x.trim()) : []); e.src.split(',').forEach((x) => _s.add(x.trim())); ln.srcKey = [..._s].filter(Boolean).join(','); }
 				if (ln.id == null && e.id != null) ln.id = e.id;
 			}
 			if (e.src) String(e.src).split(',').forEach((s) => {
@@ -340,6 +349,7 @@ const apiBase = (
 				eLinks.forEach((u) => g.looseLinks.add(u));
 			}
 		}
+		for (const g2 of order) { g2.lines = new Map([...g2.lines.entries()].sort((a, b) => { const an = a[1].senseNo, bn = b[1].senseNo; if (an != null && bn != null) return an - bn; if (an != null) return -1; if (bn != null) return 1; return 0; })); }
 		return order;
 	}
 
@@ -354,7 +364,7 @@ const apiBase = (
 			}).join('');
 
 		// A leading "(gloss)" prefix for a sense line (empty when ungloss­ed).
-		const glossPrefix = (q) => q ? `<span class="sense-gloss">(${escapeHtml(q)})</span> ` : '';
+		const glossPrefix = (ln) => { if (!ln.qual) return ''; return ln.isSense ? `<b class="sense-label">${escapeHtml(ln.qual)}</b> ` : `<span class="sense-gloss">(${escapeHtml(ln.qual)})</span> `; };
 
 		// Per-entry reference link(s) → 🔗 chips (e.g. the EU regulation a railway
 		// term is defined in). Labelled by a friendly host name; dedup'd by the Set.
@@ -410,7 +420,7 @@ const apiBase = (
 			// Several sources share this headword → one line per (sense, source),
 			// each tagged with its own provenance so chip↔translation is unambiguous.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l.qual)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>`
+				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>`
 			).join('');
 		} else if (lines.length === 1) {
 			// Single source, single sense → gloss sits inline on the headword.
@@ -418,7 +428,7 @@ const apiBase = (
 		} else if (lines.length > 1) {
 			// Single source, several senses → one arrow-line per gloss.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l.qual)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>`
+				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>`
 			).join('');
 		}
 
@@ -587,7 +597,7 @@ const apiBase = (
 			updateCounts(null);
 			return;
 		}
-		const groups = groupForDirection(lastEntries, direction);
+		const groups = groupForDirection(lastEntries, direction, lastSenses);
 		renderResults(groups, fold(lastQuery).split(/\s+/).filter(Boolean));
 		updateCounts(groups.length);
 	}
@@ -610,6 +620,7 @@ const apiBase = (
 				searchAbort.signal
 			);
 			lastEntries = data.entries || [];
+			lastSenses = data.senses || [];
 			rerender();
 		} catch (err) {
 			if (err.name === 'AbortError') return;
