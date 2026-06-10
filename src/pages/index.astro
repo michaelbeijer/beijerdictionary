@@ -364,7 +364,7 @@ const apiBase = (
 			}).join('');
 
 		// A leading "(gloss)" prefix for a sense line (empty when ungloss­ed).
-		const glossPrefix = (ln) => { if (!ln.qual) return ''; return ln.isSense ? `<b class="sense-label">${escapeHtml(ln.qual)}</b> ` : `<span class="sense-gloss">(${escapeHtml(ln.qual)})</span> `; };
+		const glossPrefix = (ln) => { if (!ln.qual) return ''; return ln.isSense ? `<span class="sense-num">${ln.dispNo}.</span> <b class="sense-label">${escapeHtml(ln.qual)}</b> ` : `<span class="sense-gloss">(${escapeHtml(ln.qual)})</span> `; };
 
 		// Per-entry reference link(s) → 🔗 chips (e.g. the EU regulation a railway
 		// term is defined in). Labelled by a friendly host name; dedup'd by the Set.
@@ -409,6 +409,7 @@ const apiBase = (
 
 		// Lines that actually have translations, keyed by (sense, source).
 		const lines = [...group.lines.values()].filter((l) => l.equivs.size);
+		let _sn = 0; lines.forEach((l) => { if (l.isSense) l.dispNo = ++_sn; });
 		const multiSrc = group.sources.size > 1;
 
 		// Sources that appear on a translation line (so they're attributed there).
@@ -754,4 +755,6 @@ const apiBase = (
 		opacity: 0.25;
 	}
 	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
+	.sense-num { display: inline-block; min-width: 1.35em; color: #9aa3ad; font-weight: 600; font-variant-numeric: tabular-nums; }
+	.wb-sense { margin-top: 5px; }
 </style>
