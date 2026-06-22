@@ -307,7 +307,7 @@ const apiBase = (
 				const lk = sense ? ('sg:' + sense.id) : ((qHead || '') + '' + (e.src || ''));
 				let ln = g.lines.get(lk);
 				if (!ln) {
-					ln = { qual: sense ? sense.label : (qHead || ''), srcKey: '', domains: new Set(), equivs: new Map(), id: null, senseNo: sense ? sense.no : null, isSense: !!sense };
+					ln = { qual: sense ? sense.label : (qHead || ''), srcKey: '', domains: new Set(), equivs: new Map(), id: null, senseNo: sense ? sense.no : null, isSense: !!sense, def: sense ? (sense.def || '') : '' };
 					g.lines.set(lk, ln);
 				}
 				const ef = fold(equiv);
@@ -366,6 +366,10 @@ const apiBase = (
 		// A leading "(gloss)" prefix for a sense line (empty when ungloss­ed).
 		const glossPrefix = (ln) => { if (!ln.qual) return ''; return ln.isSense ? `<span class="sense-num">${ln.dispNo}.</span> <b class="sense-label">${escapeHtml(ln.qual)}</b> ` : `<span class="sense-gloss">(${escapeHtml(ln.qual)})</span> `; };
 
+		// A muted definition sub-line for a sense — the hand-curated gloss that
+		// applies to the whole meaning. Shown only when a definition was written.
+		const senseDef = (ln) => (ln && ln.def) ? `<div class="wb-sensedef">${escapeHtml(ln.def)}</div>` : '';
+
 		// Per-entry reference link(s) → 🔗 chips (e.g. the EU regulation a railway
 		// term is defined in). Labelled by a friendly host name; dedup'd by the Set.
 		const refLabel = (url) => {
@@ -421,15 +425,15 @@ const apiBase = (
 			// Several sources share this headword → one line per (sense, source),
 			// each tagged with its own provenance so chip↔translation is unambiguous.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>`
+				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>${senseDef(l)}`
 			).join('');
 		} else if (lines.length === 1) {
 			// Single source, single sense → gloss sits inline on the headword.
-			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(lines[0].equivs)}</div>`;
+			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(lines[0].equivs)}</div>${senseDef(lines[0])}`;
 		} else if (lines.length > 1) {
 			// Single source, several senses → one arrow-line per gloss.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>`
+				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>${senseDef(l)}`
 			).join('');
 		}
 
@@ -757,4 +761,6 @@ const apiBase = (
 	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
 	.sense-num { display: inline-block; min-width: 1.35em; color: #9aa3ad; font-weight: 600; font-variant-numeric: tabular-nums; }
 	.wb-sense { margin-top: 5px; }
+	/* Hand-curated, per-meaning definition shown under its sense line. */
+	.wb-sensedef { margin: 1px 0 6px 1.7em; color: #5a6573; font-size: 0.92em; line-height: 1.45; }
 </style>
