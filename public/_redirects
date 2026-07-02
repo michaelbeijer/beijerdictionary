@@ -1,4 +1,4 @@
 # Cloudflare Pages redirects (format: <from> <to> <status>).
 # Preserve the equity of the one URL Google already indexed
-# (beijerterm.com/home) by consolidating it onto the clean root.
+# (superterm.io/home) by consolidating it onto the clean root.
 /home / 301

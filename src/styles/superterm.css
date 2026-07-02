@@ -1,4 +1,4 @@
-/* Beijerterm shared styles.
+/* SuperTerm shared styles.
    Imported globally via Base.astro so both the Search (/) and Sources
    (/sources) pages share them. Result cards and the client-side sources
    fallback are injected via innerHTML, so these must be global (not scoped).

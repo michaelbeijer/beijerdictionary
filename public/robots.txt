@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://beijerterm.com/sitemap-index.xml
+Sitemap: https://superterm.io/sitemap-index.xml
