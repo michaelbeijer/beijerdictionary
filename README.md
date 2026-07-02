@@ -5,7 +5,7 @@ multilingual terminology database for technical translators
 (Dutch ↔ English and more), at **superterm.io**.
 
 This repo is **software only**. The terminology data is private: it lives in
-the separate private `wordbook` repo (the curation pipeline + SQLite master
+the separate private `superterm-database` repo (the curation pipeline + SQLite master
 store) and in a Cloudflare D1 database. This site calls a Cloudflare Worker
 search API and only ever receives **per-query result snippets** — never the
 bulk dataset.
@@ -16,7 +16,7 @@ superterm.io (this site, Cloudflare Pages)
       ▼
   Worker "wordbook-search"   (in the beijer.uk repo's worker/ dir)
       ▼
-  D1 "wordbook"              (loaded from the private wordbook repo)
+  D1 "wordbook"              (loaded from the private superterm-database repo)
 ```
 
 beijer.uk hosts a lighter hand-off search box that links here; this is the
@@ -39,7 +39,7 @@ Without it, the page shows "Search API not configured" — it never ships data.
 superterm.io is already proxied through Cloudflare, so:
 
 1. **Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git**,
-   pick this repo (`michaelbeijer/beijerterm`).
+   pick this repo (`michaelbeijer/superterm`).
 2. Build settings:
    - Framework preset: **Astro**
    - Build command: `npm run build`
@@ -57,6 +57,6 @@ preserving its search equity.
 ## Updating content
 
 The site is static; the searchable data is refreshed independently by
-reloading Cloudflare D1 from the private `wordbook` repo
-(`wordbook build-d1` → `wrangler d1 execute`). No rebuild of this site is
+reloading Cloudflare D1 from the private `superterm-database` repo
+(`superterm build-d1` → `wrangler d1 execute`). No rebuild of this site is
 needed when the data changes.
