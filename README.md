@@ -1,6 +1,6 @@
-# SuperTerm
+# Superterm
 
-The public, canonical site for **SuperTerm** — a curated, searchable
+The public, canonical site for **Superterm** — a curated, searchable
 multilingual terminology database for technical translators
 (Dutch ↔ English and more), at **superterm.io**.
 

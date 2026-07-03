@@ -1,7 +1,14 @@
 # Changelog
 
-Notable changes to SuperTerm — the website (this repo) and the underlying
+Notable changes to Superterm — the website (this repo) and the underlying
 terminology database and search API. Newest first.
+
+## 2026-07-03
+
+**Branding**
+- Restyled the name **SuperTerm → Superterm** (lowercase "t") across the site –
+  wordmark, page titles, headings, meta descriptions and body copy. The
+  `superterm.io` domain and routes are unchanged.
 
 ## 2026-06-03
 
