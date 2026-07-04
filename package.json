@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "Superterm — a multilingual terminology database for technical translators (superterm.io)",
+  "description": "SuperTerm — a multilingual terminology database for technical translators (superterm.io)",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
