@@ -1,6 +1,6 @@
 # Changelog
 
-Notable changes to SuperTerm — the website (this repo) and the underlying
+Notable changes to Beijerterm — the website (this repo) and the underlying
 terminology database and search API. Newest first.
 
 ## 2026-06-03

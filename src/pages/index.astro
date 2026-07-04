@@ -12,11 +12,11 @@ const apiBase = (
 ---
 
 <Base
-	title="SuperTerm – multilingual terminology for technical translators"
+	title="Beijerterm – multilingual terminology for technical translators"
 	description="A curated, searchable multilingual terminology database for technical translators – Dutch ↔ English and more, with full provenance."
 >
 	<section class="wb-hero">
-		<h1>SuperTerm</h1>
+		<h1>Beijerterm</h1>
 		<p class="wb-tag">
 			A curated, searchable multilingual terminology database for technical
 			translators – with full provenance for every source.
@@ -26,7 +26,7 @@ const apiBase = (
 
 	<section class="wb-view">
 		<div class="wb-search">
-			<label class="sr-only" for="wb-q">Search SuperTerm</label>
+			<label class="sr-only" for="wb-q">Search Beijerterm</label>
 			<input id="wb-q" type="search" placeholder="Search…" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
 			<div class="wb-controls">
 				<label class="sr-only" for="wb-from">From language</label>
@@ -60,7 +60,7 @@ const apiBase = (
 
 <script define:vars={{ apiBase }}>
 	// ────────────────────────────────────────────────────────────────────
-	// SuperTerm search — server-side via the Cloudflare Worker + D1 API.
+	// Beijerterm search — server-side via the Cloudflare Worker + D1 API.
 	//
 	// The browser NEVER receives the dataset. On load it fetches /meta (the
 	// source inventory + language pairs), and on each keystroke it fetches
@@ -692,7 +692,7 @@ const apiBase = (
 		try {
 			meta = await getJSON('/meta');
 		} catch (err) {
-			counts.textContent = 'Could not reach the SuperTerm search API. ' + err.message;
+			counts.textContent = 'Could not reach the Beijerterm search API. ' + err.message;
 			return;
 		}
 		const dirs = discoverDirections(meta.lang_pairs || []);
@@ -708,7 +708,7 @@ const apiBase = (
 		updateCounts(null);
 
 		// Deep-link support: ?q=…&from=nl&to=en runs a search on load. This is
-		// how SuperTerm embeds as a SuperLookup web resource (and makes search
+		// how Beijerterm embeds as a SuperLookup web resource (and makes search
 		// URLs shareable). `from`/`to` are ISO 639-1 codes; if they match a known
 		// direction it's selected, otherwise the default direction is kept.
 		const params = new URLSearchParams(location.search);

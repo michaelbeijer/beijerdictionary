@@ -7,6 +7,6 @@ import sitemap from '@astrojs/sitemap';
 // generates sitemap-index.xml + sitemap-0.xml at build time (referenced by
 // public/robots.txt).
 export default defineConfig({
-	site: 'https://superterm.io',
+	site: 'https://beijerterm.com',
 	integrations: [sitemap()],
 });

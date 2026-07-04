@@ -1,8 +1,8 @@
-# SuperTerm
+# Beijerterm
 
-The public, canonical site for **SuperTerm** — a curated, searchable
+The public, canonical site for **Beijerterm** — a curated, searchable
 multilingual terminology database for technical translators
-(Dutch ↔ English and more), at **superterm.io**.
+(Dutch ↔ English and more), at **beijerterm.com**.
 
 This repo is **software only**. The terminology data is private: it lives in
 the separate private `wordbook` repo (the curation pipeline + SQLite master
@@ -11,7 +11,7 @@ search API and only ever receives **per-query result snippets** — never the
 bulk dataset.
 
 ```
-superterm.io (this site, Cloudflare Pages)
+beijerterm.com (this site, Cloudflare Pages)
       │  GET /meta, /search   (fetch)
       ▼
   Worker "wordbook-search"   (in the beijer.uk repo's worker/ dir)
@@ -36,7 +36,7 @@ Without it, the page shows "Search API not configured" — it never ships data.
 
 ## Deploy (Cloudflare Pages)
 
-superterm.io is already proxied through Cloudflare, so:
+beijerterm.com is already proxied through Cloudflare, so:
 
 1. **Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git**,
    pick this repo (`michaelbeijer/beijerterm`).
@@ -47,7 +47,7 @@ superterm.io is already proxied through Cloudflare, so:
 3. **Environment variables** → add `PUBLIC_WORDBOOK_API` =
    `https://wordbook-search.<subdomain>.workers.dev` (the deployed Worker URL).
    If unset, the page shows "Search API not configured" and ships no data.
-4. **Custom domains** → add `superterm.io` (and `www.superterm.io`).
+4. **Custom domains** → add `beijerterm.com` (and `www.beijerterm.com`).
    This replaces the old MediaWiki origin — decommission it once the new site
    is verified live.
 
