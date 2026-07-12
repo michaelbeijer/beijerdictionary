@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getArticles, excerpt, type BeijertermArticle } from '../../lib/articles';
+import { getArticles, excerpt, stripLeadingTitle, type BeijertermArticle } from '../../lib/articles';
 
 // Statically prerender one page per published article. The feed is fetched at
 // build time; if it's empty/unreachable, no article pages are emitted (and
@@ -48,7 +48,7 @@ const jsonLd = {
 
 		<h1>{article.title}</h1>
 
-		<div class="bt-article-body" set:html={article.html}></div>
+		<div class="bt-article-body" set:html={stripLeadingTitle(article.html, article.title)}></div>
 
 		<p class="bt-article-back">
 			<a href="/articles/">← All articles</a> · <a href="/">Search</a>

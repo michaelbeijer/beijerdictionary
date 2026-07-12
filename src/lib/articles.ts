@@ -90,6 +90,26 @@ export function excerpt(html: string, max = 160): string {
 	return text.slice(0, max).replace(/\s+\S*$/, '') + '…';
 }
 
+// beijer.ink derives a note's title from its first block, but the block stays
+// in the body — so rendering title-as-H1 plus the body repeats the heading.
+// Drop the leading block when its text matches the title (mirrors how
+// autofingers de-duplicates). The H1 (article.title) is the single heading;
+// everything after it is the body.
+export function stripLeadingTitle(html: string, title: string): string {
+	if (!html || !title) return html || '';
+	const m = html.match(/^\s*<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>\s*/i);
+	if (!m) return html;
+	const text = m[2]
+		.replace(/<[^>]+>/g, '')
+		.replace(/&[a-z]+;/gi, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+	if (text.toLowerCase() === title.trim().toLowerCase()) {
+		return html.slice(m[0].length);
+	}
+	return html;
+}
+
 export function toIndexItem(a: BeijertermArticle): ArticleIndexItem {
 	return {
 		slug: a.slug,
@@ -98,6 +118,6 @@ export function toIndexItem(a: BeijertermArticle): ArticleIndexItem {
 		aliases: a.aliases || [],
 		lang: a.lang,
 		domain: a.domain,
-		excerpt: excerpt(a.html),
+		excerpt: excerpt(stripLeadingTitle(a.html, a.title)),
 	};
 }
