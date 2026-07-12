@@ -4,7 +4,7 @@ import { getArticles, excerpt, type BeijertermArticle } from '../../lib/articles
 
 // Statically prerender one page per published article. The feed is fetched at
 // build time; if it's empty/unreachable, no article pages are emitted (and
-// /article/* 404s) — the build still succeeds.
+// /articles/* 404s) — the build still succeeds.
 export async function getStaticPaths() {
 	const articles = await getArticles();
 	return articles.map((article) => ({
@@ -34,7 +34,7 @@ const jsonLd = {
 	description: metaDesc,
 	termCode: article.headword || undefined,
 	inDefinedTermSet: 'https://beijerterm.com/articles/',
-	url: `https://beijerterm.com/article/${article.slug}/`,
+	url: `https://beijerterm.com/articles/${article.slug}/`,
 };
 ---
 

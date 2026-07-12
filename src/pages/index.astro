@@ -559,7 +559,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const domain = a.domain ? `<span class="wb-article-chip">${escapeHtml(a.domain)}</span>` : '';
 		const lang = a.lang ? `<span class="wb-article-chip">${escapeHtml(a.lang.toUpperCase())}</span>` : '';
 		const teaser = a.excerpt ? `<div class="wb-article-teaser">${escapeHtml(a.excerpt)}</div>` : '';
-		return `<a class="wb-card wb-article" href="/article/${encodeURIComponent(a.slug)}/">
+		return `<a class="wb-card wb-article" href="/articles/${encodeURIComponent(a.slug)}/">
 			<div class="wb-article-top"><span class="wb-article-badge">Article</span>${domain}${lang}</div>
 			<div class="wb-article-title">${title}</div>
 			${teaser}

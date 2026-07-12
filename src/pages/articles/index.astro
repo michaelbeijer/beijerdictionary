@@ -1,7 +1,7 @@
 ---
-import Base from '../layouts/Base.astro';
-import ViewTabs from '../components/ViewTabs.astro';
-import { getArticles } from '../lib/articles';
+import Base from '../../layouts/Base.astro';
+import ViewTabs from '../../components/ViewTabs.astro';
+import { getArticles } from '../../lib/articles';
 
 // The articles directory. Built statically from the same beijer.ink feed as the
 // individual pages, so it's a crawlable hub page that internally links to every
@@ -49,7 +49,7 @@ const intro = total
 					<ul class="bt-artlist">
 						{list.map((a) => (
 							<li class="bt-artitem">
-								<a href={`/article/${a.slug}/`}>{a.title}</a>
+								<a href={`/articles/${a.slug}/`}>{a.title}</a>
 								{a.lang && <span class="bt-artlang">{LANG(a.lang)}</span>}
 							</li>
 						))}
