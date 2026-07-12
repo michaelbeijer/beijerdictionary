@@ -1,9 +1,9 @@
 ---
-// The Search | Sources bar. Styled exactly like the old in-page tabs, but
-// each is a real link to its own page (/ and /sources) so both are real,
-// indexable URLs. `current` highlights the active one.
+// The Search | Articles | Sources bar. Each is a real link to its own page
+// (/, /articles, /sources) so all are real, indexable URLs. `current`
+// highlights the active one.
 interface Props {
-	current: 'search' | 'sources';
+	current: 'search' | 'articles' | 'sources';
 }
 const { current } = Astro.props;
 ---
@@ -13,6 +13,11 @@ const { current } = Astro.props;
 		class:list={['wb-tab', { active: current === 'search' }]}
 		href="/"
 		aria-current={current === 'search' ? 'page' : undefined}>Search</a
+	>
+	<a
+		class:list={['wb-tab', { active: current === 'articles' }]}
+		href="/articles"
+		aria-current={current === 'articles' ? 'page' : undefined}>Articles</a
 	>
 	<a
 		class:list={['wb-tab', { active: current === 'sources' }]}

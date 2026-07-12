@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import ViewTabs from '../components/ViewTabs.astro';
+import { getArticles, toIndexItem } from '../lib/articles';
 
 // Search API base. Production sets PUBLIC_WORDBOOK_API to the deployed Worker
 // URL; in `astro dev` it falls back to a local Worker on :8787. The terminology
@@ -9,6 +10,13 @@ const apiBase = (
 	import.meta.env.PUBLIC_WORDBOOK_API ||
 	(import.meta.env.DEV ? 'http://127.0.0.1:8787' : '')
 ).replace(/\/$/, '');
+
+// Compact article index, built from the beijer.ink feed at build time and
+// embedded below. Unlike the term corpus (server-only, per-query snippets),
+// articles are the owner's own original content, so shipping this small index
+// (headword/aliases/domain/excerpt — no full bodies) to the browser is fine and
+// lets article cards surface instantly client-side, with no extra API call.
+const articleIndex = (await getArticles()).map(toIndexItem);
 ---
 
 <Base
@@ -57,6 +65,8 @@ const apiBase = (
 		<p id="wb-hint" class="wb-hint">Type a term above to search the database.</p>
 	</section>
 </Base>
+
+<script type="application/json" id="bt-articles-data" is:inline set:html={JSON.stringify(articleIndex)}></script>
 
 <script define:vars={{ apiBase }}>
 	// ────────────────────────────────────────────────────────────────────
@@ -512,15 +522,62 @@ const apiBase = (
 		</article>`;
 	}
 
-	function renderResults(groups, tokens) {
+	// ── Terminology articles ──────────────────────────────────────────────
+	// The compact article index is embedded at build time (bt-articles-data);
+	// article cards are matched and rendered entirely client-side. Unlike the
+	// term corpus, articles are the owner's own original content.
+	let ARTICLES = [];
+	try {
+		ARTICLES = JSON.parse(document.getElementById('bt-articles-data').textContent || '[]');
+	} catch (e) { ARTICLES = []; }
+
+	// An article matches when the folded query is a prefix of its headword,
+	// title, or any alias (whole-string or at a word boundary) — mirroring the
+	// term search's word-start prefix behaviour. Direction/lang filters don't
+	// apply: an article surfaces whenever one of its terms matches.
+	function matchArticles(query) {
+		const q = fold((query || '').trim());
+		if (q.length < 2 || !ARTICLES.length) return [];
+		const hits = [];
+		for (const a of ARTICLES) {
+			const terms = [a.headword, a.title, ...(a.aliases || [])];
+			let ok = false;
+			for (const t of terms) {
+				const ft = fold(t);
+				if (!ft) continue;
+				if (ft.startsWith(q) || ft.split(/[^\p{L}\p{N}]+/u).some((w) => w.startsWith(q))) {
+					ok = true; break;
+				}
+			}
+			if (ok) hits.push(a);
+		}
+		return hits.slice(0, 5);
+	}
+
+	function renderArticleCard(a, tokens) {
+		const title = hl(a.title || a.headword || '', tokens).html;
+		const domain = a.domain ? `<span class="wb-article-chip">${escapeHtml(a.domain)}</span>` : '';
+		const lang = a.lang ? `<span class="wb-article-chip">${escapeHtml(a.lang.toUpperCase())}</span>` : '';
+		const teaser = a.excerpt ? `<div class="wb-article-teaser">${escapeHtml(a.excerpt)}</div>` : '';
+		return `<a class="wb-card wb-article" href="/article/${encodeURIComponent(a.slug)}/">
+			<div class="wb-article-top"><span class="wb-article-badge">Article</span>${domain}${lang}</div>
+			<div class="wb-article-title">${title}</div>
+			${teaser}
+		</a>`;
+	}
+
+	function renderResults(groups, tokens, articles) {
 		const box = document.getElementById('wb-results');
-		if (!groups.length) {
+		articles = articles || [];
+		const articleHtml = articles.map((a) => renderArticleCard(a, tokens)).join('');
+		if (!groups.length && !articles.length) {
 			box.innerHTML = '<p class="wb-empty">No matches.</p>';
 			box.hidden = false;
 			return;
 		}
 		const shown = groups.slice(0, MAX_RESULTS);
-		box.innerHTML = shown.map((g) => renderCard(g, tokens)).join('')
+		box.innerHTML = articleHtml
+			+ shown.map((g) => renderCard(g, tokens)).join('')
 			+ (groups.length > MAX_RESULTS
 				? `<div class="wb-more">Showing ${MAX_RESULTS} of ${groups.length} headwords.</div>`
 				: '');
@@ -602,8 +659,10 @@ const apiBase = (
 			updateCounts(null);
 			return;
 		}
+		const tokens = fold(lastQuery).split(/\s+/).filter(Boolean);
 		const groups = groupForDirection(lastEntries, direction, lastSenses);
-		renderResults(groups, fold(lastQuery).split(/\s+/).filter(Boolean));
+		const articles = matchArticles(lastQuery);
+		renderResults(groups, tokens, articles);
 		updateCounts(groups.length);
 	}
 

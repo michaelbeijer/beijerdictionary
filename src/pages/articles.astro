@@ -1,0 +1,98 @@
+---
+import Base from '../layouts/Base.astro';
+import ViewTabs from '../components/ViewTabs.astro';
+import { getArticles } from '../lib/articles';
+
+// The articles directory. Built statically from the same beijer.ink feed as the
+// individual pages, so it's a crawlable hub page that internally links to every
+// article (helps discovery + indexing alongside the sitemap). Grouped by domain.
+const articles = await getArticles();
+
+const groups = new Map<string, typeof articles>();
+const sortKey = (a: (typeof articles)[number]) => (a.headword || a.title).toLowerCase();
+for (const a of [...articles].sort((x, y) => sortKey(x).localeCompare(sortKey(y)))) {
+	const domain = (a.domain || '').trim() || 'General';
+	if (!groups.has(domain)) groups.set(domain, []);
+	groups.get(domain)!.push(a);
+}
+// 'General' (untagged) sinks to the bottom; everything else alphabetical.
+const sortedGroups = [...groups.entries()].sort((a, b) => {
+	if (a[0] === 'General') return 1;
+	if (b[0] === 'General') return -1;
+	return a[0].localeCompare(b[0]);
+});
+
+const LANG = (c: string) => (c ? c.toUpperCase() : '');
+const total = articles.length;
+const intro = total
+	? `${total.toLocaleString('en-GB')} terminology article${total === 1 ? '' : 's'} — longer, hand-written notes on how to tell tricky terms apart, grouped by subject.`
+	: 'Longer, hand-written terminology notes on how to tell tricky terms apart.';
+---
+
+<Base
+	title="Terminology articles — Beijerterm"
+	description="Hand-written Beijerterm terminology articles: longer notes on how to distinguish tricky terms, grouped by subject domain."
+>
+	<section class="wb-hero">
+		<h1>Articles</h1>
+		<p class="wb-tag">{intro}</p>
+		<ViewTabs current="articles" />
+	</section>
+
+	<section class="wb-view">
+		{total === 0 ? (
+			<p class="wb-empty">No articles yet.</p>
+		) : (
+			sortedGroups.map(([domain, list]) => (
+				<div class="bt-artgroup">
+					<h2 class="bt-artgroup-title">{domain}</h2>
+					<ul class="bt-artlist">
+						{list.map((a) => (
+							<li class="bt-artitem">
+								<a href={`/article/${a.slug}/`}>{a.title}</a>
+								{a.lang && <span class="bt-artlang">{LANG(a.lang)}</span>}
+							</li>
+						))}
+					</ul>
+				</div>
+			))
+		)}
+	</section>
+</Base>
+
+<style>
+	.bt-artgroup {
+		margin: 1.6em 0;
+	}
+	.bt-artgroup-title {
+		font-size: 0.78em;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: rgb(var(--muted));
+		border-bottom: 1px solid rgb(var(--border));
+		padding-bottom: 0.4em;
+		margin-bottom: 0.6em;
+	}
+	.bt-artlist {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.bt-artitem {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6em;
+		padding: 0.32em 0;
+	}
+	.bt-artitem a {
+		font-weight: 600;
+	}
+	.bt-artlang {
+		font-size: 0.7em;
+		color: rgb(var(--muted));
+		border: 1px solid rgb(var(--border));
+		border-radius: 999px;
+		padding: 0.05em 0.5em;
+		letter-spacing: 0.03em;
+	}
+</style>
