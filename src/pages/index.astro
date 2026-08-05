@@ -78,7 +78,12 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	// client-side into one card per headword for the chosen direction.
 	// ────────────────────────────────────────────────────────────────────
 
+	// How many headword CARDS to render. Distinct from how many entry rows we
+	// ask the API for: a card absorbs many rows (searching "terminal" en→nl
+	// folds ~80 rows into one card), so fetching only as many rows as we render
+	// cards starved the common words of their equivalents.
 	const MAX_RESULTS = 50;
+	const FETCH_LIMIT = 200;   // entry rows per query; Worker caps at 300
 	const DEBOUNCE_MS = 180;
 
 	// Admin mode (Michael only) — same gate as the footer Admin link in
@@ -240,30 +245,34 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const src = dir.src, tgt = dir.tgt;
 		const anyS = src === 'any', anyT = tgt === 'any';
 		const mono = !e.b || !e.lb;
+		// `hLang` is the language of the headword side — used to label a
+		// definition that arrives with no equivalent ("English definition …").
 		if (mono) {
 			// Monolingual entry (term + definition, no second-language equivalent):
 			// show it whenever its single language is on either side (or Any).
 			if (anyS || anyT || e.la === src || e.la === tgt) {
-				return { head: e.a, qHead: e.qa, equiv: null, qEquiv: null, mono: true };
+				return { head: e.a, qHead: e.qa, hLang: e.la, equiv: null, qEquiv: null, mono: true };
 			}
 			return null;
 		}
-		if (anyS && anyT) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
+		const asA = { head: e.a, qHead: e.qa, hLang: e.la, equiv: e.b, qEquiv: e.qb, mono: false };
+		const asB = { head: e.b, qHead: e.qb, hLang: e.lb, equiv: e.a, qEquiv: e.qa, mono: false };
+		if (anyS && anyT) return asA;
 		if (!anyS && !anyT) {
-			if (e.la === src && e.lb === tgt) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
-			if (e.la === tgt && e.lb === src) return { head: e.b, qHead: e.qb, equiv: e.a, qEquiv: e.qa, mono: false };
+			if (e.la === src && e.lb === tgt) return asA;
+			if (e.la === tgt && e.lb === src) return asB;
 			return null;
 		}
 		// Exactly one side is "any"; L is the concrete language.
 		const L = anyS ? tgt : src;
 		if (anyT) {
 			// src = L, tgt = Any → the L side is the headword.
-			if (e.la === L) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
-			if (e.lb === L) return { head: e.b, qHead: e.qb, equiv: e.a, qEquiv: e.qa, mono: false };
+			if (e.la === L) return asA;
+			if (e.lb === L) return asB;
 		} else {
 			// src = Any, tgt = L → the L side is the equivalent, the other the headword.
-			if (e.lb === L) return { head: e.a, qHead: e.qa, equiv: e.b, qEquiv: e.qb, mono: false };
-			if (e.la === L) return { head: e.b, qHead: e.qb, equiv: e.a, qEquiv: e.qa, mono: false };
+			if (e.lb === L) return asA;
+			if (e.la === L) return asB;
 		}
 		return null;
 	}
@@ -282,13 +291,13 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		for (const e of entries) {
 			const o = orientForDirection(e, dir);
 			if (!o) continue;
-			const { head, qHead, equiv, qEquiv, mono } = o;
+			const { head, qHead, hLang, equiv, qEquiv, mono } = o;
 			if (!head || (!mono && !equiv)) continue;
 			const hf = fold(head);
 			let g = index.get(hf);
 			if (!g) {
 				g = {
-					display: head, headFold: hf,
+					display: head, headFold: hf, headLang: hLang || '',
 					// Equivalents are bucketed into LINES keyed by (sense, source) —
 					// sense = the headword-side qualifier (e.g. "toerekening (van
 					// baten in de tijd)"), source = the dictionary it came from. So a
@@ -298,13 +307,19 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 					// instead of one misleading card-level label. Insertion order ≈
 					// bm25 rank.
 					lines: new Map(),
-					// Definitions are attributed: each distinct definition is a block
-					// keyed by its text, carrying the notes, reference link(s) and
-					// source(s) of the entries that share it — so on a card with
-					// several sources you can tell which definition (and which link)
-					// came from which source. Notes/links from entries that have NO
-					// definition stay "loose" (shown card-level).
-					defBlocks: new Map(),
+					// Definitions are attributed TWICE over. Each distinct definition
+					// is a block keyed by its text, carrying the notes, reference
+					// link(s) and source(s) of the entries that share it — and it is
+					// parked on the translation LINE whose entry carried it, so the
+					// reader can see which meaning it defines instead of meeting a
+					// loose paragraph at the foot of the card. `defBlocks` here holds
+					// only the leftovers: definitions from entries that produced no
+					// translation line at all (a monolingual glossary row — term +
+					// definition, no equivalent), which are labelled as such.
+					// `defOwner` maps a definition's text to wherever its block ended
+					// up, so the same text arriving from several entries still merges
+					// into one block rather than repeating down the card.
+					defBlocks: new Map(), defOwner: new Map(),
 					looseNotes: new Set(), looseLinks: new Set(),
 					sources: new Set(), domains: new Set(),
 					abbrs: new Set(), idBySource: new Map(),
@@ -312,14 +327,18 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				index.set(hf, g);
 				order.push(g);
 			}
+			// The line this entry contributes to, if any. A definition on the same
+			// entry is attributed to that line below, instead of floating card-level.
+			let ownLine = null;
 			if (equiv) {
 				const sense = (e.sg != null) ? senseById.get(e.sg) : null;
 				const lk = sense ? ('sg:' + sense.id) : ((qHead || '') + '' + (e.src || ''));
 				let ln = g.lines.get(lk);
 				if (!ln) {
-					ln = { qual: sense ? sense.label : (qHead || ''), srcKey: '', domains: new Set(), equivs: new Map(), id: null, senseNo: sense ? sense.no : null, isSense: !!sense, def: sense ? (sense.def || '') : '' };
+					ln = { qual: sense ? sense.label : (qHead || ''), srcKey: '', domains: new Set(), equivs: new Map(), id: null, senseNo: sense ? sense.no : null, isSense: !!sense, def: sense ? (sense.def || '') : '', defBlocks: new Map() };
 					g.lines.set(lk, ln);
 				}
+				ownLine = ln;
 				const ef = fold(equiv);
 				if (!ln.equivs.has(ef)) ln.equivs.set(ef, { display: equiv, qEquiv: qEquiv || '' });
 				if (e.dom) ln.domains.add(e.dom);
@@ -343,12 +362,17 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			const eSrcs = e.src ? String(e.src).split(',').map((s) => s.trim()).filter(Boolean) : [];
 			if (e.def) {
 				// Attribute the definition: bucket by its text and fold in this
-				// entry's notes, links and source(s).
+				// entry's notes, links and source(s). A first sighting is parked on
+				// the translation line this same entry produced — that's what ties
+				// the definition to a meaning. Only an entry with no line of its own
+				// (a monolingual row: term + definition, no equivalent) leaves its
+				// definition at card level, where it is labelled as such.
 				const dk = fold(e.def);
-				let blk = g.defBlocks.get(dk);
+				let blk = g.defOwner.get(dk);
 				if (!blk) {
 					blk = { def: e.def, notes: new Set(), links: new Set(), sources: new Set() };
-					g.defBlocks.set(dk, blk);
+					g.defOwner.set(dk, blk);
+					(ownLine ? ownLine.defBlocks : g.defBlocks).set(dk, blk);
 				}
 				if (e.notes) blk.notes.add(e.notes);
 				eLinks.forEach((u) => blk.links.add(u));
@@ -366,12 +390,22 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	function renderCard(group, tokens) {
 		// Render one sense's equivalents (sorted) as a "· "-joined run of chips,
 		// each optionally carrying its own equivalent-side qualifier.
-		const renderEquivs = (equivs) =>
-			[...equivs.values()].sort((a, b) => a.display.localeCompare(b.display)).map(({ display, qEquiv }) => {
+		// The separator is a real element followed by a real space, not a CSS
+		// ::before on a run of spans joined with nothing: without a space
+		// somewhere the browser sees the whole run as ONE word and can only wrap
+		// where an equivalent happens to contain a space of its own, so a long
+		// run of single-word equivalents overflows the card. Keeping the "·"
+		// glued to the chip before it (space only AFTER) means the break lands
+		// between chips and no line ever starts with a stray separator.
+		const renderEquivs = (equivs) => {
+			const items = [...equivs.values()].sort((a, b) => a.display.localeCompare(b.display));
+			return items.map(({ display, qEquiv }, i) => {
 				const h = hl(display, tokens);
 				const qSpan = qEquiv ? ` <span class="qual">(${escapeHtml(qEquiv)})</span>` : '';
-				return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${qSpan}</span>`;
+				const sep = i < items.length - 1 ? '<span class="sep">·</span> ' : '';
+				return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${qSpan}</span>${sep}`;
 			}).join('');
+		};
 
 		// A leading "(gloss)" prefix for a sense line (empty when ungloss­ed).
 		const glossPrefix = (ln) => { if (!ln.qual) return ''; return ln.isSense ? `<span class="sense-num">${ln.dispNo}.</span> <b class="sense-label">${escapeHtml(ln.qual)}</b> ` : `<span class="sense-gloss">(${escapeHtml(ln.qual)})</span> `; };
@@ -421,6 +455,41 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			return (domHtml || chips) ? ` <span class="wb-prov">${domHtml}${chips}</span>` : '';
 		};
 
+		// Render a run of attributed definition blocks: each definition with its
+		// own notes, reference link(s) and source chip(s). `shownSrcs` lists the
+		// sources already named on the parent translation line, so a nested
+		// definition doesn't repeat a chip that sits an inch above it.
+		const renderDefBlocks = (blocks, cap, shownSrcs) => {
+			const list = [...blocks];
+			const body = list.slice(0, cap).map((blk) => {
+				const dh = hl(blk.def, tokens);
+				const noteHtml = [...blk.notes].slice(0, 2).map((n) => {
+					const h = hl(n, tokens);
+					return `<div class="wb-def-note${h.hit ? ' hit' : ''}">${h.html}</div>`;
+				}).join('');
+				const linkChips = refChipsFrom(blk.links);
+				const unseen = [...blk.sources].filter((s) => !(shownSrcs && shownSrcs.has(s)));
+				const srcChips = unseen.map(srcChip).join(' ');
+				const prov = [srcChips, linkChips].filter(Boolean).join(' · ');
+				return `<div class="wb-defblock"><div class="wb-def${dh.hit ? ' hit' : ''}">${dh.html}</div>`
+					+ noteHtml
+					+ (prov ? `<div class="wb-def-prov">${prov}</div>` : '')
+					+ '</div>';
+			}).join('');
+			const extra = list.length - cap;
+			return body + (extra > 0
+				? `<div class="wb-def-more">+${extra} more definition${extra === 1 ? '' : 's'}</div>`
+				: '');
+		};
+
+		// The definitions belonging to one translation line, shown indented
+		// directly beneath it so it's unambiguous which meaning they define.
+		const lineDefs = (ln) => {
+			if (!ln || !ln.defBlocks || !ln.defBlocks.size) return '';
+			const own = new Set((ln.srcKey ? ln.srcKey.split(',') : []).map((s) => s.trim()).filter(Boolean));
+			return `<div class="wb-linedefs">${renderDefBlocks(ln.defBlocks.values(), 3, own)}</div>`;
+		};
+
 		// Lines that actually have translations, keyed by (sense, source).
 		const lines = [...group.lines.values()].filter((l) => l.equivs.size);
 		let _sn = 0; lines.forEach((l) => { if (l.isSense) l.dispNo = ++_sn; });
@@ -435,44 +504,47 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			// Several sources share this headword → one line per (sense, source),
 			// each tagged with its own provenance so chip↔translation is unambiguous.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>${senseDef(l)}`
+				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>${senseDef(l)}${lineDefs(l)}`
 			).join('');
 		} else if (lines.length === 1) {
 			// Single source, single sense → gloss sits inline on the headword.
-			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(lines[0].equivs)}</div>${senseDef(lines[0])}`;
+			equivBlock = `<div class="wb-equivs"><span class="arrow">→</span>${renderEquivs(lines[0].equivs)}</div>${senseDef(lines[0])}${lineDefs(lines[0])}`;
 		} else if (lines.length > 1) {
 			// Single source, several senses → one arrow-line per gloss.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>${senseDef(l)}`
+				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}</div>${senseDef(l)}${lineDefs(l)}`
 			).join('');
 		}
 
-		// Attributed definition blocks: each distinct definition with its own
-		// notes, reference link(s) and source chip(s) — so on a mixed card you can
-		// tell which definition (and which link) came from which source. The source
-		// chip is shown only on multi-source cards (on a single-source card the lone
-		// source is already in the meta row, so it would be redundant); the
-		// reference link is always shown, bound to its definition.
+		// What's left after every definition that belongs to a translation line has
+		// been rendered under it: definitions from entries that carry no equivalent
+		// at all (a monolingual glossary row, e.g. ERA-Railway's English-only
+		// railway definitions). They have no meaning on this card to attach to, so
+		// say so plainly rather than leaving the reader to guess which term above
+		// they define.
 		const DEF_CAP = 4;
-		const defBlocks = [...group.defBlocks.values()];
+		const orphanDefs = [...group.defBlocks.values()];
+		// Sources named on ANY definition block, wherever it ended up — used below
+		// to decide which sources still need a chip of their own.
 		const defSrcs = new Set();
-		if (multiSrc) defBlocks.forEach((b) => b.sources.forEach((s) => defSrcs.add(s)));
-		const defHtml = defBlocks.slice(0, DEF_CAP).map((blk) => {
-			const dh = hl(blk.def, tokens);
-			const noteHtml = [...blk.notes].slice(0, 2).map((n) => {
-				const h = hl(n, tokens);
-				return `<div class="wb-def-note${h.hit ? ' hit' : ''}">${h.html}</div>`;
-			}).join('');
-			const linkChips = refChipsFrom(blk.links);
-			const srcChips = multiSrc ? [...blk.sources].map(srcChip).join(' ') : '';
-			const prov = [srcChips, linkChips].filter(Boolean).join(' · ');
-			return `<div class="wb-defblock"><div class="wb-def${dh.hit ? ' hit' : ''}">${dh.html}</div>`
-				+ noteHtml
-				+ (prov ? `<div class="wb-def-prov">${prov}</div>` : '')
-				+ '</div>';
-		}).join('') + (defBlocks.length > DEF_CAP
-			? `<div class="wb-def-more">+${defBlocks.length - DEF_CAP} more definition${defBlocks.length - DEF_CAP === 1 ? '' : 's'}</div>`
-			: '');
+		[...group.defOwner.values()].forEach((b) => b.sources.forEach((s) => defSrcs.add(s)));
+		let defHtml = '';
+		if (orphanDefs.length) {
+			const lang = group.headLang ? langName(group.headLang) + ' ' : '';
+			const plural = orphanDefs.length === 1 ? '' : 's';
+			// On a card that also has translations, the point of the label is that
+			// THESE definitions came without one. On an all-monolingual card there's
+			// nothing to contrast with, so just name the section.
+			const label = lines.length
+				? `${lang}definition${plural} · no equivalent in this source`
+				: `${lang}definition${plural}`;
+			// A single-source card already names its source in the meta row.
+			const shown = multiSrc ? null : group.sources;
+			defHtml = `<div class="wb-orphandefs">`
+				+ `<div class="wb-def-label">${escapeHtml(label)}</div>`
+				+ renderDefBlocks(group.defBlocks.values(), DEF_CAP, shown)
+				+ `</div>`;
+		}
 
 		// Notes from entries with NO definition stay loose (shown card-level).
 		const looseNotes = [...group.looseNotes];
@@ -679,8 +751,15 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		if (searchAbort) searchAbort.abort();
 		searchAbort = new AbortController();
 		try {
+			// The direction goes to the API too: it ranks an exact hit on the
+			// side carrying the SOURCE language first, so an English query
+			// surfaces its Dutch equivalents instead of the rows that merely
+			// share a Dutch prefix. It's a ranking hint, never a filter.
+			const dirQuery = direction
+				? '&from=' + encodeURIComponent(direction.src) + '&to=' + encodeURIComponent(direction.tgt)
+				: '';
 			const data = await getJSON(
-				'/search?q=' + encodeURIComponent(q) + '&limit=' + MAX_RESULTS + optsQuery(),
+				'/search?q=' + encodeURIComponent(q) + '&limit=' + FETCH_LIMIT + dirQuery + optsQuery(),
 				searchAbort.signal
 			);
 			lastEntries = data.entries || [];
@@ -717,14 +796,17 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			}
 		});
 
+		// Direction now steers the API's ranking as well as the client-side
+		// grouping, so changing it re-runs the search rather than just
+		// re-rendering the rows we happen to be holding.
 		document.getElementById('wb-from').addEventListener('change', (ev) => {
 			direction = { src: ev.target.value, tgt: direction.tgt };
 			updateDirControls();   // re-derives valid To options for the new From
-			rerender();
+			runSearch();
 		});
 		document.getElementById('wb-to').addEventListener('change', (ev) => {
 			direction.tgt = ev.target.value;
-			rerender();
+			runSearch();
 		});
 		document.getElementById('wb-swap').addEventListener('click', () => {
 			if (!direction) return;
@@ -732,7 +814,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			// no data (and "Any" can sit on either side).
 			direction = { src: direction.tgt, tgt: direction.src };
 			updateDirControls();
-			rerender();
+			runSearch();
 		});
 
 		// Option toggles change the API result set → re-run the search.

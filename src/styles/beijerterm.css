@@ -188,6 +188,10 @@
 	font-size: 0.97em;
 	line-height: 1.55;
 	color: rgb(var(--text));
+	/* Backstop: a single very long term (a chemical name, a compound) can still
+	   be wider than the card on a narrow screen. Break it rather than let it
+	   push past the card edge. */
+	overflow-wrap: break-word;
 }
 .wb-equivs .arrow {
 	color: rgb(var(--muted));
@@ -196,10 +200,13 @@
 .wb-equivs .e {
 	display: inline;
 }
-.wb-equivs .e + .e::before {
-	content: "·";
+/* Separator between equivalents. A real element, so the space that follows it
+   in the markup gives the line a break opportunity between every chip — see
+   renderEquivs(). Never bold, even when the chip before it is a search hit. */
+.wb-equivs .sep {
 	color: rgb(var(--muted));
-	margin: 0 0.35em;
+	font-weight: 400;
+	margin-left: 0.3em;
 }
 .wb-equivs .e.hit {
 	font-weight: 700;
@@ -232,7 +239,11 @@
    line's domain, so each translation is tied to where it came from. */
 .wb-prov {
 	margin-left: 0.5em;
-	white-space: nowrap;
+	/* The run may wrap — a long IATE domain ("information technology and data
+	   processing / electronics and electrical engineering") is wider than the
+	   card on its own, so nowrap here pushed it past the edge. Only the chips
+	   themselves must stay unbroken. */
+	white-space: normal;
 	font-size: 0.82em;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
@@ -242,9 +253,10 @@
 	margin-right: 0.55em;
 }
 /* Guarantee a gap between the domain text and the first source chip even when
-   the domain is empty / wraps. */
+   the domain is empty / wraps. Chips never break internally. */
 .wb-prov .pill {
 	margin-left: 0.1em;
+	white-space: nowrap;
 }
 .wb-def {
 	margin-top: 0.4em;
@@ -299,6 +311,36 @@
 	font-size: 0.85em;
 	font-style: italic;
 	opacity: 0.8;
+	color: rgb(var(--muted));
+}
+/* A definition sits UNDER the translation line whose entry carried it, indented
+   to the same stop as a curated sense definition (.wb-sensedef) and hung off a
+   rule that runs back up to its line — so it reads as belonging to that meaning
+   rather than as a loose paragraph at the foot of the card. */
+.wb-linedefs {
+	margin: 0.15em 0 0.5em 1.7em;
+	padding-left: 0.7em;
+	border-left: 2px solid rgb(var(--border));
+}
+.wb-linedefs .wb-defblock {
+	margin-top: 0.25em;
+}
+.wb-linedefs .wb-defblock:first-child {
+	margin-top: 0;
+}
+/* Definitions with no translation line to hang off: a monolingual glossary row
+   (term + definition, no equivalent). Set apart and labelled, so it's clear
+   they define the headword itself rather than any of the meanings above. */
+.wb-orphandefs {
+	margin-top: 0.7em;
+	padding-top: 0.5em;
+	border-top: 1px dashed rgb(var(--border));
+}
+.wb-def-label {
+	margin-bottom: 0.2em;
+	font-size: 0.7em;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 	color: rgb(var(--muted));
 }
 /* Notes — secondary to the definition: smaller, indented, slightly dimmer. */
