@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import ViewTabs from '../components/ViewTabs.astro';
+import SourcesTable from '../components/SourcesTable.astro';
 import { getArticles, toIndexItem } from '../lib/articles';
 
 // Search API base. Production sets PUBLIC_WORDBOOK_API to the deployed Worker
@@ -63,6 +64,19 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		</div>
 		<div id="wb-results" class="wb-results" hidden></div>
 		<p id="wb-hint" class="wb-hint">Type a term above to search the database.</p>
+	</section>
+
+	<!-- The full source list, right under the search box, so the front page
+	     shows what the search draws on. Hidden while a search is active (the
+	     script toggles it), and the same table still lives at /sources, which
+	     the source chips on result cards deep-link into. -->
+	<section id="bt-home-sources" class="wb-view bt-home-sources">
+		<h2>Sources behind the search</h2>
+		<p class="bt-src-tag">
+			The glossaries, term lists and reference works behind every result —
+			click any source for its full publication metadata.
+		</p>
+		<SourcesTable />
 	</section>
 </Base>
 
@@ -166,6 +180,14 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		}
 		out += escapeHtml(text.slice(pos));
 		return { html: out, hit: true };
+	}
+
+	// The sources table under the search box belongs to the idle front page:
+	// it hides while results (or a search error) are on screen and returns
+	// when the query is cleared.
+	function setHomeSources(show) {
+		const el = document.getElementById('bt-home-sources');
+		if (el) el.hidden = !show;
 	}
 
 	// State
@@ -648,6 +670,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	}
 
 	function renderResults(groups, tokens, articles) {
+		setHomeSources(false);
 		const box = document.getElementById('wb-results');
 		articles = articles || [];
 		const articleHtml = articles.map((a) => renderArticleCard(a, tokens)).join('');
@@ -737,6 +760,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		if (!lastQuery) {
 			const box = document.getElementById('wb-results');
 			box.hidden = true; box.innerHTML = '';
+			setHomeSources(true);
 			updateCounts(null);
 			return;
 		}
@@ -754,6 +778,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		lastQuery = q;
 		if (!q) {
 			box.hidden = true; box.innerHTML = '';
+			setHomeSources(true);
 			updateCounts(null);
 			return;
 		}
@@ -778,6 +803,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			if (err.name === 'AbortError') return;
 			box.innerHTML = '<p class="wb-empty">Search is temporarily unavailable.</p>';
 			box.hidden = false;
+			setHomeSources(false);
 		}
 	}
 
@@ -801,6 +827,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				input.value = '';
 				lastQuery = '';
 				document.getElementById('wb-results').hidden = true;
+				setHomeSources(true);
 				updateCounts(null);
 			}
 		});
@@ -909,6 +936,14 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		opacity: 0.25;
 	}
 	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
+	.bt-home-sources { margin-top: 3em; }
+	.bt-home-sources h2 { font-size: 1.15em; margin: 0 0 0.2em; }
+	.bt-src-tag {
+		color: rgb(var(--muted));
+		font-size: 0.9em;
+		margin: 0 0 1.1em;
+		max-width: 46em;
+	}
 	.sense-num { display: inline-block; min-width: 1.35em; color: #9aa3ad; font-weight: 600; font-variant-numeric: tabular-nums; }
 	.wb-sense { margin-top: 5px; }
 	/* Hand-curated, per-meaning definition shown under its sense line. */

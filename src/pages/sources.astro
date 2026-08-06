@@ -1,42 +1,27 @@
 ---
 import Base from '../layouts/Base.astro';
 import ViewTabs from '../components/ViewTabs.astro';
+import SourcesTable from '../components/SourcesTable.astro';
 
-// Sources page. We fetch /meta at BUILD time and render the table into static
-// HTML, so the source list is in the page Google receives (indexable) and
-// shows instantly. Only source *metadata* is exposed here — never the bulk
-// terminology, which stays behind the search API. A small client script opens
-// each source's detail dialog, and re-fetches at runtime if a build couldn't
-// reach the API (graceful fallback, so the page is never empty).
+// Sources page. The table itself (and its detail dialog) lives in the shared
+// <SourcesTable /> component, which the home page also embeds below the
+// search box. This page only needs the entry/source counts for its hero
+// subtitle, fetched at build time; the component's client script refreshes
+// the subtitle at runtime via #wb-intro if the data has changed.
 const apiBase = (
 	import.meta.env.PUBLIC_WORDBOOK_API ||
 	(import.meta.env.DEV ? 'http://127.0.0.1:8787' : '')
 ).replace(/\/$/, '');
 
-let sources = [];
 let counts = null;
 if (apiBase) {
 	try {
 		const res = await fetch(apiBase + '/meta');
-		if (res.ok) {
-			const data = await res.json();
-			sources = data.sources || [];
-			counts = data.counts || null;
-		}
+		if (res.ok) counts = (await res.json()).counts || null;
 	} catch {
-		// Leave sources empty — the client script will fetch and render.
+		// Leave counts null — the generic intro below still reads fine.
 	}
 }
-
-const langsOf = (s) => {
-	const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
-		.filter(Boolean).map((x) => String(x).toUpperCase());
-	return codes.length ? codes.join(' · ') : '—';
-};
-const badgeClassOf = (s) => {
-	const lic = (s.licence || 'unknown').toLowerCase();
-	return ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
-};
 
 const intro = counts
 	? `The ${counts.sources.toLocaleString('en-GB')} glossaries, term lists and reference works behind the search — ${counts.entries.toLocaleString('en-GB')} entries in all. Click any source for its full publication metadata.`
@@ -54,223 +39,6 @@ const intro = counts
 	</section>
 
 	<section class="wb-view">
-		<div id="wb-sources-wrap">
-			{sources.length ? (
-				<table class="wb-sources-table">
-					<thead>
-						<tr>
-							<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
-						</tr>
-					</thead>
-					<tbody>
-						{sources.map((s) => (
-							<tr class="clickable" data-slug={s.slug}>
-								<td>{s.title || s.slug}</td>
-								<td>{s.author || '—'}</td>
-								<td class="num">{s.year || '—'}</td>
-								<td class="langs">{langsOf(s)}</td>
-								<td class="num">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
-								<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			) : (
-				<p class="wb-loading">Loading sources…</p>
-			)}
-		</div>
+		<SourcesTable />
 	</section>
-
-	<dialog id="wb-detail" class="wb-detail">
-		<form method="dialog">
-			<button class="wb-close" aria-label="Close">×</button>
-		</form>
-		<div id="wb-detail-body"></div>
-	</dialog>
 </Base>
-
-<script type="application/json" id="wb-sources-data" is:inline set:html={JSON.stringify(sources)}></script>
-
-<script define:vars={{ apiBase }}>
-	// The source list is server-rendered above. This script only adds the
-	// interactive detail dialog (and a client fallback if the build shipped no
-	// data). It reads the embedded JSON — no per-visit API call when the build
-	// already has the data.
-
-	const escapeHtml = (s) =>
-		(s ?? '').replace(/[&<>"']/g, (c) => ({
-			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-		}[c]));
-
-	let sources = [];
-	try {
-		sources = JSON.parse(document.getElementById('wb-sources-data').textContent || '[]');
-	} catch { sources = []; }
-
-	const langsOf = (s) => {
-		const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
-			.filter(Boolean).map((x) => String(x).toUpperCase());
-		return codes.length ? codes.join(' · ') : '—';
-	};
-
-	function renderTable(list) {
-		const wrap = document.getElementById('wb-sources-wrap');
-		if (!list.length) {
-			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
-			return;
-		}
-		const rows = list.map((s) => {
-			const lic = (s.licence || 'unknown').toLowerCase();
-			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
-			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
-				<td>${escapeHtml(s.title || s.slug)}</td>
-				<td>${escapeHtml(s.author || '—')}</td>
-				<td class="num">${escapeHtml(String(s.year || '—'))}</td>
-				<td class="langs">${langsOf(s)}</td>
-				<td class="num">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
-				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
-			</tr>`;
-		}).join('');
-		wrap.innerHTML = `<table class="wb-sources-table">
-			<thead><tr>
-				<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
-			</tr></thead>
-			<tbody>${rows}</tbody>
-		</table>`;
-	}
-
-	let lastSlug = null;
-
-	function openDetail(slug) {
-		const s = sources.find((x) => x.slug === slug);
-		if (!s) return;
-		lastSlug = slug;
-		const dlg = document.getElementById('wb-detail');
-		const body = document.getElementById('wb-detail-body');
-		const rows = [
-			['Publisher',       s.publisher],
-			['Year',            s.year],
-			['Languages',       (s.languages && s.languages.length
-				? s.languages.map((c) => String(c).toUpperCase()).join(' · ')
-				: [s.source_lang, s.target_lang].filter(Boolean).map((c) => String(c).toUpperCase()).join(' · ') || null)],
-			['Domain',          s.primary_domain],
-			['Subject tags',    s.subject_tags],
-			['Licence',         s.licence],
-			['Entries',         (s.entry_count || 0).toLocaleString('en-GB')],
-		].filter(([, v]) => v != null && v !== '');
-		// Clickable source link (only http/https, opened in a new tab).
-		const urlHtml = (s.url && /^https?:\/\//i.test(s.url))
-			? `<div class="src-url">🔗 <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${
-				escapeHtml(s.url.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}</a></div>`
-			: '';
-		body.innerHTML =
-			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
-			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
-			'<dl>' +
-			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
-			'</dl>' +
-			urlHtml +
-			(s.description ? `<div class="desc">${escapeHtml(s.description)}</div>` : '');
-		dlg.showModal();
-		// Move focus into the dialog body instead of letting showModal()
-		// auto-focus the × button (which draws a focus ring around it). Focus
-		// stays trapped in the modal, so this is still keyboard/SR-friendly.
-		body.setAttribute('tabindex', '-1');
-		body.focus();
-	}
-
-	function wireRows() {
-		document.querySelectorAll('#wb-sources-wrap tr.clickable').forEach((el) => {
-			el.addEventListener('click', () => openDetail(el.dataset.slug));
-		});
-	}
-
-	// When the dialog closes (× / Esc), scroll its row into view and flash it,
-	// so you can see which source you were just looking at.
-	function bindDialogClose() {
-		const dlg = document.getElementById('wb-detail');
-		dlg.addEventListener('close', () => {
-			if (!lastSlug) return;
-			const row = document.querySelector(
-				'#wb-sources-wrap tr[data-slug="' + (window.CSS && CSS.escape ? CSS.escape(lastSlug) : lastSlug) + '"]'
-			);
-			if (!row) return;
-			row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-			row.classList.remove('wb-flash');
-			void row.offsetWidth; // reflow so the animation restarts each time
-			row.classList.add('wb-flash');
-		});
-	}
-
-	// Stable signature of the list, so we only re-render when something actually
-	// changed (avoids a needless reflow on every visit).
-	const sigList = (list) =>
-		JSON.stringify((list || []).map((s) =>
-			[s.slug, s.title, s.author, s.year, s.entry_count, s.licence, langsOf(s)]));
-
-	// Recompute the hero subtitle from fresh counts (matches the build-time text).
-	function setIntro(counts) {
-		if (!counts) return;
-		const el = document.getElementById('wb-intro');
-		if (!el) return;
-		const n = (x) => Number(x || 0).toLocaleString('en-GB');
-		el.textContent =
-			`The ${n(counts.sources)} glossaries, term lists and reference works behind ` +
-			`the search — ${n(counts.entries)} entries in all. Click any source for its ` +
-			`full publication metadata.`;
-	}
-
-	// Background revalidate: refresh /meta after load so the source list and the
-	// counts self-heal after a D1 data reload, with no site rebuild. The static
-	// render still shows instantly; this only repaints if the data changed.
-	async function revalidate() {
-		if (!apiBase) return;
-		try {
-			const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
-			if (!r.ok) return;
-			const d = await r.json();
-			setIntro(d.counts);
-			const fresh = d.sources || [];
-			if (fresh.length && sigList(fresh) !== sigList(sources)) {
-				sources = fresh;
-				renderTable(sources);
-				wireRows();
-				// Keep a deep-linked dialog correct if the build had missed it.
-				const dlg = document.getElementById('wb-detail');
-				const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
-				if (hash && dlg && !dlg.open) openDetail(hash);
-			}
-		} catch { /* offline / API down — keep the static render */ }
-	}
-
-	async function main() {
-		// Fallback: a build that couldn't reach the API ships no rows — fetch now.
-		let didFetch = false;
-		if (!sources.length && apiBase) {
-			didFetch = true;
-			try {
-				const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
-				if (r.ok) {
-					const d = await r.json();
-					sources = d.sources || [];
-					renderTable(sources);
-					setIntro(d.counts);
-				}
-			} catch {
-				document.getElementById('wb-sources-wrap').innerHTML =
-					'<p class="wb-loading">Could not load sources right now.</p>';
-			}
-		}
-		wireRows();
-		bindDialogClose();
-
-		// A source chip on the search page links here as /sources#slug — open it.
-		const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
-		if (hash) openDetail(hash);
-
-		// If we rendered from the baked data, quietly check for newer data.
-		if (!didFetch) revalidate();
-	}
-
-	main();
-</script>
