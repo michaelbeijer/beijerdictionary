@@ -68,9 +68,10 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 
 	<!-- The full source list, right under the search box, so the front page
 	     shows what the search draws on. Hidden while a search is active (the
-	     script toggles it), and the same table still lives at /sources, which
-	     the source chips on result cards deep-link into. -->
-	<section id="bt-home-sources" class="wb-view bt-home-sources">
+	     script toggles it). This is THE sources page now: /sources 301s here,
+	     the footer links to /#sources, and a #slug fragment (from a source
+	     chip or an old /sources#slug link) opens that source's dialog. -->
+	<section id="sources" class="wb-view bt-home-sources">
 		<h2>Sources behind the search</h2>
 		<p class="bt-src-tag">
 			The glossaries, term lists and reference works behind every result —
@@ -186,7 +187,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	// it hides while results (or a search error) are on screen and returns
 	// when the query is cleared.
 	function setHomeSources(show) {
-		const el = document.getElementById('bt-home-sources');
+		const el = document.getElementById('sources');
 		if (el) el.hidden = !show;
 	}
 
@@ -457,11 +458,12 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`;
 		const refChipsFrom = (set) => [...set].map(refChip).join(' ');
 
-		// A source chip (link to /sources#slug) + admin Edit pencil. Reused by the
+		// A source chip (opens the source's detail dialog via /#slug) + admin
+		// Edit pencil. Reused by the
 		// card meta row and to surface sources that contribute only a monolingual
 		// entry (definition with no equivalent → no line of their own).
 		const srcChip = (s) => {
-			const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
+			const chip = `<a class="pill pill-src" href="/#${encodeURIComponent(s)}" title="About this source">${escapeHtml(s)}</a>`;
 			if (!ADMIN) return chip;
 			const id = group.idBySource.get(s);
 			const pencil = id != null
@@ -476,7 +478,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			const dom = [...line.domains][0];
 			const domHtml = dom ? `<span class="wb-prov-dom">${escapeHtml(dom)}</span>` : '';
 			const chips = (line.srcKey ? line.srcKey.split(',') : []).map((s) => s.trim()).filter(Boolean).map((s) => {
-				const chip = `<a class="pill pill-src" href="/sources#${encodeURIComponent(s)}" title="View this source on the Sources page">${escapeHtml(s)}</a>`;
+				const chip = `<a class="pill pill-src" href="/#${encodeURIComponent(s)}" title="About this source">${escapeHtml(s)}</a>`;
 				if (!ADMIN) return chip;
 				const pencil = line.id != null
 					? ` <a class="wb-edit" href="${ADMIN_BASE}/?edit=${line.id}" target="_blank" rel="noopener" title="Edit entry #${line.id} in the local admin">✎</a>`

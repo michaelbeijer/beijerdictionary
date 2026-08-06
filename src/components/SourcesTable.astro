@@ -1,6 +1,6 @@
 ---
-// Shared sources table + per-source detail dialog, used by the home page
-// (below the search box) and /sources. We fetch /meta at BUILD time and
+// The sources table + per-source detail dialog, shown on the home page
+// below the search box. We fetch /meta at BUILD time and
 // render the table into static HTML, so the source list is in the page Google
 // receives (indexable) and shows instantly. Only source *metadata* is exposed
 // here — never the bulk terminology, which stays behind the search API. The
@@ -172,10 +172,15 @@ const badgeClassOf = (s) => {
 	}
 
 	// When the dialog closes (× / Esc), scroll its row into view and flash it,
-	// so you can see which source you were just looking at.
+	// so you can see which source you were just looking at. Also drop the
+	// #slug from the URL: hashchange only fires when the hash CHANGES, so a
+	// stale fragment would swallow the next click on the same source chip.
 	function bindDialogClose() {
 		const dlg = document.getElementById('wb-detail');
 		dlg.addEventListener('close', () => {
+			if (location.hash) {
+				history.replaceState(null, '', location.pathname + location.search);
+			}
 			if (!lastSlug) return;
 			const row = document.querySelector(
 				'#wb-sources-wrap tr[data-slug="' + (window.CSS && CSS.escape ? CSS.escape(lastSlug) : lastSlug) + '"]'
@@ -194,19 +199,6 @@ const badgeClassOf = (s) => {
 		JSON.stringify((list || []).map((s) =>
 			[s.slug, s.title, s.author, s.year, s.entry_count, s.licence, langsOf(s)]));
 
-	// Recompute the /sources hero subtitle from fresh counts (matches the
-	// build-time text). No-op on the home page, which has no #wb-intro.
-	function setIntro(counts) {
-		if (!counts) return;
-		const el = document.getElementById('wb-intro');
-		if (!el) return;
-		const n = (x) => Number(x || 0).toLocaleString('en-GB');
-		el.textContent =
-			`The ${n(counts.sources)} glossaries, term lists and reference works behind ` +
-			`the search — ${n(counts.entries)} entries in all. Click any source for its ` +
-			`full publication metadata.`;
-	}
-
 	// Background revalidate: refresh /meta after load so the source list and the
 	// counts self-heal after a D1 data reload, with no site rebuild. The static
 	// render still shows instantly; this only repaints if the data changed.
@@ -216,7 +208,6 @@ const badgeClassOf = (s) => {
 			const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
 			if (!r.ok) return;
 			const d = await r.json();
-			setIntro(d.counts);
 			const fresh = d.sources || [];
 			if (fresh.length && sigList(fresh) !== sigList(sources)) {
 				sources = fresh;
@@ -241,7 +232,6 @@ const badgeClassOf = (s) => {
 					const d = await r.json();
 					sources = d.sources || [];
 					renderTable(sources);
-					setIntro(d.counts);
 				}
 			} catch {
 				document.getElementById('wb-sources-wrap').innerHTML =
@@ -251,9 +241,18 @@ const badgeClassOf = (s) => {
 		wireRows();
 		bindDialogClose();
 
-		// A source chip on the search page links to /sources#slug — open it.
-		const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
-		if (hash) openDetail(hash);
+		// A source chip on a result card links to /#slug (and old /sources#slug
+		// links 301 here with the fragment intact) — open that source's dialog.
+		// On-load covers arrivals from elsewhere; hashchange covers chip clicks
+		// on this page, where only the fragment changes. A non-slug hash (e.g.
+		// the footer's /#sources anchor) matches no source and is left to the
+		// browser's normal in-page scroll.
+		const openFromHash = () => {
+			const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+			if (hash) openDetail(hash);
+		};
+		openFromHash();
+		window.addEventListener('hashchange', openFromHash);
 
 		// If we rendered from the baked data, quietly check for newer data.
 		if (!didFetch) revalidate();

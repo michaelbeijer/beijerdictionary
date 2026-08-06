@@ -1,11 +1,11 @@
 ---
 // The Search | Articles bar. Each is a real link to its own page (/,
 // /articles) so all are real, indexable URLs. `current` highlights the
-// active one. There is no Sources tab: the source list sits on the front
-// page under the search box (and /sources still exists for deep links —
-// the source chips on result cards point there).
+// active one. There is no Sources tab or page: the source list sits on the
+// front page under the search box (/sources 301s to /, and source chips on
+// result cards open the on-page detail dialog via /#slug).
 interface Props {
-	current: 'search' | 'articles' | 'sources';
+	current: 'search' | 'articles';
 }
 const { current } = Astro.props;
 ---

@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ site }) => {
 		'',
 		`- [Home / search](${base}/): live terminology search`,
 		`- [About](${base}/about/): what Beijerterm is and who makes it`,
-		`- [Sources](${base}/sources/): the glossaries and termbases indexed`,
+		`- [Sources](${base}/#sources): the glossaries and termbases indexed, listed on the front page`,
 		`- [Articles](${base}/articles/): terminology articles`,
 		...articles.map(
 			(a) => `- [${a.title}](${base}/articles/${a.slug}/): terminology article on "${a.headword}"`
