@@ -17,6 +17,28 @@
 	line-height: 1.6;
 	max-width: 46em;
 }
+/* Home page: the title and tagline live in the header (Base's brand slot),
+   so the hero below holds only the tabs. */
+.wb-brand h1 {
+	font-size: 2.4em;
+	letter-spacing: -0.02em;
+	margin: 0 0 0.12em;
+	line-height: 1.15;
+}
+.wb-brand .wb-tag {
+	margin: 0;
+	max-width: 34em;
+}
+.wb-hero--tabs {
+	margin: 0 0 2.2em;
+}
+@media (max-width: 640px) {
+	/* Full size from ~390px up; on smaller phones shrink just enough to keep
+	   "Beijer Dictionary" on one line (it needs ~7.8x its font size). */
+	.wb-brand h1 {
+		font-size: clamp(1.8em, 10.2vw, 2.2em);
+	}
+}
 .wb-search {
 	margin-top: 1.6em;
 }
@@ -535,7 +557,11 @@ table.wb-sources-table {
 	white-space: nowrap;
 }
 .wb-sources-table th.num { text-align: right; }
-.wb-sources-table td.langs { white-space: nowrap; }
+/* Language lists wrap ("NL · EN · DE · FR · ES" kept the table ~70px wider than
+   the page column on desktop). On a phone six columns still can't fit, so the
+   table scrolls sideways inside its own box instead of widening the page. */
+.wb-sources-table td.langs { white-space: normal; }
+#wb-sources-wrap { overflow-x: auto; }
 .wb-sources-table td:first-child { font-weight: 600; }
 .wb-sources-table tr.clickable { cursor: pointer; }
 .wb-sources-table tbody tr.clickable:hover { background: var(--subtle); }

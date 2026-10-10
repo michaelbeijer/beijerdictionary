@@ -24,12 +24,14 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	title="Beijer Dictionary – multilingual terminology for technical translators"
 	description="A curated, searchable multilingual terminology database for technical translators – Dutch ↔ English and more, with full provenance."
 >
-	<section class="wb-hero">
+	<div slot="brand" class="wb-brand">
 		<h1>Beijer Dictionary</h1>
 		<p class="wb-tag">
 			A curated, searchable multilingual terminology database for technical
 			translators – with full provenance for every source.
 		</p>
+	</div>
+	<section class="wb-hero wb-hero--tabs">
 		<ViewTabs current="search" />
 	</section>
 
