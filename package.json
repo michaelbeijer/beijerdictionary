@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "Beijerdictionary — a multilingual terminology database for technical translators (beijerdictionary.com)",
+  "description": "Beijer Dictionary — a multilingual terminology database for technical translators (BeijerDictionary.com)",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

@@ -1,6 +1,6 @@
-# Beijerdictionary – curated terminology sample
+# Beijer Dictionary – curated terminology sample
 
-> Beijerdictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English
+> Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English
 > terminology site: a searchable database of 1,895,252 term pairs from 27 sources,
 > built over 30+ years of patent and technical translation.
 

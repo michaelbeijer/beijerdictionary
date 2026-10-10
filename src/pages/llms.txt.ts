@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ site }) => {
 	const articles = await getArticles();
 
 	const lines = [
-		'# Beijerdictionary',
+		'# Beijer Dictionary',
 		'',
 		"> Michael Beijer's Dutch–English terminology site: a searchable database",
 		'> of ~1.9 million term pairs from 27 glossaries and termbases, built over',
@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ site }) => {
 		'## Pages',
 		'',
 		`- [Home / search](${base}/): live terminology search`,
-		`- [About](${base}/about/): what Beijerdictionary is and who makes it`,
+		`- [About](${base}/about/): what Beijer Dictionary is and who makes it`,
 		`- [Sources](${base}/#sources): the glossaries and termbases indexed, listed on the front page`,
 		`- [Articles](${base}/articles/): terminology articles`,
 		...articles.map(

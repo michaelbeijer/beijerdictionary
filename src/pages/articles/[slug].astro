@@ -23,7 +23,7 @@ const langLabel = article.lang ? (LANG_LABELS[article.lang] || article.lang.toUp
 
 const metaDesc =
 	excerpt(article.html, 155) ||
-	`Beijerdictionary terminology article: ${article.headword}.`;
+	`Beijer Dictionary terminology article: ${article.headword}.`;
 
 // schema.org DefinedTerm — helps search engines understand this is a
 // terminology entry (can earn richer results). termCode carries the headword.
@@ -38,7 +38,7 @@ const jsonLd = {
 };
 ---
 
-<Base title={`${article.title} — Beijerdictionary`} description={metaDesc}>
+<Base title={`${article.title} — Beijer Dictionary`} description={metaDesc}>
 	<article class="bt-article">
 		<p class="bt-article-kicker">
 			<a href="/articles/">Articles</a>

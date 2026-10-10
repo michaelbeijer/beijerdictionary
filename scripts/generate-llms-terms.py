@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate public/llms-terms.txt – Beijerdictionary's curated terminology sample
+"""Generate public/llms-terms.txt – Beijer Dictionary's curated terminology sample
 for AI agents.
 
 Reads the local Wordbook database (D:\\SynologyDrive\\Dev\\beijerterm-database\\data\\
@@ -80,9 +80,9 @@ def main():
     era = next(s for s in sources if "ERA Railway" in (s["title"] or ""))
 
     lines = [
-        "# Beijerdictionary – curated terminology sample",
+        "# Beijer Dictionary – curated terminology sample",
         "",
-        "> Beijerdictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English",
+        "> Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English",
         "> terminology site: a searchable database of "
         f"{total:,} term pairs from {len(sources)} sources,",
         "> built over 30+ years of patent and technical translation.",

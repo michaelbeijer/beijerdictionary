@@ -1,8 +1,8 @@
 # Beijer Dictionary
 
-The public, canonical site for **Beijerdictionary** — a curated, searchable
+The public, canonical site for **Beijer Dictionary** — a curated, searchable
 multilingual terminology database for technical translators
-(Dutch ↔ English and more), at **beijerdictionary.com**.
+(Dutch ↔ English and more), at **BeijerDictionary.com**.
 
 Until October 2026 the site was called Beijerterm, at beijerterm.com, which now
 redirects here. The GitHub repo is now `beijerdictionary`; the Cloudflare
@@ -40,7 +40,7 @@ Without it, the page shows "Search API not configured" — it never ships data.
 
 ## Deploy (Cloudflare Pages)
 
-beijerdictionary.com is already proxied through Cloudflare, so:
+BeijerDictionary.com is already proxied through Cloudflare, so:
 
 1. **Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git**,
    pick this repo (`michaelbeijer/beijerdictionary`).
