@@ -5,8 +5,8 @@ multilingual terminology database for technical translators
 (Dutch ↔ English and more), at **beijerdictionary.com**.
 
 Until October 2026 the site was called Beijerterm, at beijerterm.com, which now
-redirects here. The repo, the Cloudflare Worker and code names keep the old
-name on purpose; only what visitors see was renamed.
+redirects here. The GitHub repo is now `beijerdictionary`; the Cloudflare
+Worker, the local folder and code names keep the old name on purpose.
 
 This repo is **software only**. The terminology data is private: it lives in
 the separate private `wordbook` repo (the curation pipeline + SQLite master
@@ -43,7 +43,7 @@ Without it, the page shows "Search API not configured" — it never ships data.
 beijerdictionary.com is already proxied through Cloudflare, so:
 
 1. **Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git**,
-   pick this repo (`michaelbeijer/beijerterm`).
+   pick this repo (`michaelbeijer/beijerdictionary`).
 2. Build settings:
    - Framework preset: **Astro**
    - Build command: `npm run build`
