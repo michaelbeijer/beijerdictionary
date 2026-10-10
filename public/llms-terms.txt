@@ -1,21 +1,21 @@
-# Beijerterm – curated terminology sample
+# Beijerdictionary – curated terminology sample
 
-> Beijerterm (https://beijerterm.com) is Michael Beijer's Dutch–English
+> Beijerdictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English
 > terminology site: a searchable database of 1,895,252 term pairs from 27 sources,
 > built over 30+ years of patent and technical translation.
 
 This file contains a REPRESENTATIVE SAMPLE, not the full database:
-~1000 entries from Michael's own Beijerterm dictionary and
+~1000 entries from Michael's own Beijer Dictionary and
 ~100 from the permissively licensed ERA Railway Terminology
 Collection. Other indexed sources are catalogued below by name only –
 their content is not republished here for copyright reasons. For real
-lookups, use the search at https://beijerterm.com/.
+lookups, use the search at https://beijerdictionary.com/.
 
 ## Source catalogue (entry counts)
 
 - EuroVoc — the EU's multilingual thesaurus — 600,607 entries
 - IATE Dutch-English termbase — 561,129 entries
-- Beijerterm – Dutch–English Technical Dictionary — 497,336 entries
+- Beijer Dictionary – Dutch–English Technical Dictionary — 497,336 entries
 - Jakob Vlietstra – Technical Glossary (Dutch-English) — 43,197 entries
 - Terminologie Financieel Management (Dutch-English) — 35,117 entries
 - Microsoft Terminology Collection (Dutch-English) — 30,352 entries
@@ -41,7 +41,7 @@ lookups, use the search at https://beijerterm.com/.
 - VVT Terminologielijst 2024 — definities (verticaal transport) — 156 entries
 - Glossary of Conservation-Relevant Plant Species — 71 entries
 
-## Sample: Beijerterm – Dutch–English Technical Dictionary (497,336 entries total)
+## Sample: Beijer Dictionary – Dutch–English Technical Dictionary (497,336 entries total)
 
 © Michael Beijer. Format: Dutch term = English term (domain).
 

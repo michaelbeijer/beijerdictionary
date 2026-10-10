@@ -1,8 +1,12 @@
-# Beijerterm
+# Beijerdictionary
 
-The public, canonical site for **Beijerterm** — a curated, searchable
+The public, canonical site for **Beijerdictionary** — a curated, searchable
 multilingual terminology database for technical translators
-(Dutch ↔ English and more), at **beijerterm.com**.
+(Dutch ↔ English and more), at **beijerdictionary.com**.
+
+Until October 2026 the site was called Beijerterm, at beijerterm.com, which now
+redirects here. The repo, the Cloudflare Worker and code names keep the old
+name on purpose; only what visitors see was renamed.
 
 This repo is **software only**. The terminology data is private: it lives in
 the separate private `wordbook` repo (the curation pipeline + SQLite master
@@ -11,7 +15,7 @@ search API and only ever receives **per-query result snippets** — never the
 bulk dataset.
 
 ```
-beijerterm.com (this site, Cloudflare Pages)
+beijerdictionary.com (this site, Cloudflare Pages)
       │  GET /meta, /search   (fetch)
       ▼
   Worker "wordbook-search"   (in the beijer.uk repo's worker/ dir)
@@ -36,7 +40,7 @@ Without it, the page shows "Search API not configured" — it never ships data.
 
 ## Deploy (Cloudflare Pages)
 
-beijerterm.com is already proxied through Cloudflare, so:
+beijerdictionary.com is already proxied through Cloudflare, so:
 
 1. **Cloudflare dashboard → Workers & Pages → Create → Pages → Connect to Git**,
    pick this repo (`michaelbeijer/beijerterm`).
@@ -47,7 +51,7 @@ beijerterm.com is already proxied through Cloudflare, so:
 3. **Environment variables** → add `PUBLIC_WORDBOOK_API` =
    `https://wordbook-search.<subdomain>.workers.dev` (the deployed Worker URL).
    If unset, the page shows "Search API not configured" and ships no data.
-4. **Custom domains** → add `beijerterm.com` (and `www.beijerterm.com`).
+4. **Custom domains** → add `beijerdictionary.com` (and `www.beijerdictionary.com`).
    This replaces the old MediaWiki origin — decommission it once the new site
    is verified live.
 

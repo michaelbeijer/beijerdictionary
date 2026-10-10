@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Generate public/llms-terms.txt – Beijerterm's curated terminology sample
+"""Generate public/llms-terms.txt – Beijerdictionary's curated terminology sample
 for AI agents.
 
-Reads the local Wordbook database (D:\\Dev\\beijerterm-database\\data\\
+Reads the local Wordbook database (D:\\SynologyDrive\\Dev\\beijerterm-database\\data\\
 wordbook.db – NOT available in CI, which is why the output is committed)
 and writes a copyright-clean subset:
 
   * a catalogue of ALL sources with entry counts (titles and counts are
     facts – no third-party content is republished);
-  * ~1,000 entries sampled from the "Beijerterm – Dutch–English Technical
+  * ~1,000 entries sampled from the "Beijer Dictionary – Dutch–English Technical
     Dictionary" source ONLY (Michael's own work, his copyright),
     stratified across subject domains;
   * ~100 entries from the ERA Railway Terminology Collection (tagged
@@ -22,7 +22,7 @@ Rerun after major termbase updates:  python scripts/generate-llms-terms.py
 import sqlite3
 from pathlib import Path
 
-DB = r"D:\Dev\beijerterm-database\data\wordbook.db"
+DB = r"D:\SynologyDrive\Dev\beijerterm-database\data\wordbook.db"
 OUT = Path(__file__).resolve().parent.parent / "public" / "llms-terms.txt"
 
 BEIJERTERM_SAMPLE = 1000
@@ -76,23 +76,23 @@ def main():
            join entry_sources es on es.raw_entry_id = re.id
            group by s.id order by n desc""").fetchall()
 
-    bt = next(s for s in sources if (s["title"] or "").startswith("Beijerterm"))
+    bt = next(s for s in sources if (s["title"] or "").startswith("Beijer Dictionary"))
     era = next(s for s in sources if "ERA Railway" in (s["title"] or ""))
 
     lines = [
-        "# Beijerterm – curated terminology sample",
+        "# Beijerdictionary – curated terminology sample",
         "",
-        "> Beijerterm (https://beijerterm.com) is Michael Beijer's Dutch–English",
+        "> Beijerdictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English",
         "> terminology site: a searchable database of "
         f"{total:,} term pairs from {len(sources)} sources,",
         "> built over 30+ years of patent and technical translation.",
         "",
         "This file contains a REPRESENTATIVE SAMPLE, not the full database:",
-        f"~{BEIJERTERM_SAMPLE} entries from Michael's own Beijerterm dictionary and",
+        f"~{BEIJERTERM_SAMPLE} entries from Michael's own Beijer Dictionary and",
         f"~{ERA_SAMPLE} from the permissively licensed ERA Railway Terminology",
         "Collection. Other indexed sources are catalogued below by name only –",
         "their content is not republished here for copyright reasons. For real",
-        "lookups, use the search at https://beijerterm.com/.",
+        "lookups, use the search at https://beijerdictionary.com/.",
         "",
         "## Source catalogue (entry counts)",
         "",
@@ -102,7 +102,7 @@ def main():
 
     lines += [
         "",
-        f"## Sample: Beijerterm – Dutch–English Technical Dictionary "
+        f"## Sample: Beijer Dictionary – Dutch–English Technical Dictionary "
         f"({bt['n']:,} entries total)",
         "",
         "© Michael Beijer. Format: Dutch term = English term (domain).",
