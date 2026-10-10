@@ -1,4 +1,4 @@
-# Beijerdictionary
+# Beijer Dictionary
 
 The public, canonical site for **Beijerdictionary** — a curated, searchable
 multilingual terminology database for technical translators
