@@ -54,8 +54,8 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 		</script>
 	</head>
 	<body>
-		<header class:list={['site-head', { 'site-head--brand': Astro.slots.has('brand') }]}>
-			<slot name="brand"><a class="wordmark" href="/">Beijer Dictionary</a></slot>
+		<header class="site-head">
+			<a class="wordmark" href="/">Beijer Dictionary</a>
 			<nav class="site-tools">
 				<button id="width-toggle" type="button" class="tool-btn">Wide</button>
 				<button id="theme-toggle" type="button" class="tool-btn icon" aria-label="Toggle dark mode">🌙</button>
@@ -205,24 +205,21 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				width: var(--page-width); max-width: calc(100% - 2em); margin: auto;
 				padding: 1.1em 1em 0;
 			}
+			/* The wordmark is the site's brand on every page (the home page has
+			   no big title of its own), so it is the darkest thing in the header. */
 			.site-head .wordmark {
-				font-weight: 700; font-size: 1.05em; color: rgb(var(--muted));
-				letter-spacing: -0.01em;
+				font-weight: 700; font-size: 1.3em; color: rgb(var(--text));
+				letter-spacing: -0.015em; white-space: nowrap;
 			}
 			.site-head .wordmark:hover { color: rgb(var(--text)); text-decoration: none; }
 			.site-tools {
 				display: flex; align-items: center; gap: 0.55em;
 			}
 			.site-tools a { font-size: 0.9em; color: rgb(var(--muted)); }
-			/* A page that fills the "brand" slot (the home page) puts its big
-			   title in the header's place instead of the small wordmark, so the
-			   name appears once. On a phone the buttons sit in a row above it. */
-			.site-head--brand { align-items: flex-start; padding-top: 2.4em; }
-			.site-head--brand .site-tools { margin-top: 0.55em; flex-shrink: 0; }
-			.site-head--brand + main { padding-top: 0.6em; }
+			/* Phones: keep the header on one line. "Wide" changes nothing on a
+			   narrow screen, and the Michael Beijer link is in the footer. */
 			@media (max-width: 640px) {
-				.site-head--brand { flex-direction: column-reverse; align-items: stretch; padding-top: 1em; }
-				.site-head--brand .site-tools { justify-content: flex-end; margin: 0 0 1.4em; }
+				#width-toggle, .site-tools > a { display: none; }
 			}
 			.tool-btn {
 				font: inherit; font-size: 0.8em; cursor: pointer;

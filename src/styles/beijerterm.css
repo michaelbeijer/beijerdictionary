@@ -17,27 +17,13 @@
 	line-height: 1.6;
 	max-width: 46em;
 }
-/* Home page: the title and tagline live in the header (Base's brand slot),
-   so the hero below holds only the tabs. */
-.wb-brand h1 {
-	font-size: 2.4em;
-	letter-spacing: -0.02em;
-	margin: 0 0 0.12em;
-	line-height: 1.15;
+/* Home page: no visible title (the header wordmark is the brand), so the
+   tagline opens the page as a slightly larger lead line. */
+.wb-hero--home {
+	margin-top: 0;
 }
-.wb-brand .wb-tag {
-	margin: 0;
-	max-width: 34em;
-}
-.wb-hero--tabs {
-	margin: 0 0 2.2em;
-}
-@media (max-width: 640px) {
-	/* Full size from ~390px up; on smaller phones shrink just enough to keep
-	   "Beijer Dictionary" on one line (it needs ~7.8x its font size). */
-	.wb-brand h1 {
-		font-size: clamp(1.8em, 10.2vw, 2.2em);
-	}
+.wb-hero--home .wb-tag {
+	font-size: 1.1em;
 }
 .wb-search {
 	margin-top: 1.6em;
