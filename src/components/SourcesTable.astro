@@ -37,32 +37,49 @@ const badgeClassOf = (s) => {
 };
 ---
 
-<div id="wb-sources-wrap">
-	{sources.length ? (
-		<table class="wb-sources-table">
-			<thead>
-				<tr>
-					<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
-				</tr>
-			</thead>
-			<tbody>
-				{sources.map((s) => (
-					<tr class="clickable" data-slug={s.slug}>
-						<td>{s.title || s.slug}</td>
-						<td>{s.author || '—'}</td>
-						<td class="num">{s.year || '—'}</td>
-						<td class="langs">{langsOf(s)}</td>
-						<td class="num">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
-						<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
+<!-- The full source list, right under the search box, so the front page
+     shows what the search draws on. Hidden while a search is active (the
+     search script toggles #sources). This is THE sources page now: /sources
+     301s here, the footer links to /#sources, and a #slug fragment (from a
+     source chip or an old /sources#slug link) opens that source's dialog. -->
+<section id="sources" class="wb-view bt-home-sources">
+	<h2>Sources behind the search</h2>
+	<p class="bt-src-tag">
+		The glossaries, term lists and reference works behind every result —
+		click any source for its full publication metadata.
+	</p>
+	<div id="wb-sources-wrap">
+		{sources.length ? (
+			<table class="wb-sources-table">
+				<thead>
+					<tr>
+						<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
 					</tr>
-				))}
-			</tbody>
-		</table>
-	) : (
-		<p class="wb-loading">Loading sources…</p>
-	)}
-</div>
+				</thead>
+				<tbody>
+					{sources.map((s) => (
+						<tr class="clickable" data-slug={s.slug}>
+							<td>{s.title || s.slug}</td>
+							<td>{s.author || '—'}</td>
+							<td class="num">{s.year || '—'}</td>
+							<td class="langs">{langsOf(s)}</td>
+							<td class="num">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
+							<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		) : (
+			<p class="wb-loading">Loading sources…</p>
+		)}
+	</div>
+</section>
 
+<!-- The dialog must sit OUTSIDE #sources: a source chip on a result card
+     opens it while the search has that section hidden, and inside a hidden
+     parent showModal() still makes the page inert but draws the dialog at 0×0,
+     so the page looks frozen. It must also come BEFORE the script below, which
+     runs as soon as it is parsed. -->
 <dialog id="wb-detail" class="wb-detail">
 	<form method="dialog">
 		<button class="wb-close" aria-label="Close">×</button>
@@ -262,3 +279,14 @@ const badgeClassOf = (s) => {
 
 	})();
 </script>
+
+<style>
+	.bt-home-sources { margin-top: 3em; }
+	.bt-home-sources h2 { font-size: 1.15em; margin: 0 0 0.2em; }
+	.bt-src-tag {
+		color: rgb(var(--muted));
+		font-size: 0.9em;
+		margin: 0 0 1.1em;
+		max-width: 46em;
+	}
+</style>
