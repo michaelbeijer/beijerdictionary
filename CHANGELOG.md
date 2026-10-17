@@ -4,6 +4,19 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-10-17
+
+**Site**
+- In search results, definitions and notes are now labelled ("Definition",
+  "Note"), so it's clear where an entry's definition ends and its notes begin.
+
+**Under the hood**
+- Hand edits reach the live search in seconds: the admin app's new "Publish my
+  edits" sends only what was edited, instead of re-uploading the whole
+  database.
+- Entries can be looked up, edited and published from a Claude chat, through a
+  local MCP server.
+
 ## 2026-10-14
 
 **Beijer Dictionary**

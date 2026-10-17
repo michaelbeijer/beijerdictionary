@@ -351,6 +351,16 @@
 	letter-spacing: 0.05em;
 	color: rgb(var(--muted));
 }
+/* Field label at the start of a definition or a note, so the two can't run
+   together. The same small caps as the domain and source metadata. */
+.wb-field {
+	font-size: 0.78em;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	white-space: nowrap;
+	color: rgb(var(--muted));
+}
 /* Notes — secondary to the definition: smaller, indented, slightly dimmer. */
 .wb-notes {
 	margin-top: 0.35em;

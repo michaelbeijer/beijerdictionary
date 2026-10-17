@@ -479,23 +479,29 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			return (domHtml || chips) ? ` <span class="wb-prov">${domHtml}${chips}</span>` : '';
 		};
 
+		// A small label naming the field a run of text came from. A definition and
+		// its notes otherwise look alike (both muted prose under the same rule), so
+		// the reader couldn't tell where one ended and the other began.
+		const fieldLabel = (name) => `<span class="wb-field">${name}</span> `;
+
 		// Render a run of attributed definition blocks: each definition with its
 		// own notes, reference link(s) and source chip(s). `shownSrcs` lists the
 		// sources already named on the parent translation line, so a nested
 		// definition doesn't repeat a chip that sits an inch above it.
-		const renderDefBlocks = (blocks, cap, shownSrcs) => {
+		// `labelDefs` is false where a section heading already says "definition".
+		const renderDefBlocks = (blocks, cap, shownSrcs, labelDefs) => {
 			const list = [...blocks];
 			const body = list.slice(0, cap).map((blk) => {
 				const dh = hl(blk.def, tokens);
 				const noteHtml = [...blk.notes].slice(0, 2).map((n) => {
 					const h = hl(n, tokens);
-					return `<div class="wb-def-note${h.hit ? ' hit' : ''}">${h.html}</div>`;
+					return `<div class="wb-def-note${h.hit ? ' hit' : ''}">${fieldLabel('Note')}${h.html}</div>`;
 				}).join('');
 				const linkChips = refChipsFrom(blk.links);
 				const unseen = [...blk.sources].filter((s) => !(shownSrcs && shownSrcs.has(s)));
 				const srcChips = unseen.map(srcChip).join(' ');
 				const prov = [srcChips, linkChips].filter(Boolean).join(' · ');
-				return `<div class="wb-defblock"><div class="wb-def${dh.hit ? ' hit' : ''}">${dh.html}</div>`
+				return `<div class="wb-defblock"><div class="wb-def${dh.hit ? ' hit' : ''}">${labelDefs ? fieldLabel('Definition') : ''}${dh.html}</div>`
 					+ noteHtml
 					+ (prov ? `<div class="wb-def-prov">${prov}</div>` : '')
 					+ '</div>';
@@ -511,7 +517,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const lineDefs = (ln) => {
 			if (!ln || !ln.defBlocks || !ln.defBlocks.size) return '';
 			const own = new Set((ln.srcKey ? ln.srcKey.split(',') : []).map((s) => s.trim()).filter(Boolean));
-			return `<div class="wb-linedefs">${renderDefBlocks(ln.defBlocks.values(), 3, own)}</div>`;
+			return `<div class="wb-linedefs">${renderDefBlocks(ln.defBlocks.values(), 3, own, true)}</div>`;
 		};
 
 		// Lines that actually have translations, keyed by (sense, source).
@@ -566,7 +572,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			const shown = multiSrc ? null : group.sources;
 			defHtml = `<div class="wb-orphandefs">`
 				+ `<div class="wb-def-label">${escapeHtml(label)}</div>`
-				+ renderDefBlocks(group.defBlocks.values(), DEF_CAP, shown)
+				+ renderDefBlocks(group.defBlocks.values(), DEF_CAP, shown, false)
 				+ `</div>`;
 		}
 
@@ -575,7 +581,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const notesHtml = looseNotes.length
 			? '<div class="wb-notes">' + looseNotes.slice(0, 2).map((n) => {
 					const h = hl(n, tokens);
-					return '<span class="n' + (h.hit ? ' hit' : '') + '">' + h.html + '</span>';
+					return '<span class="n' + (h.hit ? ' hit' : '') + '">' + fieldLabel('Note') + h.html + '</span>';
 			  }).join('') + (looseNotes.length > 2 ? ' <span class="n-more">+' + (looseNotes.length - 2) + ' more</span>' : '') + '</div>'
 			: '';
 		const looseLinkChips = refChipsFrom(group.looseLinks);
