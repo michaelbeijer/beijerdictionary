@@ -8,7 +8,8 @@ API. Newest first.
 
 **Site**
 - In search results, definitions and notes are now labelled ("Definition",
-  "Note"), so it's clear where an entry's definition ends and its notes begin.
+  "Note", in the logo's green), so it's clear where an entry's definition ends
+  and its notes begin.
 
 **Under the hood**
 - Hand edits reach the live search in seconds: the admin app's new "Publish my

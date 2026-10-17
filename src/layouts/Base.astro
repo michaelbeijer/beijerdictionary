@@ -161,6 +161,9 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				--muted: 90, 90, 90;
 				--border: 225, 225, 225;
 				--accent: 51, 102, 204;
+				/* The logo's green: the dark end of its gradient here, the bright
+				   end in dark mode. Both stay readable as small text. */
+				--brand: 21, 128, 61;
 				--subtle: rgba(0, 0, 0, 0.03);
 				--page-width: 820px;
 				--font: 'Inter', system-ui, -apple-system, sans-serif;
@@ -171,6 +174,7 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				--muted: 150, 152, 158;
 				--border: 52, 54, 60;
 				--accent: 124, 169, 255;
+				--brand: 34, 197, 94;
 				--subtle: rgba(255, 255, 255, 0.06);
 			}
 			html[data-width='wide'] {
