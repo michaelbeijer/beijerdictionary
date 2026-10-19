@@ -1,11 +1,10 @@
 ---
-// The Search | Articles bar. Each is a real link to its own page (/,
-// /articles) so all are real, indexable URLs. `current` highlights the
-// active one. There is no Sources tab or page: the source list sits on the
-// front page under the search box (/sources 301s to /, and source chips on
-// result cards open the on-page detail dialog via /#slug).
+// The Search | Articles | Sources bar. Each is a real link to its own page
+// (/, /articles, /sources) so all are real, indexable URLs. `current`
+// highlights the active one. Source chips on result cards still open the
+// source's detail dialog in place on the search page (via /#slug).
 interface Props {
-	current: 'search' | 'articles';
+	current: 'search' | 'articles' | 'sources';
 }
 const { current } = Astro.props;
 ---
@@ -20,5 +19,10 @@ const { current } = Astro.props;
 		class:list={['wb-tab', { active: current === 'articles' }]}
 		href="/articles"
 		aria-current={current === 'articles' ? 'page' : undefined}>Articles</a
+	>
+	<a
+		class:list={['wb-tab', { active: current === 'sources' }]}
+		href="/sources"
+		aria-current={current === 'sources' ? 'page' : undefined}>Sources</a
 	>
 </nav>

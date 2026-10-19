@@ -1,6 +1,7 @@
 ---
-// The sources table + per-source detail dialog, shown on the home page
-// below the search box. We fetch /meta at BUILD time and
+// The sources table + per-source detail dialog: the table on /sources, the
+// dialog alone on the search page (`list={false}`), where source chips on
+// result cards open it. We fetch /meta at BUILD time and
 // render the table into static HTML, so the source list is in the page Google
 // receives (indexable) and shows instantly. Only source *metadata* is exposed
 // here — never the bulk terminology, which stays behind the search API. The
@@ -8,6 +9,11 @@
 // build couldn't reach the API (graceful fallback, so the table is never
 // empty), and background-revalidates so the list self-heals after a D1 data
 // reload with no site rebuild.
+interface Props {
+	list?: boolean;
+}
+const { list = true } = Astro.props;
+
 const apiBase = (
 	import.meta.env.PUBLIC_WORDBOOK_API ||
 	(import.meta.env.DEV ? 'http://127.0.0.1:8787' : '')
@@ -37,17 +43,10 @@ const badgeClassOf = (s) => {
 };
 ---
 
-<!-- The full source list, right under the search box, so the front page
-     shows what the search draws on. Hidden while a search is active (the
-     search script toggles #sources). This is THE sources page now: /sources
-     301s here, the footer links to /#sources, and a #slug fragment (from a
-     source chip or an old /sources#slug link) opens that source's dialog. -->
-<section id="sources" class="wb-view bt-home-sources">
-	<h2>Sources behind the search</h2>
-	<p class="bt-src-tag">
-		The glossaries, term lists and reference works behind every result —
-		click any source for its full publication metadata.
-	</p>
+<!-- The full source list. A #slug fragment (an old /sources#slug or /#slug
+     link) opens that source's dialog. -->
+{list && (
+<section id="sources" class="wb-view">
 	<div id="wb-sources-wrap">
 		{sources.length ? (
 			<table class="wb-sources-table">
@@ -74,12 +73,12 @@ const badgeClassOf = (s) => {
 		)}
 	</div>
 </section>
+)}
 
-<!-- The dialog must sit OUTSIDE #sources: a source chip on a result card
-     opens it while the search has that section hidden, and inside a hidden
-     parent showModal() still makes the page inert but draws the dialog at 0×0,
-     so the page looks frozen. It must also come BEFORE the script below, which
-     runs as soon as it is parsed. -->
+<!-- The dialog sits outside #sources so it works on the search page, which
+     has no list (inside a hidden parent showModal() makes the page inert but
+     draws the dialog at 0×0, so the page looks frozen). It must also come
+     BEFORE the script below, which runs as soon as it is parsed. -->
 <dialog id="wb-detail" class="wb-detail">
 	<form method="dialog">
 		<button class="wb-close" aria-label="Close">×</button>
@@ -118,6 +117,7 @@ const badgeClassOf = (s) => {
 
 	function renderTable(list) {
 		const wrap = document.getElementById('wb-sources-wrap');
+		if (!wrap) return;   // the search page has the dialog only
 		if (!list.length) {
 			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
 			return;
@@ -251,21 +251,24 @@ const badgeClassOf = (s) => {
 					renderTable(sources);
 				}
 			} catch {
-				document.getElementById('wb-sources-wrap').innerHTML =
-					'<p class="wb-loading">Could not load sources right now.</p>';
+				const wrap = document.getElementById('wb-sources-wrap');
+				if (wrap) wrap.innerHTML = '<p class="wb-loading">Could not load sources right now.</p>';
 			}
 		}
 		wireRows();
 		bindDialogClose();
 
-		// A source chip on a result card links to /#slug (and old /sources#slug
-		// links 301 here with the fragment intact) — open that source's dialog.
-		// On-load covers arrivals from elsewhere; hashchange covers chip clicks
-		// on this page, where only the fragment changes. A non-slug hash (e.g.
-		// the footer's /#sources anchor) matches no source and is left to the
-		// browser's normal in-page scroll.
+		// A source chip on a result card links to /#slug, and /sources#slug
+		// links still work — open that source's dialog. On-load covers arrivals
+		// from elsewhere; hashchange covers chip clicks on the search page, where
+		// only the fragment changes. Links from when the list sat on the front
+		// page (/#sources) go to the Sources tab.
 		const openFromHash = () => {
 			const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+			if (hash === 'sources' && !document.getElementById('wb-sources-wrap')) {
+				location.replace('/sources');
+				return;
+			}
 			if (hash) openDetail(hash);
 		};
 		openFromHash();
@@ -279,14 +282,3 @@ const badgeClassOf = (s) => {
 
 	})();
 </script>
-
-<style>
-	.bt-home-sources { margin-top: 3em; }
-	.bt-home-sources h2 { font-size: 1.15em; margin: 0 0 0.2em; }
-	.bt-src-tag {
-		color: rgb(var(--muted));
-		font-size: 0.9em;
-		margin: 0 0 1.1em;
-		max-width: 46em;
-	}
-</style>

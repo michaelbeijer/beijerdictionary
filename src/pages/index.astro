@@ -38,7 +38,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	<section class="wb-view">
 		<div class="wb-search">
 			<label class="sr-only" for="wb-q">Search Beijer Dictionary</label>
-			<input id="wb-q" type="search" placeholder="Search…" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
+			<input id="wb-q" type="search" placeholder="Search…" title="Tip: press / anywhere on the page to jump back to this box" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
 			<div class="wb-controls">
 				<label class="sr-only" for="wb-from">From language</label>
 				<select id="wb-from" class="wb-lang" aria-label="From language"></select>
@@ -68,8 +68,9 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		<p id="wb-hint" class="wb-hint">Type a term above to search the database.</p>
 	</section>
 
-	<!-- The full source list (section#sources) plus its detail dialog. -->
-	<SourcesTable />
+	<!-- The source detail dialog, opened by the source chips on result cards
+	     (the list itself is on the Sources tab, /sources). -->
+	<SourcesTable list={false} />
 </Base>
 
 <script type="application/json" id="bt-articles-data" is:inline set:html={JSON.stringify(articleIndex)}></script>
@@ -172,14 +173,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		}
 		out += escapeHtml(text.slice(pos));
 		return { html: out, hit: true };
-	}
-
-	// The sources table under the search box belongs to the idle front page:
-	// it hides while results (or a search error) are on screen and returns
-	// when the query is cleared.
-	function setHomeSources(show) {
-		const el = document.getElementById('sources');
-		if (el) el.hidden = !show;
 	}
 
 	// State
@@ -669,7 +662,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	}
 
 	function renderResults(groups, tokens, articles) {
-		setHomeSources(false);
 		const box = document.getElementById('wb-results');
 		articles = articles || [];
 		const articleHtml = articles.map((a) => renderArticleCard(a, tokens)).join('');
@@ -737,7 +729,12 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 
 		const input = document.getElementById('wb-q');
 		if (input && direction) {
-			input.placeholder = `Search ${langName(direction.src)} → ${langName(direction.tgt)} (press /)`;
+			// No "(press /)" here: newcomers read it as "type a slash". The
+			// shortcut is in the box's tooltip instead.
+			const side = (c) => (c === 'any' ? 'any language' : langName(c));
+			input.placeholder = direction.src === 'any' && direction.tgt === 'any'
+				? 'Search all languages'
+				: `Search ${side(direction.src)} → ${side(direction.tgt)}`;
 		}
 	}
 
@@ -745,21 +742,23 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const counts = document.getElementById('wb-counts');
 		const sN = meta.counts.sources || 0;
 		const eN = meta.counts.entries || 0;
-		let s = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'} · ` +
-			`${eN.toLocaleString('en-GB')} entries`;
+		// "N sources" links to the Sources tab.
+		const link = document.createElement('a');
+		link.href = '/sources';
+		link.textContent = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'}`;
+		let s = ` · ${eN.toLocaleString('en-GB')} entries`;
 		if (resultCount == null) {
 			s += ' – type to search';
 		} else {
 			s += ` · ${resultCount.toLocaleString('en-GB')} match${resultCount === 1 ? '' : 'es'}`;
 		}
-		counts.textContent = s;
+		counts.replaceChildren(link, s);
 	}
 
 	function rerender() {
 		if (!lastQuery) {
 			const box = document.getElementById('wb-results');
 			box.hidden = true; box.innerHTML = '';
-			setHomeSources(true);
 			updateCounts(null);
 			return;
 		}
@@ -777,7 +776,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		lastQuery = q;
 		if (!q) {
 			box.hidden = true; box.innerHTML = '';
-			setHomeSources(true);
 			updateCounts(null);
 			return;
 		}
@@ -802,7 +800,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			if (err.name === 'AbortError') return;
 			box.innerHTML = '<p class="wb-empty">Search is temporarily unavailable.</p>';
 			box.hidden = false;
-			setHomeSources(false);
 		}
 	}
 
@@ -826,7 +823,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				input.value = '';
 				lastQuery = '';
 				document.getElementById('wb-results').hidden = true;
-				setHomeSources(true);
 				updateCounts(null);
 			}
 		});
@@ -841,6 +837,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		});
 		document.getElementById('wb-to').addEventListener('change', (ev) => {
 			direction.tgt = ev.target.value;
+			updateDirControls();   // keeps the placeholder in step
 			runSearch();
 		});
 		document.getElementById('wb-swap').addEventListener('click', () => {

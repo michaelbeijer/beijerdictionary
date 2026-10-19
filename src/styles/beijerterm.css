@@ -101,6 +101,12 @@
 	color: rgb(var(--muted));
 	font-size: 0.85em;
 }
+.wb-counts a {
+	color: inherit;
+	text-decoration: underline dotted;
+	text-underline-offset: 2px;
+}
+.wb-counts a:hover { color: rgb(var(--brand)); }
 
 .wb-results {
 	margin-top: 1.2em;

@@ -2,8 +2,3 @@
 # Preserve the equity of the one URL Google already indexed
 # (beijerterm.com/home) by consolidating it onto the clean root.
 /home / 301
-# The source list moved onto the front page (under the search box); the
-# standalone page is gone. Browsers keep the #slug fragment across a
-# redirect, so old /sources#slug deep links still open the right dialog.
-/sources / 301
-/sources/ / 301

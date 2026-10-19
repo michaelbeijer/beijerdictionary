@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import ViewTabs from '../components/ViewTabs.astro';
+import SourcesTable from '../components/SourcesTable.astro';
+
+// The Sources tab: every glossary, term list and reference work behind the
+// search, rendered at build time (see SourcesTable) so the page is indexable.
+---
+
+<Base
+	title="Sources — Beijer Dictionary"
+	description="The glossaries, term lists and reference works behind Beijer Dictionary's terminology search, with full publication metadata for each."
+>
+	<section class="wb-hero">
+		<h1>Sources</h1>
+		<p class="wb-tag">
+			The glossaries, term lists and reference works behind every result —
+			click any source for its full publication metadata.
+		</p>
+		<ViewTabs current="sources" />
+	</section>
+
+	<SourcesTable />
+</Base>

@@ -4,6 +4,21 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-10-20
+
+**Site**
+- The source list has its own **Sources** tab again (beijerdictionary.com/sources),
+  next to Search and Articles, so the search page is just the search. The
+  "32 sources" count under the search box links to it, and the source chips on
+  search results still open a source's details in place.
+- The search box no longer says "(press /)", which read like an instruction to
+  type a slash; the shortcut is in the box's tooltip. It also says "any
+  language" instead of "Any", and follows the To language when you change it.
+
+**Under the hood**
+- Importing a new dictionary no longer creates duplicate copies of
+  hand-edited entries, and hand-edited entries keep their ids through imports.
+
 ## 2026-10-17
 
 **Site**
