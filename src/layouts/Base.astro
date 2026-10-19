@@ -11,8 +11,8 @@ const { title, description, canonical } = Astro.props;
 const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 
 // The theme picker's choices (colours in src/styles/themes.css). "auto"
-// follows the device's light/dark setting and is the default. `sw` are the
-// swatch colours shown next to each name.
+// follows the device's light/dark setting. A visitor who hasn't chosen gets
+// DEFAULT_THEME. `sw` are the swatch colours shown next to each name.
 const THEMES = [
 	{ id: 'auto', label: 'Match my device', sw: ['#ffffff', '#141518', '#3366cc'] },
 	{ id: 'light', label: 'Light', sw: ['#ffffff', '#e1e1e1', '#3366cc'] },
@@ -23,7 +23,8 @@ const THEMES = [
 	{ id: 'stone', label: 'Stone', sw: ['#f0eee6', '#dbd7c9', '#14130f'] },
 	{ id: 'stone-serif', label: 'Stone, serif text', sw: ['#f0eee6', '#dbd7c9', '#605c50'] },
 ];
-const themeIds = THEMES.filter((t) => t.id !== 'auto').map((t) => t.id);
+const themeIds = THEMES.map((t) => t.id);
+const DEFAULT_THEME = 'forest';
 // Only these two use the serif, so only they download it.
 const serifThemes = ['paper', 'stone-serif'];
 const serifHref =
@@ -57,15 +58,18 @@ const serifHref =
 
 		<!-- Apply saved theme + width before first paint to avoid a flash.
 		     ?theme= / ?width= override transiently (not persisted) so UI state is shareable. -->
-		<script is:inline define:vars={{ themeIds, serifThemes, serifHref }}>
+		<script is:inline define:vars={{ themeIds, DEFAULT_THEME, serifThemes, serifHref }}>
 			(function () {
 				try {
 					var p = new URLSearchParams(location.search);
-					var qt = p.get('theme');
-					var t = themeIds.indexOf(qt) >= 0 ? qt : localStorage.getItem('bt-theme');
-					if (themeIds.indexOf(t) < 0) {
-						t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					var c = p.get('theme');
+					if (themeIds.indexOf(c) < 0) {
+						// Blocked storage (some private windows) still gets the default.
+						try { c = localStorage.getItem('bt-theme'); } catch (e) { c = null; }
 					}
+					if (themeIds.indexOf(c) < 0) c = DEFAULT_THEME;
+					var t = c !== 'auto' ? c
+						: (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 					document.documentElement.setAttribute('data-theme', t);
 					if (serifThemes.indexOf(t) >= 0) {
 						var l = document.createElement('link');
@@ -131,7 +135,7 @@ const serifHref =
 
 		<button id="to-top" type="button" class="to-top" aria-label="Back to top" title="Back to top">↑</button>
 
-		<script is:inline define:vars={{ themeIds, serifThemes, serifHref }}>
+		<script is:inline define:vars={{ themeIds, DEFAULT_THEME, serifThemes, serifHref }}>
 			(function () {
 				var root = document.documentElement;
 				var widthBtn = document.getElementById('width-toggle');
@@ -144,17 +148,18 @@ const serifHref =
 				}
 
 				// ── Theme picker ──────────────────────────────────────────
-				// The choice is stored in localStorage (bt-theme); "auto" stores
-				// nothing and follows the device's light/dark setting, live.
+				// The choice is stored in localStorage (bt-theme), "auto" too (it
+				// follows the device's light/dark setting, live); no stored choice
+				// means DEFAULT_THEME.
 				var themeBtn = document.getElementById('theme-btn');
 				var menu = document.getElementById('theme-menu');
 				var opts = Array.prototype.slice.call(menu.querySelectorAll('.theme-opt'));
 				var device = window.matchMedia('(prefers-color-scheme: dark)');
-				var choice = 'auto';
+				var choice = DEFAULT_THEME;
 				try {
 					var qt = new URLSearchParams(location.search).get('theme');
 					var saved = localStorage.getItem('bt-theme');
-					choice = themeIds.indexOf(qt) >= 0 ? qt : (themeIds.indexOf(saved) >= 0 ? saved : 'auto');
+					choice = themeIds.indexOf(qt) >= 0 ? qt : (themeIds.indexOf(saved) >= 0 ? saved : DEFAULT_THEME);
 				} catch (e) {}
 
 				function show() {
@@ -173,8 +178,7 @@ const serifHref =
 				function choose(id) {
 					choice = id;
 					try {
-						if (id === 'auto') localStorage.removeItem('bt-theme');
-						else localStorage.setItem('bt-theme', id);
+						localStorage.setItem('bt-theme', id);
 						// A ?theme= in the address would override the choice on reload.
 						var u = new URL(location.href);
 						if (u.searchParams.has('theme')) {

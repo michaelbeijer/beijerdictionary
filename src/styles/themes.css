@@ -2,7 +2,8 @@
    Every colour on the site is one of these tokens, written as "r, g, b" so
    it can take an alpha (rgba(var(--accent), 0.08)). `data-theme` on <html>
    is set before first paint by the inline script in Base.astro; "Match my
-   device" resolves to light or dark. Light is the default (:root). */
+   device" resolves to light or dark. Visitors who haven't chosen get Forest
+   (DEFAULT_THEME in Base.astro); :root (Light) only shows without JavaScript. */
 :root {
 	--bg: 255, 255, 255;        /* page */
 	--surface: 255, 255, 255;   /* search box, results, dialog */
