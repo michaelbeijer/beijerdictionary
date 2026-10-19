@@ -1,0 +1,157 @@
+/* Colour themes, chosen with the theme picker in the header (Base.astro).
+   Every colour on the site is one of these tokens, written as "r, g, b" so
+   it can take an alpha (rgba(var(--accent), 0.08)). `data-theme` on <html>
+   is set before first paint by the inline script in Base.astro; "Match my
+   device" resolves to light or dark. Light is the default (:root). */
+:root {
+	--bg: 255, 255, 255;        /* page */
+	--surface: 255, 255, 255;   /* search box, results, dialog */
+	--text: 17, 17, 17;
+	--muted: 90, 90, 90;
+	--border: 225, 225, 225;
+	--accent: 51, 102, 204;     /* links */
+	/* The logo's green: the dark end of its gradient here, the bright end in
+	   dark mode. Both stay readable as small text. */
+	--brand: 21, 128, 61;
+	--subtle: rgba(0, 0, 0, 0.03);
+	--tab-line: 51, 102, 204;   /* underline of the active tab */
+	--focus: 17, 17, 17;        /* search box border while typing */
+	--chip-bg: rgba(0, 0, 0, 0.03);
+	--chip-text: 90, 90, 90;
+	--font: 'Inter', system-ui, -apple-system, sans-serif;
+	--font-head: var(--font);   /* wordmark, headings, headwords */
+	--font-read: var(--font);   /* tagline, definitions, notes, articles */
+	--base-size: 18px;
+	color-scheme: light;
+}
+html[data-theme='dark'] {
+	--bg: 20, 21, 24;
+	--surface: 20, 21, 24;
+	--text: 232, 233, 236;
+	--muted: 150, 152, 158;
+	--border: 52, 54, 60;
+	--accent: 124, 169, 255;
+	--brand: 34, 197, 94;
+	--subtle: rgba(255, 255, 255, 0.06);
+	--tab-line: 124, 169, 255;
+	--focus: 232, 233, 236;
+	--chip-bg: rgba(255, 255, 255, 0.06);
+	--chip-text: 150, 152, 158;
+	color-scheme: dark;
+}
+
+/* Leaf: the logo green carries the page, on a pale green header band. */
+html[data-theme='leaf'] {
+	--muted: 74, 90, 79;
+	--border: 213, 234, 219;
+	--accent: 21, 128, 61;
+	--subtle: rgba(21, 128, 61, 0.04);
+	--tab-line: 21, 128, 61;
+	--focus: 21, 128, 61;
+	--chip-bg: #ddf0e3;
+	--chip-text: 20, 83, 45;
+	--band: 238, 247, 241;
+}
+html[data-theme='leaf'] :is(.site-head, .wb-hero) {
+	--muted: 63, 84, 70;
+}
+html[data-theme='leaf'] #wb-q:focus { box-shadow: 0 0 0 3px rgba(var(--brand), 0.16); }
+html[data-theme='leaf'] .wb-card { border-left: 3px solid rgb(var(--brand)); }
+
+/* Paper: a printed dictionary, ink on warm paper, serif headings. */
+html[data-theme='paper'] {
+	--bg: 250, 246, 238;
+	--text: 31, 36, 48;
+	--muted: 107, 100, 85;
+	--border: 228, 220, 203;
+	--accent: 31, 78, 121;
+	--subtle: rgba(120, 90, 30, 0.05);
+	--tab-line: 31, 78, 121;
+	--focus: 31, 78, 121;
+	--chip-bg: #efe8d8;
+	--chip-text: 91, 74, 34;
+	--font-head: 'Source Serif 4', Georgia, serif;
+}
+html[data-theme='paper'] .wb-tag { font-family: var(--font-head); font-style: italic; }
+
+/* Forest: a dark green band holding the header and the search box. */
+html[data-theme='forest'] {
+	--bg: 245, 247, 246;
+	--border: 225, 231, 227;
+	--accent: 21, 128, 61;
+	--subtle: rgba(18, 59, 43, 0.04);
+	--tab-line: 21, 128, 61;
+	--focus: 21, 128, 61;
+	--chip-bg: #e3efe8;
+	--chip-text: 18, 59, 43;
+	--band: 18, 59, 43;
+}
+html[data-theme='forest'] :is(.site-head, .wb-hero, .wb-search) {
+	--text: 255, 255, 255;
+	--muted: 185, 212, 196;
+	--border: 49, 94, 74;
+	--accent: 134, 239, 172;
+	--brand: 74, 222, 128;
+	--tab-line: 74, 222, 128;
+	color: rgb(var(--text));
+	color-scheme: dark;
+}
+/* Light controls on the dark band, and the theme menu that opens over it. */
+html[data-theme='forest'] :is(#wb-q, .wb-lang, .wb-swap, .theme-menu) {
+	--text: 17, 17, 17;
+	--muted: 90, 90, 90;
+	--border: 225, 231, 227;
+	--brand: 21, 128, 61;
+	--focus: 74, 222, 128;
+	color: rgb(var(--text));
+	color-scheme: light;
+}
+html[data-theme='forest'] #wb-q { border-color: transparent; }
+html[data-theme='forest'] .wb-search { padding-bottom: 1.4em; }
+
+/* Stone: beijer.uk's warm stone and ink, a little larger. "Stone, serif
+   text" sets the reading text in a serif as well. */
+html[data-theme='stone'],
+html[data-theme='stone-serif'] {
+	--bg: 240, 238, 230;
+	--surface: 251, 250, 246;
+	--text: 20, 19, 15;
+	--muted: 96, 92, 80;
+	--border: 219, 215, 201;
+	--subtle: rgba(60, 50, 20, 0.04);
+	--tab-line: 20, 19, 15;
+	--focus: 20, 19, 15;
+	--chip-bg: #e6e2d5;
+	--chip-text: 68, 65, 58;
+	--base-size: 19px;
+}
+html[data-theme='stone-serif'] {
+	--font-read: 'Source Serif 4', Georgia, serif;
+}
+/* A serif looks smaller than Inter at the same size: match the x-height. */
+html[data-theme='stone-serif'] :is(.wb-tag, .wb-def, .wb-def-note, .wb-notes, .wb-sensedef,
+	.wb-article-teaser, #wb-detail-body .desc, .bt-article-body, .about p) {
+	font-size-adjust: 0.53;
+}
+
+/* The header band (Leaf, Forest). Each element paints the band from its own
+   bottom edge up to the top of the page and across the full width
+   (border-image outset is ink overflow, so it never adds a scrollbar). The
+   header always has it, so pages without a hero (articles) still get one;
+   a hero extends it down to the tabs, and in Forest the search box too. */
+html[data-theme='leaf'] :is(.site-head, .wb-hero),
+html[data-theme='forest'] :is(.site-head, .wb-hero, .wb-search) {
+	border-image: linear-gradient(rgb(var(--band)), rgb(var(--band))) fill 0 / 0 / 100vh 100vmax 0 100vmax;
+}
+html[data-theme='leaf'] .site-head,
+html[data-theme='forest'] .site-head { padding-bottom: 1.1em; }
+
+h1, h2, h3, .site-head .wordmark, .wb-headword, .wb-article-title, #wb-detail-body h3 {
+	font-family: var(--font-head);
+}
+.wb-tag, .wb-def, .wb-def-note, .wb-notes, .wb-sensedef, .wb-article-teaser,
+#wb-detail-body .desc, .bt-article-body, .about p {
+	font-family: var(--font-read);
+}
+/* The small "Definition" / "Note" labels stay in the UI font. */
+.wb-field { font-family: var(--font); font-size-adjust: none; }

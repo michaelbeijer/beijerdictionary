@@ -84,7 +84,9 @@ const jsonLd = {
 		font-size: 1.7em;
 		margin: 0 0 0.6em;
 	}
-	/* The body is author-written HTML (Tiptap) injected via set:html. */
+	/* The body is author-written HTML (Tiptap) injected via set:html. Long
+	   links (IATE URLs) must wrap, or they widen the page on a phone. */
+	.bt-article-body { overflow-wrap: anywhere; }
 	.bt-article-body :global(h2) { margin-top: 1.5em; font-size: 1.25em; }
 	.bt-article-body :global(h3) { margin-top: 1.2em; font-size: 1.1em; }
 	.bt-article-body :global(p) { margin: 0.6em 0; }

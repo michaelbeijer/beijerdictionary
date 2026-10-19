@@ -744,7 +744,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const eN = meta.counts.entries || 0;
 		// "N sources" links to the Sources tab.
 		const link = document.createElement('a');
-		link.href = '/sources';
+		link.href = '/sources/';
 		link.textContent = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'}`;
 		let s = ` · ${eN.toLocaleString('en-GB')} entries`;
 		if (resultCount == null) {
@@ -913,7 +913,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		gap: 0.35rem 0.9rem;
 		margin-top: 0.6rem;
 		font-size: 0.85rem;
-		color: #555;
+		color: rgb(var(--muted));
 	}
 	.wb-opts label {
 		display: inline-flex;
@@ -923,7 +923,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		white-space: nowrap;
 	}
 	.wb-opts input { cursor: pointer; margin: 0; }
-	.wb-opts-label { color: #777; }
+	.wb-opts-label { color: rgba(var(--muted), 0.8); }
 	.wb-opts-sep {
 		align-self: stretch;
 		width: 1px;
@@ -932,8 +932,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		opacity: 0.25;
 	}
 	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
-	.sense-num { display: inline-block; min-width: 1.35em; color: #9aa3ad; font-weight: 600; font-variant-numeric: tabular-nums; }
+	.sense-num { display: inline-block; min-width: 1.35em; color: rgba(var(--muted), 0.75); font-weight: 600; font-variant-numeric: tabular-nums; }
 	.wb-sense { margin-top: 5px; }
 	/* Hand-curated, per-meaning definition shown under its sense line. */
-	.wb-sensedef { margin: 1px 0 6px 1.7em; color: #5a6573; font-size: 0.92em; line-height: 1.45; }
+	.wb-sensedef { margin: 1px 0 6px 1.7em; color: rgb(var(--muted)); font-size: 0.92em; line-height: 1.45; }
 </style>

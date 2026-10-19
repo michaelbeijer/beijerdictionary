@@ -34,14 +34,14 @@
 	padding: 0.7em 0.9em;
 	border: 1px solid rgb(var(--border));
 	border-radius: 8px;
-	background: rgb(var(--bg));
+	background: rgb(var(--surface));
 	color: rgb(var(--text));
 	font-family: var(--font);
 	box-sizing: border-box;
 }
 #wb-q:focus {
 	outline: none;
-	border-color: rgb(var(--text));
+	border-color: rgb(var(--focus));
 }
 .wb-controls {
 	display: flex;
@@ -56,7 +56,7 @@
 	padding: 0.3em 0.55em;
 	border: 1px solid rgb(var(--border));
 	border-radius: 7px;
-	background: rgb(var(--bg));
+	background: rgb(var(--surface));
 	color: rgb(var(--text));
 	cursor: pointer;
 }
@@ -71,7 +71,7 @@
 	padding: 0.25em 0.7em;
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
-	background: rgb(var(--bg));
+	background: rgb(var(--surface));
 	color: rgb(var(--muted));
 	cursor: pointer;
 	letter-spacing: 0.04em;
@@ -89,7 +89,7 @@
 	padding: 0.1em 0.55em;
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
-	background: rgb(var(--bg));
+	background: rgb(var(--surface));
 	color: rgb(var(--muted));
 	cursor: pointer;
 }
@@ -113,6 +113,7 @@
 	border: 1px solid rgb(var(--border));
 	border-radius: 8px;
 	overflow: hidden;
+	background: rgb(var(--surface));
 }
 .wb-results[hidden] {
 	display: none;
@@ -414,11 +415,11 @@
 	border-radius: 99px;
 	margin-right: 0.3em;
 	font-weight: 600;
-	background: var(--subtle);
+	background: var(--chip-bg);
 }
 /* Source chip in a result card → a link to that source on /sources. */
 .wb-card a.pill-src {
-	color: rgb(var(--muted));
+	color: rgb(var(--chip-text));
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -486,7 +487,7 @@
 .wb-tab:hover { color: rgb(var(--text)); text-decoration: none; }
 .wb-tab.active {
 	color: rgb(var(--text));
-	border-bottom-color: rgb(var(--accent));
+	border-bottom-color: rgb(var(--tab-line));
 }
 
 .wb-view { margin-top: 1.6em; }
@@ -598,7 +599,7 @@ dialog.wb-detail {
 	border: 1px solid rgb(var(--border));
 	border-radius: 10px;
 	padding: 1.4em 1.6em;
-	background: rgb(var(--bg));
+	background: rgb(var(--surface));
 	color: rgb(var(--text));
 }
 dialog.wb-detail::backdrop {

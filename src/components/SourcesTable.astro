@@ -266,7 +266,7 @@ const badgeClassOf = (s) => {
 		const openFromHash = () => {
 			const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
 			if (hash === 'sources' && !document.getElementById('wb-sources-wrap')) {
-				location.replace('/sources');
+				location.replace('/sources/');
 				return;
 			}
 			if (hash) openDetail(hash);

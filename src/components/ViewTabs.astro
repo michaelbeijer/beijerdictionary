@@ -17,12 +17,12 @@ const { current } = Astro.props;
 	>
 	<a
 		class:list={['wb-tab', { active: current === 'articles' }]}
-		href="/articles"
+		href="/articles/"
 		aria-current={current === 'articles' ? 'page' : undefined}>Articles</a
 	>
 	<a
 		class:list={['wb-tab', { active: current === 'sources' }]}
-		href="/sources"
+		href="/sources/"
 		aria-current={current === 'sources' ? 'page' : undefined}>Sources</a
 	>
 </nav>
