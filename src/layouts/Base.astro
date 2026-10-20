@@ -10,25 +10,16 @@ export interface Props {
 const { title, description, canonical } = Astro.props;
 const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 
-// The theme picker's choices (colours in src/styles/themes.css). "auto"
-// follows the device's light/dark setting. A visitor who hasn't chosen gets
-// DEFAULT_THEME. `sw` are the swatch colours shown next to each name.
+// The theme picker's choices (colours in src/styles/themes.css). A visitor
+// who hasn't chosen, or chose a theme since dropped, gets DEFAULT_THEME.
+// `sw` are the swatch colours shown next to each name.
 const THEMES = [
-	{ id: 'auto', label: 'Match my device', sw: ['#ffffff', '#141518', '#3366cc'] },
+	{ id: 'stone', label: 'Stone', sw: ['#f0eee6', '#dbd7c9', '#14130f'] },
 	{ id: 'light', label: 'Light', sw: ['#ffffff', '#e1e1e1', '#3366cc'] },
 	{ id: 'dark', label: 'Dark', sw: ['#141518', '#34363c', '#7ca9ff'] },
-	{ id: 'leaf', label: 'Leaf', sw: ['#ffffff', '#eef7f1', '#15803d'] },
-	{ id: 'paper', label: 'Paper', sw: ['#faf6ee', '#e4dccb', '#1f4e79'] },
-	{ id: 'forest', label: 'Forest', sw: ['#f5f7f6', '#123b2b', '#4ade80'] },
-	{ id: 'stone', label: 'Stone', sw: ['#f0eee6', '#dbd7c9', '#14130f'] },
-	{ id: 'stone-serif', label: 'Stone, serif text', sw: ['#f0eee6', '#dbd7c9', '#605c50'] },
 ];
 const themeIds = THEMES.map((t) => t.id);
-const DEFAULT_THEME = 'forest';
-// Only these two use the serif, so only they download it.
-const serifThemes = ['paper', 'stone-serif'];
-const serifHref =
-	'https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap';
+const DEFAULT_THEME = 'stone';
 ---
 
 <!doctype html>
@@ -58,24 +49,17 @@ const serifHref =
 
 		<!-- Apply saved theme + width before first paint to avoid a flash.
 		     ?theme= / ?width= override transiently (not persisted) so UI state is shareable. -->
-		<script is:inline define:vars={{ themeIds, DEFAULT_THEME, serifThemes, serifHref }}>
+		<script is:inline define:vars={{ themeIds, DEFAULT_THEME }}>
 			(function () {
 				try {
 					var p = new URLSearchParams(location.search);
-					var c = p.get('theme');
-					if (themeIds.indexOf(c) < 0) {
+					var t = p.get('theme');
+					if (themeIds.indexOf(t) < 0) {
 						// Blocked storage (some private windows) still gets the default.
-						try { c = localStorage.getItem('bt-theme'); } catch (e) { c = null; }
+						try { t = localStorage.getItem('bt-theme'); } catch (e) { t = null; }
 					}
-					if (themeIds.indexOf(c) < 0) c = DEFAULT_THEME;
-					var t = c !== 'auto' ? c
-						: (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+					if (themeIds.indexOf(t) < 0) t = DEFAULT_THEME;
 					document.documentElement.setAttribute('data-theme', t);
-					if (serifThemes.indexOf(t) >= 0) {
-						var l = document.createElement('link');
-						l.rel = 'stylesheet'; l.id = 'serif-font'; l.href = serifHref;
-						document.head.appendChild(l);
-					}
 					var qw = p.get('width');
 					var w = (qw === 'wide' || qw === 'narrow') ? qw
 						: (localStorage.getItem('bt-width') === 'wide' ? 'wide' : 'narrow');
@@ -109,7 +93,7 @@ const serifHref =
 						))}
 					</div>
 				</div>
-				<a class="tool-btn sq mb" href="https://beijer.uk" rel="noopener" title="Michael Beijer – beijer.uk" aria-label="Michael Beijer (beijer.uk)">MB</a>
+				<a class="tool-btn sq mb" href="https://beijer.uk" target="_blank" rel="noopener" title="Michael Beijer – beijer.uk" aria-label="Michael Beijer (beijer.uk)">MB</a>
 			</nav>
 		</header>
 
@@ -135,7 +119,7 @@ const serifHref =
 
 		<button id="to-top" type="button" class="to-top" aria-label="Back to top" title="Back to top">↑</button>
 
-		<script is:inline define:vars={{ themeIds, DEFAULT_THEME, serifThemes, serifHref }}>
+		<script is:inline define:vars={{ themeIds, DEFAULT_THEME }}>
 			(function () {
 				var root = document.documentElement;
 				var widthBtn = document.getElementById('width-toggle');
@@ -148,13 +132,11 @@ const serifHref =
 				}
 
 				// ── Theme picker ──────────────────────────────────────────
-				// The choice is stored in localStorage (bt-theme), "auto" too (it
-				// follows the device's light/dark setting, live); no stored choice
-				// means DEFAULT_THEME.
+				// The choice is stored in localStorage (bt-theme); no stored (or no
+				// longer offered) choice means DEFAULT_THEME.
 				var themeBtn = document.getElementById('theme-btn');
 				var menu = document.getElementById('theme-menu');
 				var opts = Array.prototype.slice.call(menu.querySelectorAll('.theme-opt'));
-				var device = window.matchMedia('(prefers-color-scheme: dark)');
 				var choice = DEFAULT_THEME;
 				try {
 					var qt = new URLSearchParams(location.search).get('theme');
@@ -163,13 +145,7 @@ const serifHref =
 				} catch (e) {}
 
 				function show() {
-					var t = choice === 'auto' ? (device.matches ? 'dark' : 'light') : choice;
-					root.setAttribute('data-theme', t);
-					if (serifThemes.indexOf(t) >= 0 && !document.getElementById('serif-font')) {
-						var l = document.createElement('link');
-						l.rel = 'stylesheet'; l.id = 'serif-font'; l.href = serifHref;
-						document.head.appendChild(l);
-					}
+					root.setAttribute('data-theme', choice);
 					opts.forEach(function (o) {
 						o.setAttribute('aria-checked', String(o.dataset.id === choice));
 					});
@@ -226,9 +202,6 @@ const serifHref =
 					else if (ev.key === 'Tab') { closeMenu(false); return; }
 					if (to !== null) { ev.preventDefault(); opts[to].focus(); }
 				});
-				var onDeviceChange = function () { if (choice === 'auto') show(); };
-				if (device.addEventListener) device.addEventListener('change', onDeviceChange);
-				else if (device.addListener) device.addListener(onDeviceChange);
 				show();
 
 				widthBtn.addEventListener('click', function () {

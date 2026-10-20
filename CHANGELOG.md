@@ -15,12 +15,10 @@ API. Newest first.
   type a slash; the shortcut is in the box's tooltip. It also says "any
   language" instead of "Any", and follows the To language when you change it.
 - **Colour themes.** The light/dark button is now a theme picker (the palette
-  button, top right) with eight choices: Match my device (light or dark),
-  Light, Dark, Leaf (the logo green), Paper (a printed dictionary, serif
-  headings), Forest (a dark green band behind the header and search box),
-  Stone (beijer.uk's warm stone, slightly larger text) and Stone with serif
-  reading text. Forest is the new default; a choice is remembered on each
-  device, and anyone who had already picked light or dark keeps it.
+  button, top right): **Stone**, the new default (beijer.uk's warm stone and
+  ink, with slightly larger text), Light and Dark. The choice is remembered on
+  each device; anyone who had already picked light or dark keeps it.
+- The MB button (top right) opens beijer.uk in a new tab.
 - On a phone, article pages no longer scroll sideways because of long links,
   and the search options are easier to read in Dark.
 
