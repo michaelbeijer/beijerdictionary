@@ -607,6 +607,61 @@ table.wb-sources-table {
 .wb-sources-table tbody tr.wb-flash td {
 	animation: wb-row-flash 1.8s ease-out;
 }
+/* Phones and tablets: six columns don't fit, so each source becomes a card —
+   title and chip, then one line of details — instead of a table that scrolls
+   sideways. The column headings become a row of "sort by" buttons. Missing
+   values (the "—" cells) are left out of the card. */
+@media (max-width: 860px) {
+	#wb-sources-wrap { overflow-x: visible; }
+	table.wb-sources-table,
+	.wb-sources-table thead,
+	.wb-sources-table tbody { display: block; }
+	.wb-sources-table thead tr {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1em 1.1em;
+		padding-bottom: 0.4em;
+		border-bottom: 1px solid rgb(var(--border));
+	}
+	.wb-sources-table thead tr::before {
+		content: 'Sort by';
+		font-size: 0.85em;
+		color: rgb(var(--muted));
+	}
+	.wb-sources-table thead th { padding: 0.2em 0; border: none; }
+	.wb-sources-table thead th:not(:has(.wb-sort)) { display: none; }
+	.wb-sources-table tbody tr {
+		display: block;
+		padding: 0.75em 0.2em;
+		border-bottom: 1px solid rgb(var(--border));
+	}
+	/* Each detail is its own unbreakable box, so the line wraps between
+	   details (the markup has no spaces between cells to break at) and never
+	   inside one, e.g. "NL · EN". Only an author name may wrap. */
+	.wb-sources-table tbody td {
+		display: inline-block;
+		max-width: 100%;
+		padding: 0;
+		border: none;
+		margin: 0.1em 1em 0 0;
+		font-size: 0.9em;
+		color: rgb(var(--muted));
+		white-space: nowrap;
+	}
+	.wb-sources-table tbody td:nth-child(2) { white-space: normal; }
+	.wb-sources-table tbody td.langs { white-space: nowrap; }
+	.wb-sources-table tbody td:first-child {
+		display: block;
+		margin: 0 0 0.3em;
+		font-size: 1em;
+		color: rgb(var(--text));
+		white-space: normal;
+	}
+	.wb-sources-table tbody td.empty { display: none; }
+	.wb-sources-table tbody td.entries::after { content: ' entries'; }
+	.wb-sources-table tbody td:last-child { margin-right: 0; }
+	/* The row, not its cells, flashes after its dialog closes. */
+	.wb-sources-table tbody tr.wb-flash { animation: wb-row-flash 1.8s ease-out; }
+	.wb-sources-table tbody tr.wb-flash td { animation: none; }
+}
 .wb-badge {
 	display: inline-block;
 	padding: 0.05em 0.45em;

@@ -70,10 +70,10 @@ const badgeClassOf = (s) => {
 					{sources.map((s) => (
 						<tr class="clickable" data-slug={s.slug}>
 							<td>{s.title || s.slug}<span class="wb-src-chip" title="The name shown on search results">{s.slug}</span></td>
-							<td>{s.author || '—'}</td>
-							<td class="num">{s.year || '—'}</td>
+							<td class:list={{ empty: !s.author }}>{s.author || '—'}</td>
+							<td class:list={['num', { empty: !s.year }]}>{s.year || '—'}</td>
 							<td class="langs">{langsOf(s)}</td>
-							<td class="num">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
+							<td class="num entries">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
 							<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
 						</tr>
 					))}
@@ -170,10 +170,10 @@ const badgeClassOf = (s) => {
 			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
 			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
 				<td>${escapeHtml(s.title || s.slug)}<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span></td>
-				<td>${escapeHtml(s.author || '—')}</td>
-				<td class="num">${escapeHtml(String(s.year || '—'))}</td>
+				<td${s.author ? '' : ' class="empty"'}>${escapeHtml(s.author || '—')}</td>
+				<td class="num${s.year ? '' : ' empty'}">${escapeHtml(String(s.year || '—'))}</td>
 				<td class="langs">${langsOf(s)}</td>
-				<td class="num">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
+				<td class="num entries">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
 				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
 			</tr>`;
 		}).join('');

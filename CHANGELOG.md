@@ -22,6 +22,10 @@ API. Newest first.
   (they're remembered on each device, so this shows when one is still on).
   With less space around the lead line, the first result now starts about
   200 pixels higher on an iPhone-sized screen.
+- On a phone or tablet the **Sources** list shows each source as a card —
+  title, short name, then author, year, languages, entries and licence on
+  one line — instead of a table that scrolled sideways and cut off the
+  authors. The column headings become a row of "Sort by" buttons.
 - The **Sources** list is now in alphabetical order of title (it was sorted
   by each source's short name, which often starts with a different word).
   Each source also shows the short name its chips carry on search results
