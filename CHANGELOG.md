@@ -13,6 +13,10 @@ API. Newest first.
   on articles and How it works). On a phone they form a second row under
   the name, so the name stays on one line. **About** replaces the "?"
   button, and the footer now links to Articles too.
+- The Wide/Narrow button is now an icon, like the buttons beside it: arrows
+  pointing outwards widen the page, arrows pointing inwards narrow it again.
+  (As text it named what it would switch to, so in wide mode it said
+  "Narrow", which read like the current setting.)
 - **More room for results on a phone.** The search options fold away behind
   a "Search options" button, which says how many options you've changed
   (they're remembered on each device, so this shows when one is still on).

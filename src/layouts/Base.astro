@@ -79,7 +79,12 @@ const isPage = (href) => path.replace(/\/?$/, '/') === href;
 				))}
 			</nav>
 			<div class="site-tools">
-				<button id="width-toggle" type="button" class="tool-btn">Wide</button>
+				<!-- Width toggle: outward arrows widen the page, inward arrows narrow
+				     it (like a full-screen button). CSS shows the right one. -->
+				<button id="width-toggle" type="button" class="tool-btn sq" aria-pressed="false">
+					<svg class="icon-widen" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M2 8h12M5 5 2 8l3 3M11 5l3 3-3 3" /></svg>
+					<svg class="icon-narrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1 8h5M3.5 5.5 6 8l-2.5 2.5M15 8h-5M12.5 5.5 10 8l2.5 2.5M8 3.5v9" /></svg>
+				</button>
 				<button id="theme-toggle" type="button" class="tool-btn sq" aria-label="Toggle dark mode">🌙</button>
 				<a class="tool-btn sq mb" href="https://beijer.uk" target="_blank" rel="noopener" title="Michael Beijer – beijer.uk" aria-label="Michael Beijer (beijer.uk)">MB</a>
 			</div>
@@ -121,9 +126,9 @@ const isPage = (href) => path.replace(/\/?$/, '/') === href;
 					themeBtn.setAttribute('title', dark ? 'Switch to light mode' : 'Switch to dark mode');
 
 					var wide = root.getAttribute('data-width') === 'wide';
-					widthBtn.textContent = wide ? 'Narrow' : 'Wide';
-					widthBtn.setAttribute('aria-label', wide ? 'Switch to narrow layout' : 'Switch to wide layout');
-					widthBtn.setAttribute('title', wide ? 'Switch to narrow layout' : 'Switch to wide layout');
+					widthBtn.setAttribute('aria-pressed', wide ? 'true' : 'false');
+					widthBtn.setAttribute('aria-label', 'Wide layout');
+					widthBtn.setAttribute('title', wide ? 'Narrower page' : 'Wider page');
 				}
 
 				themeBtn.addEventListener('click', function () {
@@ -279,6 +284,12 @@ const isPage = (href) => path.replace(/\/?$/, '/') === href;
 				display: inline-flex; align-items: center; justify-content: center;
 			}
 			.tool-btn.mb { font-size: 0.72em; font-weight: 700; letter-spacing: 0.02em; }
+			#width-toggle svg {
+				fill: none; stroke: currentColor; stroke-width: 1.6;
+				stroke-linecap: round; stroke-linejoin: round;
+			}
+			html[data-width='wide'] #width-toggle .icon-widen,
+			html:not([data-width='wide']) #width-toggle .icon-narrow { display: none; }
 			/* Phones: "Wide" changes nothing on a narrow screen, and the page
 			   starts closer to the header. */
 			@media (max-width: 640px) {
