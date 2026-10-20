@@ -14,10 +14,10 @@ API. Newest first.
 - The search box no longer says "(press /)", which read like an instruction to
   type a slash; the shortcut is in the box's tooltip. It also says "any
   language" instead of "Any", and follows the To language when you change it.
-- **Colour themes.** The light/dark button is now a theme picker (the palette
-  button, top right): **Default** (new: beijer.uk's warm stone and ink, with
-  slightly larger text), Light and Dark. The choice is remembered on each
-  device; anyone who had already picked light or dark keeps it.
+- **New light mode.** Light mode now uses beijer.uk's warm stone and ink
+  instead of white, with slightly larger text, and is what new visitors see.
+  The moon button still switches to dark mode, and the choice is remembered on
+  each device.
 - The MB button (top right) opens beijer.uk in a new tab.
 - On a phone, article pages no longer scroll sideways because of long links,
   and the search options are easier to read in Dark.

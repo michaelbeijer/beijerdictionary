@@ -1,11 +1,10 @@
-/* Colour themes, chosen with the theme picker in the header (Base.astro):
-   Stone (the default), Light and Dark. Every colour on the site is one of
-   these tokens, written as "r, g, b" so it can take an alpha
-   (rgba(var(--accent), 0.08)). `data-theme` on <html> is set before first
-   paint by the inline script in Base.astro. */
+/* Light and dark mode, switched with the moon button in the header
+   (Base.astro). Every colour on the site is one of these tokens, written as
+   "r, g, b" so it can take an alpha (rgba(var(--accent), 0.08)). `data-theme`
+   on <html> is set before first paint by the inline script in Base.astro. */
 
-/* Stone: beijer.uk's warm stone and ink, a little larger. The default, so it
-   sits on :root and also shows without JavaScript. */
+/* Light mode (the default): beijer.uk's warm stone and ink, with slightly
+   larger text. On :root, so it also shows without JavaScript. */
 :root {
 	--bg: 240, 238, 230;        /* page */
 	--surface: 251, 250, 246;   /* search box, results, dialog */
@@ -22,21 +21,8 @@
 	--chip-bg: #e6e2d5;
 	--chip-text: 68, 65, 58;
 	--font: 'Inter', system-ui, -apple-system, sans-serif;
-	--base-size: 19px;
+	--base-size: 19px;          /* the same in dark mode, so text doesn't jump */
 	color-scheme: light;
-}
-html[data-theme='light'] {
-	--bg: 255, 255, 255;
-	--surface: 255, 255, 255;
-	--text: 17, 17, 17;
-	--muted: 90, 90, 90;
-	--border: 225, 225, 225;
-	--subtle: rgba(0, 0, 0, 0.03);
-	--tab-line: 51, 102, 204;
-	--focus: 17, 17, 17;
-	--chip-bg: rgba(0, 0, 0, 0.03);
-	--chip-text: 90, 90, 90;
-	--base-size: 18px;
 }
 html[data-theme='dark'] {
 	--bg: 20, 21, 24;
@@ -51,6 +37,5 @@ html[data-theme='dark'] {
 	--focus: 232, 233, 236;
 	--chip-bg: rgba(255, 255, 255, 0.06);
 	--chip-text: 150, 152, 158;
-	--base-size: 18px;
 	color-scheme: dark;
 }
