@@ -22,6 +22,12 @@ API. Newest first.
 - On a phone, article pages no longer scroll sideways because of long links,
   and the search options are easier to read in Dark.
 
+**Sources added**
+- Nuffic Glossary (Dutch–English), with its English-only terms.
+- NICHE terminology list (Nuffic; English–French).
+- Blood Pressure Monitoring Glossary (English, Dutch, German, French, Spanish,
+  Italian).
+
 **Under the hood**
 - Importing a new dictionary no longer creates duplicate copies of
   hand-edited entries, and hand-edited entries keep their ids through imports.
