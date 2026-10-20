@@ -7,6 +7,9 @@ API. Newest first.
 ## 2026-10-20
 
 **Site**
+- The **Articles** page has a filter box: type a term or a subject and the
+  list narrows as you type, across titles, headwords and alternative
+  spellings, ignoring accents and capitals.
 - **The menu is now in the header.** Search, Articles, Sources and About sit
   next to the Beijer Dictionary name, in the same place on every page
   (they used to move down the page on Articles and Sources, and disappear

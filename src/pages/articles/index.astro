@@ -22,6 +22,12 @@ const sortedGroups = [...groups.entries()].sort((a, b) => {
 });
 
 const LANG = (c: string) => (c ? c.toUpperCase() : '');
+// What the filter box matches an article against: its title, headword,
+// aliases and subject, folded (lower case, accents dropped) once here at build
+// time so typing only has to compare strings.
+const fold = (s: string) => s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
+const filterKey = (a: (typeof articles)[number], domain: string) =>
+	fold([a.title, a.headword, ...(a.aliases || []), domain].filter(Boolean).join(' '));
 const total = articles.length;
 const intro = total
 	? `${total.toLocaleString('en-GB')} terminology article${total === 1 ? '' : 's'} — longer, hand-written notes on how to tell tricky terms apart, grouped by subject.`
@@ -38,6 +44,13 @@ const intro = total
 	</section>
 
 	<section class="wb-view">
+		{total > 0 && (
+			<div class="bt-artfilter">
+				<label class="sr-only" for="art-filter">Filter articles</label>
+				<input id="art-filter" type="search" placeholder={`Filter ${total.toLocaleString('en-GB')} articles by term or subject…`} autocomplete="off" spellcheck="false" autocapitalize="off" />
+				<p id="art-count" class="bt-artcount" aria-live="polite"></p>
+			</div>
+		)}
 		{total === 0 ? (
 			<p class="wb-empty">No articles yet.</p>
 		) : (
@@ -46,7 +59,7 @@ const intro = total
 					<h2 class="bt-artgroup-title">{domain}</h2>
 					<ul class="bt-artlist">
 						{list.map((a) => (
-							<li class="bt-artitem">
+							<li class="bt-artitem" data-k={filterKey(a, domain)}>
 								<a href={`/articles/${a.slug}/`}>{a.title}</a>
 								{a.lang && <span class="bt-artlang">{LANG(a.lang)}</span>}
 							</li>
@@ -58,7 +71,72 @@ const intro = total
 	</section>
 </Base>
 
+<script>
+	// Filter the list as you type. Every word typed must occur somewhere in an
+	// article's title, headword, aliases or subject (accents and case ignored);
+	// a subject with no matching articles is hidden with them. Each keystroke
+	// touches only the rows whose visibility changes.
+	const input = document.getElementById('art-filter') as HTMLInputElement | null;
+	const count = document.getElementById('art-count');
+	if (input && count) {
+		const fold = (s: string) => s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
+		const groups = [...document.querySelectorAll<HTMLElement>('.bt-artgroup')].map((g) => ({
+			el: g,
+			items: [...g.querySelectorAll<HTMLElement>('.bt-artitem')].map((el) => ({ el, k: el.dataset.k || '' })),
+		}));
+		const total = groups.reduce((n, g) => n + g.items.length, 0);
+		const show = (el: HTMLElement, on: boolean) => { if (el.hidden === on) el.hidden = !on; };
+
+		const apply = () => {
+			const words = fold(input.value).split(/\s+/).filter(Boolean);
+			let shown = 0;
+			for (const g of groups) {
+				let any = false;
+				for (const it of g.items) {
+					const on = words.every((w) => it.k.includes(w));
+					show(it.el, on);
+					if (on) { any = true; shown++; }
+				}
+				show(g.el, any);
+			}
+			count.textContent = !words.length ? ''
+				: shown === 0 ? 'No articles match. Try Search, which covers the whole dictionary.'
+				: `${shown.toLocaleString('en-GB')} of ${total.toLocaleString('en-GB')} articles`;
+		};
+		input.addEventListener('input', apply);
+		// A browser restoring the box's text on Back gets the matching list too.
+		if (input.value) apply();
+	}
+</script>
+
 <style>
+	.bt-artfilter {
+		margin-bottom: 0.4em;
+	}
+	#art-filter {
+		width: 100%;
+		font: inherit;
+		padding: 0.6em 0.85em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 8px;
+		background: rgb(var(--surface));
+		color: rgb(var(--text));
+	}
+	#art-filter:focus {
+		outline: none;
+		border-color: rgb(var(--focus));
+	}
+	.bt-artcount {
+		margin: 0.45em 0 0;
+		min-height: 1.4em;
+		font-size: 0.85em;
+		color: rgb(var(--muted));
+	}
+	/* [hidden] must beat the display values below. */
+	.bt-artgroup[hidden],
+	.bt-artitem[hidden] {
+		display: none;
+	}
 	.bt-artgroup {
 		margin: 1.6em 0;
 	}
