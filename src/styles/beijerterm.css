@@ -267,6 +267,20 @@
 	color: rgb(var(--muted));
 	margin-right: 0.55em;
 }
+/* On a multi-source card, a faint dotted rule between one source's line (plus
+   its definitions) and the next, so it's clear at a glance which chip belongs
+   to which translations. Dotted, to stay quieter than the dashed rule above
+   orphan definitions and the solid rule between cards. */
+.wb-srcblock + .wb-srcblock {
+	margin-top: 0.35em;
+	padding-top: 0.35em;
+	border-top: 1px dotted rgb(var(--border));
+}
+/* Dark mode's border colour sits too close to the background for a dotted
+   line, so give it a little more contrast there. */
+html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
+	border-top-color: rgba(var(--muted), 0.45);
+}
 /* Guarantee a gap between the domain text and the first source chip even when
    the domain is empty / wraps. Chips never break internally. */
 .wb-prov .pill {

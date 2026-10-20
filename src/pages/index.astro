@@ -526,8 +526,11 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		if (multiSrc) {
 			// Several sources share this headword → one line per (sense, source),
 			// each tagged with its own provenance so chip↔translation is unambiguous.
+			// Each line and its definitions are wrapped as one block, so a faint rule
+			// can separate them: a chip that wraps onto its own row would otherwise
+			// sit just as close to the next source's line as to its own.
 			equivBlock = lines.map((l) =>
-				`<div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>${senseDef(l)}${lineDefs(l)}`
+				`<div class="wb-srcblock"><div class="wb-equivs wb-sense">${glossPrefix(l)}<span class="arrow">→</span>${renderEquivs(l.equivs)}${renderProv(l)}</div>${senseDef(l)}${lineDefs(l)}</div>`
 			).join('');
 		} else if (lines.length === 1) {
 			// Single source, single sense → gloss sits inline on the headword.

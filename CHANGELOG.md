@@ -7,6 +7,9 @@ API. Newest first.
 ## 2026-10-20
 
 **Site**
+- When a search result combines several sources, a faint dotted line now
+  separates each source's translations, so it's clear at a glance which
+  source chip belongs to which terms.
 - The source list has its own **Sources** tab again (beijerdictionary.com/sources),
   next to Search and Articles, so the search page is just the search. The
   "32 sources" count under the search box links to it, and the source chips on
