@@ -7,6 +7,17 @@ API. Newest first.
 ## 2026-10-20
 
 **Site**
+- **The menu is now in the header.** Search, Articles, Sources and About sit
+  next to the Beijer Dictionary name, in the same place on every page
+  (they used to move down the page on Articles and Sources, and disappear
+  on articles and How it works). On a phone they form a second row under
+  the name, so the name stays on one line. **About** replaces the "?"
+  button, and the footer now links to Articles too.
+- **More room for results on a phone.** The search options fold away behind
+  a "Search options" button, which says how many options you've changed
+  (they're remembered on each device, so this shows when one is still on).
+  With less space around the lead line, the first result now starts about
+  200 pixels higher on an iPhone-sized screen.
 - The **Sources** list is now in alphabetical order of title (it was sorted
   by each source's short name, which often starts with a different word).
   Each source also shows the short name its chips carry on search results

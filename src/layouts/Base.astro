@@ -10,6 +10,16 @@ export interface Props {
 const { title, description, canonical } = Astro.props;
 const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 
+// The main menu, in the header on every page. An article page counts as part
+// of Articles, so that item stays highlighted while you read one.
+const path = Astro.url.pathname;
+const NAV = [
+	{ label: 'Search', href: '/', active: path === '/' },
+	{ label: 'Articles', href: '/articles/', active: path.startsWith('/articles') },
+	{ label: 'Sources', href: '/sources/', active: path.startsWith('/sources') },
+	{ label: 'About', href: '/about/', active: path.startsWith('/about') },
+];
+const isPage = (href) => path.replace(/\/?$/, '/') === href;
 ---
 
 <!doctype html>
@@ -60,12 +70,19 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 	<body>
 		<header class="site-head">
 			<a class="wordmark" href="/"><img class="wordmark-logo" src="/favicon.svg" alt="" width="34" height="34" />Beijer Dictionary</a>
-			<nav class="site-tools">
+			<nav class="site-nav" aria-label="Main">
+				{NAV.map((item) => (
+					<a
+						class:list={{ active: item.active }}
+						href={item.href}
+						aria-current={item.active ? (isPage(item.href) ? 'page' : 'true') : undefined}>{item.label}</a>
+				))}
+			</nav>
+			<div class="site-tools">
 				<button id="width-toggle" type="button" class="tool-btn">Wide</button>
-				<a class="tool-btn sq help" href="/about/" title="How it works" aria-label="How it works">?</a>
 				<button id="theme-toggle" type="button" class="tool-btn sq" aria-label="Toggle dark mode">🌙</button>
 				<a class="tool-btn sq mb" href="https://beijer.uk" target="_blank" rel="noopener" title="Michael Beijer – beijer.uk" aria-label="Michael Beijer (beijer.uk)">MB</a>
-			</nav>
+			</div>
 		</header>
 
 		<main>
@@ -81,8 +98,9 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 			</p>
 			<nav class="site-foot-links" aria-label="Pages">
 				<a href="/">Search</a>
+				<a href="/articles/">Articles</a>
 				<a href="/sources/">Sources</a>
-				<a href="/about/">How it works</a>
+				<a href="/about/">About</a>
 				<a href="https://github.com/michaelbeijer/beijerdictionary" target="_blank" rel="noopener">GitHub</a>
 				<a id="admin-link" class="admin-link" href="http://127.0.0.1:8765" target="_blank" rel="noopener" hidden>Admin</a>
 			</nav>
@@ -191,13 +209,48 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
 				overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 			}
+			/* Header: wordmark, the main menu and the tool buttons on one row, with
+			   a rule underneath that the current menu item's underline sits on.
+			   On narrower screens the menu drops to a row of its own (below). */
 			.site-head {
-				display: flex; align-items: center; justify-content: space-between; gap: 0.6em;
+				display: flex; flex-wrap: wrap; align-items: center; column-gap: 1.2em;
 				/* A fixed size, not the page's (its larger text would crowd the
 				   wordmark and buttons on a phone). */
 				font-size: 18px;
 				width: var(--page-width); max-width: calc(100% - 2em); margin: auto;
-				padding: 1.1em 1em 0;
+				padding: 0.6em 1em 0;
+				border-bottom: 1px solid rgb(var(--border));
+			}
+			.site-nav {
+				display: flex; align-self: stretch; gap: 0.15em;
+			}
+			.site-nav a {
+				display: flex; align-items: center;
+				padding: 0.85em 0.6em;
+				margin-bottom: -1px;
+				border-bottom: 2px solid transparent;
+				font-size: 0.92em; font-weight: 600; white-space: nowrap;
+				color: rgb(var(--muted));
+			}
+			.site-nav a:hover { color: rgb(var(--text)); text-decoration: none; }
+			.site-nav a.active {
+				color: rgb(var(--text));
+				border-bottom-color: rgb(var(--tab-line));
+			}
+			@media (max-width: 860px) {
+				.site-head { padding-top: 1em; }
+				.site-nav {
+					order: 3; flex-basis: 100%;
+					margin-top: 0.35em;
+					/* Safety net for very small phones: scroll rather than overflow. */
+					overflow-x: auto; scrollbar-width: none;
+				}
+				.site-nav a { padding: 0.6em 0.7em; }
+				/* The first item lines up with the wordmark above it. */
+				.site-nav a:first-child { padding-left: 0.1em; }
+			}
+			@media (max-width: 400px) {
+				.site-nav a { padding-left: 0.5em; padding-right: 0.5em; }
 			}
 			/* The wordmark is the site's brand on every page (the home page has
 			   no big title of its own), so it is the darkest thing in the header. */
@@ -211,6 +264,7 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 			.wordmark-logo { width: 1.5em; height: 1.5em; flex: none; }
 			.site-tools {
 				display: flex; align-items: center; gap: 0.5em;
+				margin-left: auto;
 			}
 			.tool-btn {
 				font: inherit; font-size: 0.8em; cursor: pointer;
@@ -219,17 +273,17 @@ const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 				padding: 0.28em 0.62em; line-height: 1.3;
 			}
 			.tool-btn:hover { color: rgb(var(--text)); border-color: rgb(var(--text)); text-decoration: none; }
-			/* Square icon buttons: ?, the theme toggle and MB (to beijer.uk). */
+			/* Square icon buttons: the theme toggle and MB (to beijer.uk). */
 			.tool-btn.sq {
 				width: 36px; height: 36px; padding: 0; font-size: 0.95em; line-height: 1;
 				display: inline-flex; align-items: center; justify-content: center;
 			}
-			.tool-btn.help { font-weight: 700; }
 			.tool-btn.mb { font-size: 0.72em; font-weight: 700; letter-spacing: 0.02em; }
-			/* Phones: keep the header on one line. "Wide" changes nothing on a
-			   narrow screen, and How it works is in the footer. */
+			/* Phones: "Wide" changes nothing on a narrow screen, and the page
+			   starts closer to the header. */
 			@media (max-width: 640px) {
-				#width-toggle, .site-tools .help { display: none; }
+				#width-toggle { display: none; }
+				main { padding-top: 1.4em; }
 			}
 			@media (max-width: 400px) {
 				.site-head .wordmark { font-size: 1.12em; }

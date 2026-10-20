@@ -25,6 +25,14 @@
 .wb-hero--home .wb-tag {
 	font-size: 1.1em;
 }
+/* Phones: the lead line at normal size and less space around it, so the
+   search box and the first result sit higher on the screen. */
+@media (max-width: 640px) {
+	.wb-hero--home { margin-bottom: 1.2em; }
+	.wb-hero--home .wb-tag { font-size: 1em; }
+	.wb-hero--home + .wb-view,
+	.wb-hero--home + .wb-view > .wb-search { margin-top: 0; }
+}
 .wb-search {
 	margin-top: 1.6em;
 }
@@ -476,32 +484,6 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	font-size: 0.85em;
 	color: rgb(var(--muted));
 	background: var(--subtle);
-}
-
-/* Tab bar: Search | Sources — real page links styled as tabs. */
-.wb-tabs {
-	display: flex;
-	gap: 0.4em;
-	margin-top: 1.4em;
-	border-bottom: 1px solid rgb(var(--border));
-}
-.wb-tab {
-	font: inherit;
-	font-weight: 600;
-	font-size: 0.98em;
-	cursor: pointer;
-	background: transparent;
-	border: none;
-	border-bottom: 2px solid transparent;
-	color: rgb(var(--muted));
-	text-decoration: none;
-	padding: 0.5em 0.9em;
-	margin-bottom: -1px;
-}
-.wb-tab:hover { color: rgb(var(--text)); text-decoration: none; }
-.wb-tab.active {
-	color: rgb(var(--text));
-	border-bottom-color: rgb(var(--tab-line));
 }
 
 .wb-view { margin-top: 1.6em; }

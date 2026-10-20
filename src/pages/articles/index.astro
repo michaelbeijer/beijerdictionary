@@ -1,6 +1,5 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ViewTabs from '../../components/ViewTabs.astro';
 import { getArticles } from '../../lib/articles';
 
 // The articles directory. Built statically from the same beijer.ink feed as the
@@ -36,7 +35,6 @@ const intro = total
 	<section class="wb-hero">
 		<h1>Articles</h1>
 		<p class="wb-tag">{intro}</p>
-		<ViewTabs current="articles" />
 	</section>
 
 	<section class="wb-view">

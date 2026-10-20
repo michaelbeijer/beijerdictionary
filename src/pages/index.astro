@@ -1,6 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import ViewTabs from '../components/ViewTabs.astro';
 import SourcesTable from '../components/SourcesTable.astro';
 import { getArticles, toIndexItem } from '../lib/articles';
 
@@ -32,7 +31,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			A curated, searchable multilingual terminology database for technical
 			translators – with full provenance for every source.
 		</p>
-		<ViewTabs current="search" />
 	</section>
 
 	<section class="wb-view">
@@ -46,6 +44,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				<label class="sr-only" for="wb-to">To language</label>
 				<select id="wb-to" class="wb-lang" aria-label="To language"></select>
 			</div>
+			<!-- Phones only: the options below fold away behind this button. -->
+			<button id="wb-opts-toggle" type="button" class="wb-opts-toggle" aria-expanded="false" aria-controls="wb-opts">Search options</button>
 			<div id="wb-opts" class="wb-opts">
 				<span class="wb-opts-label">Search in:</span>
 				<label><input type="checkbox" id="opt-in-terms" checked /> terms</label>
@@ -228,7 +228,24 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				if (el) el.checked = !!v;
 			});
 		} catch { /* ignore */ }
+		updateOptsToggle();
 	}
+
+	// On a phone the options fold away behind a button. Options are remembered
+	// on each device, so the button says how many differ from the default:
+	// otherwise a box ticked on an earlier visit would change results unseen.
+	function updateOptsToggle() {
+		const btn = document.getElementById('wb-opts-toggle');
+		const changed = OPT_IDS.filter((id) => {
+			const el = document.getElementById(id);
+			return el && el.checked !== el.defaultChecked;
+		}).length;
+		btn.textContent = changed ? `Search options (${changed} changed)` : 'Search options';
+	}
+	document.getElementById('wb-opts-toggle').addEventListener('click', (ev) => {
+		const open = document.getElementById('wb-opts').classList.toggle('open');
+		ev.currentTarget.setAttribute('aria-expanded', String(open));
+	});
 
 	function discoverDirections(pairs) {
 		const dirs = [];
@@ -855,7 +872,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// Option toggles change the API result set → re-run the search.
 		OPT_IDS.forEach((id) => {
 			const el = document.getElementById(id);
-			if (el) el.addEventListener('change', () => { saveOpts(); runSearch(); });
+			if (el) el.addEventListener('change', () => { saveOpts(); updateOptsToggle(); runSearch(); });
 		});
 	}
 
@@ -935,6 +952,26 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		opacity: 0.25;
 	}
 	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
+	/* The options fold away on phones (see updateOptsToggle); wider screens
+	   always show them and never see this button. */
+	.wb-opts-toggle { display: none; }
+	@media (max-width: 640px) {
+		.wb-opts-toggle {
+			display: inline-block;
+			margin-top: 0.5rem;
+			padding: 0.25rem 0;
+			font: inherit;
+			font-size: 0.85rem;
+			color: rgb(var(--muted));
+			background: none;
+			border: none;
+			cursor: pointer;
+		}
+		.wb-opts-toggle::after { content: ' ▾'; }
+		.wb-opts-toggle[aria-expanded='true']::after { content: ' ▴'; }
+		.wb-opts:not(.open) { display: none; }
+		.wb-opts { margin-top: 0.2rem; }
+	}
 	.sense-num { display: inline-block; min-width: 1.35em; color: rgba(var(--muted), 0.75); font-weight: 600; font-variant-numeric: tabular-nums; }
 	.wb-sense { margin-top: 5px; }
 	/* Hand-curated, per-meaning definition shown under its sense line. */
