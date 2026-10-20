@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 
 <Base
 	title="How Beijer Dictionary works — behind the terminology database"
-	description="How Beijer Dictionary works: server-side search with full provenance, semicolon-synonym handling, the sources behind it, and what's planned (concept grounding and more open resources)."
+	description="How Beijer Dictionary works: server-side search with full provenance, semicolon-synonym handling, terminology articles, the sources behind it, and what's planned (concept grounding)."
 >
 	<section class="wb-hero">
 		<h1>How Beijer Dictionary works</h1>
@@ -18,8 +18,9 @@ import Base from '../layouts/Base.astro';
 		<h2>What it is</h2>
 		<p>
 			Beijer Dictionary is a curated, multilingual terminology database for technical
-			translators, spanning Dutch, English, German, French and Spanish, with
-			more languages added as new sources arrive. Every term
+			translators, spanning Dutch, English, German, French, Spanish and Italian
+			(plus Latin plant names), with more languages added as new sources
+			arrive. Every term
 			pair carries full <strong>provenance</strong>: you can always see which
 			glossary or reference work it came from, with author, year, languages,
 			entry count and licence. It's free to search here, and built into
@@ -32,15 +33,16 @@ import Base from '../layouts/Base.astro';
 			Search runs <strong>on the server</strong>, not in your browser. When you
 			type, only the matching results are sent back — the full dataset never
 			leaves the server. Behind the scenes it uses SQLite's full-text search
-			(FTS5), so it stays fast whether the database holds ten thousand entries
-			or a million. You pick the <strong>source and target language</strong> with
+			(FTS5), so it stays fast at the nearly two million entries it holds
+			today. You pick the <strong>source and target language</strong> with
 			the From / To selectors (any available pair, either direction, or
 			<em>Any</em>); results group by headword so every equivalent and synonym
 			shows on one card, with the words you searched for highlighted.
 		</p>
 		<p>
 			By default only <strong>term text</strong> is searched, to keep results
-			precise. A row of options lets you widen or narrow that: also search in
+			precise. The options under the search box let you widen or narrow that
+			(on a phone, tap <em>Search options</em> to show them): also search in
 			<strong>definitions</strong> or <strong>notes</strong>, require an
 			<strong>exact</strong> or <strong>whole-word</strong> match, make it
 			<strong>case-</strong> or <strong>accent-sensitive</strong>, or show only
@@ -57,14 +59,28 @@ import Base from '../layouts/Base.astro';
 			separator — semicolon, slash, pipe, and so on.)
 		</p>
 
+		<h2>Articles</h2>
+		<p>
+			Alongside the term pairs there are more than a thousand hand-written
+			<strong>terminology articles</strong>: longer notes on how to tell tricky
+			terms apart. When you search for a term an article covers, the article
+			appears at the top of the results. The <a href="/articles/">Articles</a>
+			page lists them all by subject, with a box to filter them.
+		</p>
+
 		<h2>The sources</h2>
 		<p>
 			Everything is assembled from curated source files — published glossaries,
 			term lists and reference works — each imported with its own column mapping
-			and bibliographic metadata. Nothing is scraped or auto-aggregated. You can
-			browse the full list, with provenance for each, in the
-			<a href="/sources/">Sources</a> tab. Term pairs are reorganised into a
-			single curated database and served only as isolated, per-query snippets.
+			and bibliographic metadata. Nothing is scraped or auto-aggregated. Openly
+			licensed resources are included where the licence allows and the quality
+			is worth it, such as the EU's
+			<abbr title="InterActive Terminology for Europe">IATE</abbr> termbase and
+			the EuroVoc thesaurus. Every result names its source in a small chip;
+			click it to see that source's details. The <a href="/sources/">Sources</a>
+			page lists them all, with provenance for each. Term pairs are reorganised
+			into a single curated database and served only as isolated, per-query
+			snippets.
 		</p>
 
 		<h2>Under the hood</h2>
@@ -79,24 +95,17 @@ import Base from '../layouts/Base.astro';
 
 		<h2>What's planned</h2>
 		<p>
-			Two things are scaffolded but not yet switched on:
+			<strong>Concept grounding</strong> is scaffolded but not yet switched on:
+			linking entries to open lexical resources such as
+			<a href="https://en-word.net/" rel="noopener">Open English WordNet</a>
+			(and its Dutch counterpart) to power richer synonym grouping and
+			"related term" suggestions. New sources keep arriving too; the
+			<a href="https://github.com/michaelbeijer/beijerdictionary/blob/main/CHANGELOG.md" rel="noopener">changelog</a>
+			lists them as they're added.
 		</p>
-		<ul>
-			<li>
-				<strong>Concept grounding.</strong> Linking entries to open lexical
-				resources such as <a href="https://en-word.net/" rel="noopener">Open
-				English WordNet</a> (and its Dutch counterpart) to power richer synonym
-				grouping and "related term" suggestions.
-			</li>
-			<li>
-				<strong>More open terminology.</strong> Selectively folding in openly
-				licensed resources (for example the EU's <abbr title="InterActive Terminology for Europe">IATE</abbr>
-				export) where the licence allows and the quality is worth it.
-			</li>
-		</ul>
 		<p class="about-note">
-			This page describes the current state honestly — when those features go
-			live, it'll be updated to say so.
+			This page describes the current state honestly — when concept grounding
+			goes live, it'll be updated to say so.
 		</p>
 
 		<p class="about-back"><a href="/">← Back to search</a></p>
