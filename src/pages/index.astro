@@ -36,7 +36,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	<section class="wb-view">
 		<div class="wb-search">
 			<label class="sr-only" for="wb-q">Search Beijer Dictionary</label>
-			<input id="wb-q" type="search" placeholder="Search…" title="Tip: press / anywhere on the page to jump back to this box" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
+			<input id="wb-q" type="search" placeholder="Type a term…" title="Tip: press / anywhere on the page to jump back to this box" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
 			<div class="wb-controls">
 				<label class="sr-only" for="wb-from">From language</label>
 				<select id="wb-from" class="wb-lang" aria-label="From language"></select>
@@ -65,7 +65,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
 		<div id="wb-results" class="wb-results" hidden></div>
-		<p id="wb-hint" class="wb-hint">Type a term above to search the database.</p>
 	</section>
 
 	<!-- The source detail dialog, opened by the source chips on result cards
@@ -749,12 +748,13 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 
 		const input = document.getElementById('wb-q');
 		if (input && direction) {
-			// No "(press /)" here: newcomers read it as "type a slash". The
-			// shortcut is in the box's tooltip instead.
-			const side = (c) => (c === 'any' ? 'any language' : langName(c));
-			input.placeholder = direction.src === 'any' && direction.tgt === 'any'
-				? 'Search all languages'
-				: `Search ${side(direction.src)} → ${side(direction.tgt)}`;
+			// Say what to type, not the direction: the language menus right
+			// below already show that. No "(press /)" either: newcomers read it
+			// as "type a slash". The shortcut is in the box's tooltip instead.
+			const name = langName(direction.src);
+			input.placeholder = direction.src === 'any'
+				? 'Type a term in any language…'
+				: `Type ${/^[AEIOU]/.test(name) ? 'an' : 'a'} ${name} term…`;
 		}
 	}
 
@@ -762,14 +762,12 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const counts = document.getElementById('wb-counts');
 		const sN = meta.counts.sources || 0;
 		const eN = meta.counts.entries || 0;
-		// "N sources" links to the Sources tab.
+		// "N sources" links to the Sources page.
 		const link = document.createElement('a');
 		link.href = '/sources/';
 		link.textContent = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'}`;
 		let s = ` · ${eN.toLocaleString('en-GB')} entries`;
-		if (resultCount == null) {
-			s += ' – type to search';
-		} else {
+		if (resultCount != null) {
 			s += ` · ${resultCount.toLocaleString('en-GB')} match${resultCount === 1 ? '' : 'es'}`;
 		}
 		counts.replaceChildren(link, s);

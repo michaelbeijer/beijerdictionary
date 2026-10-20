@@ -7,6 +7,9 @@ API. Newest first.
 ## 2026-10-20
 
 **Site**
+- The search box says what to type ("Type a Dutch term…", or "Type a term
+  in any language…") instead of repeating the language pair shown right
+  below it, and the empty page no longer asks you to type three times.
 - The **Articles** page has a filter box: type a term or a subject and the
   list narrows as you type, across titles, headwords and alternative
   spellings, ignoring accents and capitals.

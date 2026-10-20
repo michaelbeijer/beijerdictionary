@@ -488,14 +488,6 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 
 .wb-view { margin-top: 1.6em; }
 
-.wb-hint {
-	color: rgb(var(--muted));
-	font-size: 0.95em;
-	padding: 0.4em 0;
-}
-.wb-results[hidden] + .wb-hint { display: block; }
-.wb-results:not([hidden]) + .wb-hint { display: none; }
-
 .wb-loading {
 	color: rgb(var(--muted));
 }
