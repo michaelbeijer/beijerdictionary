@@ -581,6 +581,39 @@ table.wb-sources-table {
 .wb-sources-table td.langs { white-space: normal; }
 #wb-sources-wrap { overflow-x: auto; }
 .wb-sources-table td:first-child { font-weight: 600; }
+/* Sortable column headings: buttons that look like the plain headings. */
+.wb-sources-table .wb-sort {
+	font: inherit;
+	color: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+.wb-sources-table .wb-sort:hover { color: rgb(var(--text)); }
+.wb-sources-table th[aria-sort] { color: rgb(var(--text)); }
+.wb-sources-table th[aria-sort='ascending'] .wb-sort::after { content: ' ↑'; }
+.wb-sources-table th[aria-sort='descending'] .wb-sort::after { content: ' ↓'; }
+/* A source's short name, as printed on its chips in search results, so a chip
+   seen on a result can be found in this list (and in the source's dialog). */
+.wb-src-chip {
+	display: block;
+	width: fit-content;
+	margin-top: 0.3em;
+	padding: 0.2em 0.6em 0.12em;
+	border: 1px solid rgb(var(--border));
+	border-radius: 99px;
+	background: var(--chip-bg);
+	color: rgb(var(--chip-text));
+	font-size: 0.7em;
+	font-weight: 600;
+	line-height: 1.2;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+#wb-detail-body .wb-src-chip { margin: 0 0 0.6em; }
 .wb-sources-table tr.clickable { cursor: pointer; }
 .wb-sources-table tbody tr.clickable:hover { background: var(--subtle); }
 /* Flash + linger the row you just had open, after closing its dialog. */

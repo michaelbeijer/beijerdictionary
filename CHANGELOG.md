@@ -7,6 +7,11 @@ API. Newest first.
 ## 2026-10-20
 
 **Site**
+- The **Sources** list is now in alphabetical order of title (it was sorted
+  by each source's short name, which often starts with a different word).
+  Each source also shows the short name its chips carry on search results
+  (e.g. BGL), so a chip you see on a result is easy to find in the list.
+  Click a column heading to sort by author, year, entries or licence.
 - When a search result combines several sources, a faint dotted line now
   separates each source's translations, so it's clear at a glance which
   source chip belongs to which terms.

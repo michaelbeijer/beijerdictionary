@@ -32,6 +32,12 @@ if (apiBase) {
 	}
 }
 
+// The API returns sources by slug, but the table shows titles, which often
+// start with a different word (bgl is "Dutch-English Online Dictionary"), so
+// put them in title order. The client script sorts the same way.
+const titleCollator = new Intl.Collator('en', { sensitivity: 'base', ignorePunctuation: true });
+sources.sort((a, b) => titleCollator.compare(a.title || a.slug, b.title || b.slug));
+
 const langsOf = (s) => {
 	const codes = (s.languages && s.languages.length ? s.languages : [s.source_lang, s.target_lang])
 		.filter(Boolean).map((x) => String(x).toUpperCase());
@@ -52,13 +58,18 @@ const badgeClassOf = (s) => {
 			<table class="wb-sources-table">
 				<thead>
 					<tr>
-						<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
+						<th aria-sort="ascending"><button type="button" class="wb-sort" data-key="title">Source</button></th>
+						<th><button type="button" class="wb-sort" data-key="author">Author</button></th>
+						<th><button type="button" class="wb-sort" data-key="year">Year</button></th>
+						<th>Languages</th>
+						<th class="num"><button type="button" class="wb-sort" data-key="entries">Entries</button></th>
+						<th><button type="button" class="wb-sort" data-key="licence">Licence</button></th>
 					</tr>
 				</thead>
 				<tbody>
 					{sources.map((s) => (
 						<tr class="clickable" data-slug={s.slug}>
-							<td>{s.title || s.slug}</td>
+							<td>{s.title || s.slug}<span class="wb-src-chip" title="The name shown on search results">{s.slug}</span></td>
 							<td>{s.author || '—'}</td>
 							<td class="num">{s.year || '—'}</td>
 							<td class="langs">{langsOf(s)}</td>
@@ -115,6 +126,38 @@ const badgeClassOf = (s) => {
 		return codes.length ? codes.join(' · ') : '—';
 	};
 
+	// Column sorting. Title order is what the page is built with; clicking a
+	// heading re-sorts by that column, clicking it again reverses it. Numbers
+	// start largest-first, text A–Z. Rows without a value always go last.
+	const collator = new Intl.Collator('en', { sensitivity: 'base', ignorePunctuation: true });
+	const SORTS = {
+		title:   { get: (s) => s.title || s.slug, num: false },
+		author:  { get: (s) => s.author || '', num: false },
+		year:    { get: (s) => Number(s.year) || null, num: true },
+		entries: { get: (s) => s.entry_count || 0, num: true },
+		licence: { get: (s) => s.licence || '', num: false },
+	};
+	let sortKey = 'title';
+	let sortDir = 1;   // 1 = ascending, -1 = descending
+
+	function sorted(list) {
+		const { get, num } = SORTS[sortKey];
+		const empty = (v) => v === null || v === '';
+		return [...list].sort((a, b) => {
+			const va = get(a), vb = get(b);
+			if (empty(va) || empty(vb)) return empty(va) - empty(vb);
+			const c = num ? va - vb : collator.compare(va, vb);
+			// Ties fall back to title order, so equal years stay alphabetical.
+			return (c * sortDir) || collator.compare(SORTS.title.get(a), SORTS.title.get(b));
+		});
+	}
+
+	function headCell(label, key, cls) {
+		const sortAttr = key === sortKey ? ` aria-sort="${sortDir === 1 ? 'ascending' : 'descending'}"` : '';
+		const inner = key ? `<button type="button" class="wb-sort" data-key="${key}">${label}</button>` : label;
+		return `<th${cls ? ` class="${cls}"` : ''}${sortAttr}>${inner}</th>`;
+	}
+
 	function renderTable(list) {
 		const wrap = document.getElementById('wb-sources-wrap');
 		if (!wrap) return;   // the search page has the dialog only
@@ -122,11 +165,11 @@ const badgeClassOf = (s) => {
 			wrap.innerHTML = '<p class="wb-loading">No sources yet.</p>';
 			return;
 		}
-		const rows = list.map((s) => {
+		const rows = sorted(list).map((s) => {
 			const lic = (s.licence || 'unknown').toLowerCase();
 			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
 			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
-				<td>${escapeHtml(s.title || s.slug)}</td>
+				<td>${escapeHtml(s.title || s.slug)}<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span></td>
 				<td>${escapeHtml(s.author || '—')}</td>
 				<td class="num">${escapeHtml(String(s.year || '—'))}</td>
 				<td class="langs">${langsOf(s)}</td>
@@ -136,7 +179,7 @@ const badgeClassOf = (s) => {
 		}).join('');
 		wrap.innerHTML = `<table class="wb-sources-table">
 			<thead><tr>
-				<th>Source</th><th>Author</th><th>Year</th><th>Languages</th><th class="num">Entries</th><th>Licence</th>
+				${headCell('Source', 'title')}${headCell('Author', 'author')}${headCell('Year', 'year')}${headCell('Languages', null)}${headCell('Entries', 'entries', 'num')}${headCell('Licence', 'licence')}
 			</tr></thead>
 			<tbody>${rows}</tbody>
 		</table>`;
@@ -168,6 +211,7 @@ const badgeClassOf = (s) => {
 			: '';
 		body.innerHTML =
 			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
+			`<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span>` +
 			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
 			'<dl>' +
 			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
@@ -182,9 +226,26 @@ const badgeClassOf = (s) => {
 		body.focus();
 	}
 
-	function wireRows() {
-		document.querySelectorAll('#wb-sources-wrap tr.clickable').forEach((el) => {
-			el.addEventListener('click', () => openDetail(el.dataset.slug));
+	// One listener on the wrapper, not one per row: the table is re-rendered on
+	// every sort and on a data refresh, and this survives that untouched.
+	function wireTable() {
+		const wrap = document.getElementById('wb-sources-wrap');
+		if (!wrap) return;
+		wrap.addEventListener('click', (ev) => {
+			const btn = ev.target.closest('button.wb-sort');
+			if (btn) {
+				const key = btn.dataset.key;
+				if (key === sortKey) sortDir = -sortDir;
+				else { sortKey = key; sortDir = SORTS[key].num ? -1 : 1; }
+				renderTable(sources);
+				// Re-rendering dropped the focused button; put focus back on it so
+				// a keyboard user can keep toggling.
+				const again = wrap.querySelector(`button.wb-sort[data-key="${key}"]`);
+				if (again) again.focus();
+				return;
+			}
+			const row = ev.target.closest('tr.clickable');
+			if (row) openDetail(row.dataset.slug);
 		});
 	}
 
@@ -211,10 +272,12 @@ const badgeClassOf = (s) => {
 	}
 
 	// Stable signature of the list, so we only re-render when something actually
-	// changed (avoids a needless reflow on every visit).
+	// changed (avoids a needless reflow on every visit). Order-independent: the
+	// page embeds the list in title order, the API returns it in slug order.
 	const sigList = (list) =>
 		JSON.stringify((list || []).map((s) =>
-			[s.slug, s.title, s.author, s.year, s.entry_count, s.licence, langsOf(s)]));
+			[s.slug, s.title, s.author, s.year, s.entry_count, s.licence, langsOf(s)])
+			.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
 
 	// Background revalidate: refresh /meta after load so the source list and the
 	// counts self-heal after a D1 data reload, with no site rebuild. The static
@@ -229,7 +292,6 @@ const badgeClassOf = (s) => {
 			if (fresh.length && sigList(fresh) !== sigList(sources)) {
 				sources = fresh;
 				renderTable(sources);
-				wireRows();
 				// Keep a deep-linked dialog correct if the build had missed it.
 				const dlg = document.getElementById('wb-detail');
 				const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
@@ -255,7 +317,7 @@ const badgeClassOf = (s) => {
 				if (wrap) wrap.innerHTML = '<p class="wb-loading">Could not load sources right now.</p>';
 			}
 		}
-		wireRows();
+		wireTable();
 		bindDialogClose();
 
 		// A source chip on a result card links to /#slug, and /sources#slug
