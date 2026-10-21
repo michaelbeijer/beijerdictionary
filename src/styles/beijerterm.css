@@ -472,6 +472,87 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 .wb-card a.wb-edit:hover {
 	color: rgb(var(--accent));
 }
+/* Multilingual concept card: one entry of a multilingual source with all its
+   languages, one line per language. */
+.wb-concept-badge {
+	margin-left: 0.55em;
+	font-size: 0.62em;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	vertical-align: middle;
+	color: rgb(var(--muted));
+	border: 1px solid rgb(var(--border));
+	border-radius: 999px;
+	padding: 0.12em 0.55em;
+	white-space: nowrap;
+}
+/* One line per language: the language name in a fixed column, so the terms
+   line up and wrap under each other. */
+.wb-concept-line {
+	display: grid;
+	grid-template-columns: 7.5em minmax(0, 1fr);
+	column-gap: 0.5em;
+	align-items: baseline;
+	margin-top: 0.15em;
+}
+.wb-concept-lang {
+	font-size: 0.78em;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: rgb(var(--muted));
+	white-space: nowrap;
+}
+.wb-concept-target .wb-concept-lang {
+	color: rgb(var(--text));
+	font-weight: 600;
+}
+.wb-concept-hit {
+	margin-top: 0.1em;
+	font-size: 0.85em;
+	color: rgb(var(--muted));
+}
+.wb-concept-hit b {
+	color: rgb(var(--text));
+}
+.wb-concept-more {
+	margin-top: 0.25em;
+}
+.wb-concept-more > summary {
+	cursor: pointer;
+	font-size: 0.82em;
+	color: rgb(var(--accent));
+	width: max-content;
+}
+.wb-more-terms {
+	display: inline;
+}
+.wb-more-terms > summary {
+	display: inline;
+	cursor: pointer;
+	color: rgb(var(--accent));
+	font-size: 0.85em;
+	list-style: none;
+}
+.wb-more-terms > summary::-webkit-details-marker {
+	display: none;
+}
+.wb-more-terms[open] > summary {
+	display: none;
+}
+.wb-concept-note {
+	margin-top: 0.45em;
+	font-size: 0.78em;
+	font-style: italic;
+	color: rgb(var(--muted));
+}
+@media (max-width: 560px) {
+	/* Phones: the language name goes above its terms instead of beside them. */
+	.wb-concept-line {
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 0;
+	}
+}
 .wb-empty {
 	padding: 0.9em;
 	color: rgb(var(--muted));

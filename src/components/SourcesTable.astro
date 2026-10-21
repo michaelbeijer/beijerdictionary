@@ -43,6 +43,11 @@ const langsOf = (s) => {
 		.filter(Boolean).map((x) => String(x).toUpperCase());
 	return codes.length ? codes.join(' · ') : '—';
 };
+// A multilingual source is shown as concepts (one card per row, with all its
+// languages), not as entries, so its size is a concept count.
+const sizeOf = (s) => s.concept_count
+	? `${s.concept_count.toLocaleString('en-GB')} concepts`
+	: (s.entry_count || 0).toLocaleString('en-GB');
 const badgeClassOf = (s) => {
 	const lic = (s.licence || 'unknown').toLowerCase();
 	return ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
@@ -73,7 +78,7 @@ const badgeClassOf = (s) => {
 							<td class:list={{ empty: !s.author }}>{s.author || '—'}</td>
 							<td class:list={['num', { empty: !s.year }]}>{s.year || '—'}</td>
 							<td class="langs">{langsOf(s)}</td>
-							<td class="num entries">{(s.entry_count || 0).toLocaleString('en-GB')}</td>
+							<td class="num entries">{sizeOf(s)}</td>
 							<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
 						</tr>
 					))}
@@ -125,6 +130,10 @@ const badgeClassOf = (s) => {
 			.filter(Boolean).map((x) => String(x).toUpperCase());
 		return codes.length ? codes.join(' · ') : '—';
 	};
+	// Same as the build-time sizeOf above.
+	const sizeOf = (s) => s.concept_count
+		? `${s.concept_count.toLocaleString('en-GB')} concepts`
+		: (s.entry_count || 0).toLocaleString('en-GB');
 
 	// Column sorting. Title order is what the page is built with; clicking a
 	// heading re-sorts by that column, clicking it again reverses it. Numbers
@@ -134,7 +143,7 @@ const badgeClassOf = (s) => {
 		title:   { get: (s) => s.title || s.slug, num: false },
 		author:  { get: (s) => s.author || '', num: false },
 		year:    { get: (s) => Number(s.year) || null, num: true },
-		entries: { get: (s) => s.entry_count || 0, num: true },
+		entries: { get: (s) => s.entry_count || s.concept_count || 0, num: true },
 		licence: { get: (s) => s.licence || '', num: false },
 	};
 	let sortKey = 'title';
@@ -173,7 +182,7 @@ const badgeClassOf = (s) => {
 				<td${s.author ? '' : ' class="empty"'}>${escapeHtml(s.author || '—')}</td>
 				<td class="num${s.year ? '' : ' empty'}">${escapeHtml(String(s.year || '—'))}</td>
 				<td class="langs">${langsOf(s)}</td>
-				<td class="num entries">${(s.entry_count || 0).toLocaleString('en-GB')}</td>
+				<td class="num entries">${sizeOf(s)}</td>
 				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
 			</tr>`;
 		}).join('');
@@ -202,7 +211,9 @@ const badgeClassOf = (s) => {
 			['Domain',          s.primary_domain],
 			['Subject tags',    s.subject_tags],
 			['Licence',         s.licence],
-			['Entries',         (s.entry_count || 0).toLocaleString('en-GB')],
+			s.concept_count
+				? ['Concepts',      `${s.concept_count.toLocaleString('en-GB')} (${(s.term_count || 0).toLocaleString('en-GB')} terms), each shown as one card with all its languages`]
+				: ['Entries',       (s.entry_count || 0).toLocaleString('en-GB')],
 		].filter(([, v]) => v != null && v !== '');
 		// Clickable source link (only http/https, opened in a new tab).
 		const urlHtml = (s.url && /^https?:\/\//i.test(s.url))
@@ -276,7 +287,7 @@ const badgeClassOf = (s) => {
 	// page embeds the list in title order, the API returns it in slug order.
 	const sigList = (list) =>
 		JSON.stringify((list || []).map((s) =>
-			[s.slug, s.title, s.author, s.year, s.entry_count, s.licence, langsOf(s)])
+			[s.slug, s.title, s.author, s.year, s.entry_count, s.concept_count, s.licence, langsOf(s)])
 			.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
 
 	// Background revalidate: refresh /meta after load so the source list and the

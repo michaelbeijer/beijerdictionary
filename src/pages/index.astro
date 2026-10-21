@@ -81,7 +81,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	// The browser NEVER receives the dataset. On load it fetches /meta (the
 	// source inventory + language pairs), and on each keystroke it fetches
 	// /search?q=… which returns only the matching entries. Results are grouped
-	// client-side into one card per headword for the chosen direction.
+	// client-side into one card per headword for the chosen direction, plus one
+	// card per matching multilingual concept (see renderConceptCard).
 	// ────────────────────────────────────────────────────────────────────
 
 	// How many headword CARDS to render. Distinct from how many entry rows we
@@ -179,6 +180,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	let direction = null;        // {src, tgt}
 	let lastEntries = [];        // raw results from the last /search
 	let lastSenses = [];         // consolidated sense groups from the last /search
+	let lastConcepts = [];       // multilingual concepts from the last /search
 	let lastQuery = '';
 	let searchAbort = null;
 	let debounceTimer = null;
@@ -419,6 +421,17 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		return order;
 	}
 
+	// Per-entry reference link(s) → 🔗 chips (e.g. the EU regulation a railway
+	// term is defined in). Labelled by a friendly host name.
+	function refLabel(url) {
+		try {
+			const h = new URL(url).hostname.replace(/^www\./, '');
+			return /eur-lex\.europa\.eu$/i.test(h) ? 'EUR-Lex' : h;
+		} catch { return 'link'; }
+	}
+	const refChip = (u) =>
+		`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`;
+
 	function renderCard(group, tokens) {
 		// Render one sense's equivalents (sorted) as a "· "-joined run of chips,
 		// each optionally carrying its own equivalent-side qualifier.
@@ -446,16 +459,6 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// applies to the whole meaning. Shown only when a definition was written.
 		const senseDef = (ln) => (ln && ln.def) ? `<div class="wb-sensedef">${escapeHtml(ln.def)}</div>` : '';
 
-		// Per-entry reference link(s) → 🔗 chips (e.g. the EU regulation a railway
-		// term is defined in). Labelled by a friendly host name; dedup'd by the Set.
-		const refLabel = (url) => {
-			try {
-				const h = new URL(url).hostname.replace(/^www\./, '');
-				return /eur-lex\.europa\.eu$/i.test(h) ? 'EUR-Lex' : h;
-			} catch { return 'link'; }
-		};
-		const refChip = (u) =>
-			`<a class="pill pill-ref" href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(u)}">🔗 ${escapeHtml(refLabel(u))}</a>`;
 		const refChipsFrom = (set) => [...set].map(refChip).join(' ');
 
 		// A source chip (opens the source's detail dialog via /#slug) + admin
@@ -636,6 +639,97 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		</article>`;
 	}
 
+	// ── Multilingual concepts ─────────────────────────────────────────────
+	// A concept is one row of a multilingual source (EuroVoc, the textile
+	// glossary, …) kept whole: every term in every language, as the source
+	// listed them. It is drawn as ONE card instead of being cut into language
+	// pairs, because pairing each synonym with each synonym invented
+	// translations the source never gave ("to betray" → "in de steek laten").
+	// A synonym list says the words belong together, not which word translates
+	// which, so the card shows each language's list whole.
+
+	// Terms shown per language before "+N more".
+	const CONCEPT_TERMS_SHOWN = 8;
+
+	// Like an entry, a concept belongs in a direction only if it has a term in
+	// each concrete language of it.
+	function conceptFits(c, dir) {
+		const has = (l) => l === 'any' || !!(c.terms[l] && c.terms[l].length);
+		return has(dir.src) && has(dir.tgt);
+	}
+
+	// The card is headed in the From language, or with From = Any in the
+	// language of the term that matched.
+	function conceptHeadLang(c, dir) {
+		if (dir.src !== 'any' && c.terms[dir.src]) return dir.src;
+		if (c.hit && c.hit.lang && c.terms[c.hit.lang]) return c.hit.lang;
+		return c.langs.find((l) => c.terms[l]) || Object.keys(c.terms)[0];
+	}
+
+	function renderConceptCard(c, dir, tokens) {
+		const termHtml = (x) => {
+			const h = hl(x.t, tokens);
+			const q = x.q ? ` <span class="qual">(${escapeHtml(x.q)})</span>` : '';
+			return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${q}</span>`;
+		};
+		// A language's terms in the source's order, the first few inline and the
+		// rest behind "+N more".
+		const termRun = (list) => {
+			const sep = '<span class="sep">·</span> ';
+			const shown = list.slice(0, CONCEPT_TERMS_SHOWN).map(termHtml).join(sep);
+			const rest = list.slice(CONCEPT_TERMS_SHOWN);
+			return rest.length
+				? `${shown}${sep}<details class="wb-more-terms"><summary>+${rest.length} more</summary>${rest.map(termHtml).join(sep)}</details>`
+				: shown;
+		};
+		const line = (label, list, target) =>
+			`<div class="wb-equivs wb-concept-line${target ? ' wb-concept-target' : ''}"><span class="wb-concept-lang">${target ? '<span class="arrow">→</span>' : ''}${label}</span><span class="wb-concept-terms">${termRun(list)}</span></div>`;
+		const langLine = (l, target) => line(escapeHtml(langName(l)), c.terms[l], target);
+
+		const head = conceptHeadLang(c, dir);
+		const headTerms = c.terms[head] || [];
+		const lead = headTerms[0] || { t: '' };
+		const langs = c.langs.filter((l) => c.terms[l] && c.terms[l].length);
+
+		// The term that matched, when it isn't the heading: it may sit far down a
+		// list or in a folded-away language.
+		const hit = c.hit && c.hit.t != null && !(c.hit.lang === head && fold(c.hit.t) === fold(lead.t))
+			? `<div class="wb-concept-hit">matched: <b>${hl(c.hit.t, tokens).html}</b>${c.hit.lang !== head ? ` <span class="wb-concept-hitlang">(${escapeHtml(langName(c.hit.lang))})</span>` : ''}</div>`
+			: '';
+		// The heading language's other terms.
+		const also = headTerms.length > 1 ? line('also', headTerms.slice(1)) : '';
+		// The target language in full; with To = Any every other language, and
+		// otherwise the remaining languages folded away.
+		const others = langs.filter((l) => l !== head && l !== dir.tgt);
+		let body = '';
+		if (dir.tgt !== 'any' && dir.tgt !== head) {
+			body = langLine(dir.tgt, true);
+			if (others.length) {
+				body += `<details class="wb-concept-more"><summary>${others.length} more language${others.length === 1 ? '' : 's'}</summary>${others.map((l) => langLine(l)).join('')}</details>`;
+			}
+		} else {
+			body = others.map((l) => langLine(l)).join('');
+		}
+
+		const def = c.def ? `<div class="wb-def${hl(c.def, tokens).hit ? ' hit' : ''}"><span class="wb-field">Definition</span> ${hl(c.def, tokens).html}</div>` : '';
+		const notes = c.notes ? `<div class="wb-notes"><span class="n">${'<span class="wb-field">Note</span> ' + hl(c.notes, tokens).html}</span></div>` : '';
+		const links = c.links ? String(c.links).split(/\s+/).filter((u) => /^https?:\/\//i.test(u)).map(refChip).join(' ') : '';
+		const src = `<a class="pill pill-src" href="/#${encodeURIComponent(c.src)}" title="About this source">${escapeHtml(c.src)}</a>`;
+		const meta_ = [c.dom ? escapeHtml(c.dom) : '', src, links].filter(Boolean).join(' · ');
+
+		// With one term per language the source has paired them itself. With
+		// several, it only says the words belong together.
+		const note = langs.some((l) => c.terms[l].length > 1)
+			? '<div class="wb-concept-note">The source lists these words together as one entry. It doesn\'t say which word translates which.</div>'
+			: '';
+
+		return `<article class="wb-card wb-concept">
+			<div class="wb-headword">${hl(lead.t, tokens).html}${lead.q ? ` <span class="qual">(${escapeHtml(lead.q)})</span>` : ''}<span class="wb-concept-badge" title="One entry of a multilingual source, shown with all its languages">${langs.length} languages</span></div>
+			${hit}${also}${body}${def}${notes}${note}
+			<div class="wb-card-meta">${meta_}</div>
+		</article>`;
+	}
+
 	// ── Terminology articles ──────────────────────────────────────────────
 	// The compact article index is embedded at build time (bt-articles-data);
 	// article cards are matched and rendered entirely client-side. Unlike the
@@ -680,18 +774,31 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		</a>`;
 	}
 
-	function renderResults(groups, tokens, articles) {
+	// Order: the headword card for exactly what was typed, then concepts with a
+	// term that is exactly it, then the other headword cards, then the other
+	// concepts. A concept card never pushes the main answer down.
+	function renderResults(groups, concepts, tokens, articles, query) {
 		const box = document.getElementById('wb-results');
 		articles = articles || [];
 		const articleHtml = articles.map((a) => renderArticleCard(a, tokens)).join('');
-		if (!groups.length && !articles.length) {
+		if (!groups.length && !concepts.length && !articles.length) {
 			box.innerHTML = '<p class="wb-empty">No matches.</p>';
 			box.hidden = false;
 			return;
 		}
+		const qf = fold(query);
 		const shown = groups.slice(0, MAX_RESULTS);
+		const exactCards = shown.filter((g) => g.headFold === qf);
+		const otherCards = shown.filter((g) => g.headFold !== qf);
+		const exactConcepts = concepts.filter((c) => c.hit && c.hit.tier <= 1);
+		const otherConcepts = concepts.filter((c) => !(c.hit && c.hit.tier <= 1));
+		const card = (g) => renderCard(g, tokens);
+		const conceptCard = (c) => renderConceptCard(c, direction, tokens);
 		box.innerHTML = articleHtml
-			+ shown.map((g) => renderCard(g, tokens)).join('')
+			+ exactCards.map(card).join('')
+			+ exactConcepts.map(conceptCard).join('')
+			+ otherCards.map(card).join('')
+			+ otherConcepts.map(conceptCard).join('')
 			+ (groups.length > MAX_RESULTS
 				? `<div class="wb-more">Showing ${MAX_RESULTS} of ${groups.length} headwords.</div>`
 				: '');
@@ -766,7 +873,9 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const link = document.createElement('a');
 		link.href = '/sources/';
 		link.textContent = `${sN.toLocaleString('en-GB')} source${sN === 1 ? '' : 's'}`;
+		const cN = meta.counts.concepts || 0;
 		let s = ` · ${eN.toLocaleString('en-GB')} entries`;
+		if (cN) s += ` · ${cN.toLocaleString('en-GB')} multilingual concepts`;
 		if (resultCount != null) {
 			s += ` · ${resultCount.toLocaleString('en-GB')} match${resultCount === 1 ? '' : 'es'}`;
 		}
@@ -782,9 +891,10 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		}
 		const tokens = fold(lastQuery).split(/\s+/).filter(Boolean);
 		const groups = groupForDirection(lastEntries, direction, lastSenses);
+		const concepts = lastConcepts.filter((c) => conceptFits(c, direction));
 		const articles = matchArticles(lastQuery);
-		renderResults(groups, tokens, articles);
-		updateCounts(groups.length);
+		renderResults(groups, concepts, tokens, articles, lastQuery);
+		updateCounts(groups.length + concepts.length);
 	}
 
 	async function runSearch() {
@@ -813,6 +923,10 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			);
 			lastEntries = data.entries || [];
 			lastSenses = data.senses || [];
+			lastConcepts = data.concepts || [];
+			// The API reports a failed concept lookup rather than passing it off
+			// as "no concepts matched"; the word cards still show.
+			if (data.concepts_error) console.warn('Concept search failed:', data.concepts_error);
 			rerender();
 		} catch (err) {
 			if (err.name === 'AbortError') return;
