@@ -507,6 +507,18 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	color: rgb(var(--text));
 	font-weight: 600;
 }
+/* A source's official preferred term (EuroVoc only): bold, with a quiet
+   "(preferred)" after it. A search hit stays at the hit's heavier weight. */
+.wb-concept .e.pref:not(.hit) {
+	font-weight: 600;
+}
+.wb-pref {
+	margin-left: 0.1em;
+	font-size: 0.78em;
+	font-weight: 400;
+	color: rgb(var(--muted));
+	white-space: nowrap;
+}
 .wb-concept-hit {
 	margin-top: 0.1em;
 	font-size: 0.85em;

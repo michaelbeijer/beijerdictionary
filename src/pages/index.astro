@@ -651,6 +651,13 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	// Terms shown per language before "+N more".
 	const CONCEPT_TERMS_SHOWN = 8;
 
+	// Sources whose FIRST term in each language is the source's official
+	// preferred term, aligned across its languages: EuroVoc's prefLabel, which
+	// tools/prep_eurovoc.py (private repo) puts first. In the other multilingual
+	// sources the first term is only the first one listed (André Fairchild's
+	// first Dutch word for "abandon" is "afstand doen"), so nothing is marked.
+	const PREFERRED_FIRST = new Set(['eurovoc']);
+
 	// Like an entry, a concept belongs in a direction only if it has a term in
 	// each concrete language of it.
 	function conceptFits(c, dir) {
@@ -667,24 +674,28 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	}
 
 	function renderConceptCard(c, dir, tokens) {
-		const termHtml = (x) => {
+		const preferred = PREFERRED_FIRST.has(c.src);
+		const prefTag = ' <span class="wb-pref" title="The preferred term in this language, according to the source">(preferred)</span>';
+		const termHtml = (x, isPref) => {
 			const h = hl(x.t, tokens);
 			const q = x.q ? ` <span class="qual">(${escapeHtml(x.q)})</span>` : '';
-			return `<span class="e${h.hit ? ' hit' : ''}">${h.html}${q}</span>`;
+			return `<span class="e${h.hit ? ' hit' : ''}${isPref ? ' pref' : ''}">${h.html}${q}${isPref ? prefTag : ''}</span>`;
 		};
 		// A language's terms in the source's order, the first few inline and the
-		// rest behind "+N more".
-		const termRun = (list) => {
+		// rest behind "+N more". `fromLead`: the list starts at the language's
+		// first term, which a PREFERRED_FIRST source marks as preferred.
+		const termRun = (list, fromLead) => {
 			const sep = '<span class="sep">·</span> ';
-			const shown = list.slice(0, CONCEPT_TERMS_SHOWN).map(termHtml).join(sep);
+			const shown = list.slice(0, CONCEPT_TERMS_SHOWN)
+				.map((x, i) => termHtml(x, preferred && fromLead && i === 0)).join(sep);
 			const rest = list.slice(CONCEPT_TERMS_SHOWN);
 			return rest.length
-				? `${shown}${sep}<details class="wb-more-terms"><summary>+${rest.length} more</summary>${rest.map(termHtml).join(sep)}</details>`
+				? `${shown}${sep}<details class="wb-more-terms"><summary>+${rest.length} more</summary>${rest.map((x) => termHtml(x, false)).join(sep)}</details>`
 				: shown;
 		};
-		const line = (label, list, target) =>
-			`<div class="wb-equivs wb-concept-line${target ? ' wb-concept-target' : ''}"><span class="wb-concept-lang">${target ? '<span class="arrow">→</span>' : ''}${label}</span><span class="wb-concept-terms">${termRun(list)}</span></div>`;
-		const langLine = (l, target) => line(escapeHtml(langName(l)), c.terms[l], target);
+		const line = (label, list, target, fromLead) =>
+			`<div class="wb-equivs wb-concept-line${target ? ' wb-concept-target' : ''}"><span class="wb-concept-lang">${target ? '<span class="arrow">→</span>' : ''}${label}</span><span class="wb-concept-terms">${termRun(list, fromLead)}</span></div>`;
+		const langLine = (l, target) => line(escapeHtml(langName(l)), c.terms[l], target, true);
 
 		const head = conceptHeadLang(c, dir);
 		const headTerms = c.terms[head] || [];
@@ -718,13 +729,15 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const meta_ = [c.dom ? escapeHtml(c.dom) : '', src, links].filter(Boolean).join(' · ');
 
 		// With one term per language the source has paired them itself. With
-		// several, it only says the words belong together.
-		const note = langs.some((l) => c.terms[l].length > 1)
-			? '<div class="wb-concept-note">The source lists these words together as one entry. It doesn\'t say which word translates which.</div>'
-			: '';
+		// several, it only says the words belong together (apart from the
+		// preferred terms, where it marks them).
+		const note = !langs.some((l) => c.terms[l].length > 1) ? ''
+			: preferred
+				? '<div class="wb-concept-note">The preferred terms correspond across languages. The source doesn\'t say which of the other words translates which.</div>'
+				: '<div class="wb-concept-note">The source lists these words together as one entry. It doesn\'t say which word translates which.</div>';
 
 		return `<article class="wb-card wb-concept">
-			<div class="wb-headword">${hl(lead.t, tokens).html}${lead.q ? ` <span class="qual">(${escapeHtml(lead.q)})</span>` : ''}<span class="wb-concept-badge" title="One entry of a multilingual source, shown with all its languages">${langs.length} languages</span></div>
+			<div class="wb-headword">${hl(lead.t, tokens).html}${lead.q ? ` <span class="qual">(${escapeHtml(lead.q)})</span>` : ''}${preferred ? prefTag : ''}<span class="wb-concept-badge" title="One entry of a multilingual source, shown with all its languages">${langs.length} languages</span></div>
 			${hit}${also}${body}${def}${notes}${note}
 			<div class="wb-card-meta">${meta_}</div>
 		</article>`;
