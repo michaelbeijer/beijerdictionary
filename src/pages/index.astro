@@ -725,7 +725,11 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const def = c.def ? `<div class="wb-def${hl(c.def, tokens).hit ? ' hit' : ''}"><span class="wb-field">Definition</span> ${hl(c.def, tokens).html}</div>` : '';
 		const notes = c.notes ? `<div class="wb-notes"><span class="n">${'<span class="wb-field">Note</span> ' + hl(c.notes, tokens).html}</span></div>` : '';
 		const links = c.links ? String(c.links).split(/\s+/).filter((u) => /^https?:\/\//i.test(u)).map(refChip).join(' ') : '';
-		const src = `<a class="pill pill-src" href="/#${encodeURIComponent(c.src)}" title="About this source">${escapeHtml(c.src)}</a>`;
+		// Admin mode: an Edit pencil opening this concept in the local admin app.
+		const pencil = ADMIN && c.id != null
+			? ` <a class="wb-edit" href="${ADMIN_BASE}/?concept=${encodeURIComponent(c.id)}" target="_blank" rel="noopener" title="Edit concept #${escapeHtml(String(c.id))} in the local admin">✎</a>`
+			: '';
+		const src = `<a class="pill pill-src" href="/#${encodeURIComponent(c.src)}" title="About this source">${escapeHtml(c.src)}</a>${pencil}`;
 		const meta_ = [c.dom ? escapeHtml(c.dom) : '', src, links].filter(Boolean).join(' · ');
 
 		// With one term per language the source has paired them itself. With
