@@ -6,12 +6,16 @@
 // browser. Every page that needs articles imports getArticles(); ESM module
 // state means the feed is fetched once per build and reused.
 //
-// Everything degrades to an empty list on any failure, so a build that can't
-// reach beijer.ink still succeeds (just with no article pages).
+// If the feed can't be read or comes back empty, the build uses the saved copy
+// in src/data/articles.json instead: the feed as it stood on 22 Oct 2026, taken
+// from the live site when beijer.ink went offline. A build that can't reach
+// beijer.ink therefore still ships every article, rather than none.
 //
-// Required build env vars:
+// Build env vars (both optional now that the saved copy exists):
 //   BEIJERTERM_EXPORT_TOKEN  — must equal the beijer.ink server's token
 //   BEIJER_INK_URL           — optional, defaults to https://beijer.ink
+
+import savedFeed from '../data/articles.json';
 
 export interface BeijertermArticle {
 	slug: string;
@@ -52,30 +56,39 @@ function readEnv(key: string): string {
 const FEED_BASE = (readEnv('BEIJER_INK_URL') || 'https://beijer.ink').replace(/\/$/, '');
 const TOKEN = readEnv('BEIJERTERM_EXPORT_TOKEN');
 
+const SAVED = savedFeed as BeijertermArticle[];
+
 let cache: BeijertermArticle[] | null = null;
 
 export async function getArticles(): Promise<BeijertermArticle[]> {
 	if (cache) return cache;
-	if (!TOKEN) {
-		cache = [];
-		return cache;
+	const live = await fetchFeed();
+	if (live.length) {
+		cache = live;
+	} else {
+		console.warn(`[articles] building from the saved copy (${SAVED.length} articles).`);
+		cache = SAVED;
 	}
+	return cache;
+}
+
+// The live feed, or [] when there is no token or beijer.ink can't be read.
+async function fetchFeed(): Promise<BeijertermArticle[]> {
+	if (!TOKEN) return [];
 	try {
 		const res = await fetch(
 			`${FEED_BASE}/api/publish/beijerterm?token=${encodeURIComponent(TOKEN)}`
 		);
 		if (!res.ok) {
-			console.warn(`[articles] feed returned ${res.status}; building with no articles.`);
-			cache = [];
-			return cache;
+			console.warn(`[articles] feed returned ${res.status}.`);
+			return [];
 		}
 		const data = await res.json();
-		cache = Array.isArray(data) ? (data as BeijertermArticle[]) : [];
+		return Array.isArray(data) ? (data as BeijertermArticle[]) : [];
 	} catch (e) {
-		console.warn('[articles] feed fetch failed; building with no articles.', e);
-		cache = [];
+		console.warn('[articles] feed fetch failed.', e);
+		return [];
 	}
-	return cache;
 }
 
 // Plain-text teaser from an article's HTML body, for the search-result card

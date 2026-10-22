@@ -61,9 +61,10 @@ To work against the live data instead, point it at the deployed Worker:
 PUBLIC_WORDBOOK_API=https://wordbook-search.<subdomain>.workers.dev npm run dev
 ```
 
-The Articles pages need `BEIJERTERM_EXPORT_TOKEN` (the beijer.ink feed
-token) in a git-ignored `.env`. Without it the build still succeeds, with no
-articles.
+The Articles pages read the beijer.ink feed when `BEIJERTERM_EXPORT_TOKEN`
+(the feed token) is set in a git-ignored `.env`. Without it, or when beijer.ink
+can't be reached, the build uses the saved copy in `src/data/articles.json`
+(the feed as of 22 Oct 2026, when beijer.ink went offline).
 
 ## Deploy
 
