@@ -4,6 +4,14 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-10-23
+
+**Site**
+- **Sharp link previews.** A link to any page pasted into WhatsApp,
+  LinkedIn, Slack, iMessage or X now shows a proper preview card (the Bd
+  mark, the name and the tagline on the site's stone background) instead
+  of a blurry, stretched copy of the browser-tab icon.
+
 ## 2026-10-20
 
 **Site**
