@@ -9,8 +9,11 @@ API. Newest first.
 **Site**
 - **Sharp link previews.** A link to any page pasted into WhatsApp,
   LinkedIn, Slack, iMessage or X now shows a proper preview card (the Bd
-  mark, the name and the tagline on the site's stone background) instead
-  of a blurry, stretched copy of the browser-tab icon.
+  mark, large, on the site's stone background) instead of a blurry,
+  stretched copy of the browser-tab icon. The first version had the name
+  and tagline under the mark, which turned to mush in WhatsApp's small
+  preview: the middle of the picture shrunk to about 115 pixels.
+  `scripts/make-icons.py` now makes the card along with the icons.
 
 ## 2026-10-20
 

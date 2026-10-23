@@ -3,7 +3,9 @@ the header shows (which is favicon.svg itself).
 
     python scripts/make-icons.py
 
-Writes public/favicon.svg, public/favicon.ico and public/apple-touch-icon.png.
+Writes public/favicon.svg, public/favicon.ico and public/apple-touch-icon.png,
+and public/og-image.png, the picture a chat app or social site shows when a
+link to the site is pasted.
 
 The mark belongs to the same family as Supervertaler's "Sv" and MemDesk's
 "Md": white letters on a disc with a diagonal gradient, 112-radius in a 256
@@ -15,6 +17,7 @@ the d's ascender stands at cap height, and the pair is centred as a whole.
 Requires Pillow and fontTools, and Arial Bold - so, in practice, Windows.
 """
 import os
+import re
 
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.pens.svgPathPen import SVGPathPen
@@ -66,6 +69,22 @@ apple = Image.new("RGB", (180, 180), (255, 255, 255))
 small = src.resize((180, 180), Image.LANCZOS)
 apple.paste(small, (0, 0), small)
 apple.save(os.path.join(PUBLIC, "apple-touch-icon.png"))
+
+
+# ------------------------------------------------------- the link preview
+# What WhatsApp, LinkedIn, Slack, iMessage and X show when a link is pasted;
+# Base.astro names it in every page. The mark alone, large, on the site's
+# light-mode ground. WhatsApp's small preview is the middle square of the
+# picture, shrunk to about 115 pixels and saved as a rough JPEG: a mark with
+# the name and tagline under it came out small and soft there. The apps print
+# the page title beside the picture, so the name is there anyway.
+with open(os.path.join(ROOT, "src", "styles", "themes.css"), encoding="utf-8") as f:
+    ground = re.search(r":root\s*\{[^}]*?--bg:\s*(\d+),\s*(\d+),\s*(\d+);", f.read())
+OG_W, OG_H, OG_MARK = 1200, 630, 500      # the mark's 256 box; its disc is 437
+card = Image.new("RGB", (OG_W, OG_H), tuple(int(v) for v in ground.groups()))
+big = src.resize((OG_MARK, OG_MARK), Image.LANCZOS)
+card.paste(big, ((OG_W - OG_MARK) // 2, (OG_H - OG_MARK) // 2), big)
+card.save(os.path.join(PUBLIC, "og-image.png"), optimize=True)
 
 
 # ------------------------------------------------------------------ the SVG

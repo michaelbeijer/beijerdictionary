@@ -11,10 +11,11 @@ const { title, description, canonical } = Astro.props;
 const canonicalURL = canonical || new URL(Astro.url.pathname, Astro.site).href;
 
 // The link preview WhatsApp, LinkedIn, Slack, iMessage and X show for every
-// page: public/og-image.png, made by scripts/make-og-image.py. Keep the path
-// fixed, since previews already shared point at it.
-const ogImage = new URL('/og-image.png', Astro.site).href;
-const ogImageAlt = 'Beijer Dictionary: multilingual terminology for technical translators';
+// page: public/og-image.png, made by scripts/make-icons.py. Keep the path
+// fixed, since previews already shared point at it, and raise ?v= when the
+// picture changes, or the apps keep showing the one they fetched before.
+const ogImage = new URL('/og-image.png?v=2', Astro.site).href;
+const ogImageAlt = 'Beijer Dictionary';
 
 // The main menu, in the header on every page. An article page counts as part
 // of Articles, so that item stays highlighted while you read one.
