@@ -65,6 +65,23 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
 		<div id="wb-results" class="wb-results" hidden></div>
+		<!-- EU legislation in context: English–Dutch sentence pairs containing the
+		     search as an exact phrase. Loaded separately from the dictionary
+		     results (see loadConcordance), so it can never hold them up. -->
+		<section id="wb-eu" class="wb-eu" hidden aria-labelledby="wb-eu-title">
+			<div class="wb-eu-head">
+				<h2 id="wb-eu-title" class="wb-eu-title">EU legislation in context</h2>
+				<span id="wb-eu-count" class="wb-eu-count"></span>
+			</div>
+			<div id="wb-eu-list" class="wb-eu-list"></div>
+			<button id="wb-eu-more" type="button" class="wb-eu-more" hidden>Show more</button>
+			<p class="wb-eu-credit">
+				Sentence pairs from <a href="https://joint-research-centre.ec.europa.eu/language-technology-resources/dgt-translation-memory_en" target="_blank" rel="noopener">DGT-TM</a>,
+				the European Commission's translation memory of EU legislation (2021 release, via
+				<a href="https://opus.nlpl.eu/DGT" target="_blank" rel="noopener">OPUS</a>), covering
+				legislation up to 2020. © European Union; the Commission retains ownership of the data.
+			</p>
+		</section>
 	</section>
 
 	<!-- The source detail dialog, opened by the source chips on result cards
@@ -914,11 +931,147 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		updateCounts(groups.length + concepts.length);
 	}
 
+	// ── EU legislation in context (DGT-TM) ────────────────────────────────
+	// English–Dutch sentence pairs from EU legislation that contain the search
+	// as an exact phrase, shortest first, each linked to its document on
+	// EUR-Lex. Only for English↔Dutch. Fetched separately from /search, after
+	// typing has settled, and drawn in its own section: it can fail or lag
+	// without touching the dictionary results.
+	const EU_DELAY_MS = 350;      // on top of DEBOUNCE_MS
+	const EU_PAGE = 20;
+	let euAvailable = true;       // false once the API says it has no corpus
+	let euTimer = null;
+	let euAbort = null;
+	let euShown = { q: '', from: '', offset: 0 };
+
+	// The concordance language for the current direction, or null.
+	function euFrom() {
+		if (!direction) return null;
+		const { src, tgt } = direction;
+		if (src === 'en' && (tgt === 'nl' || tgt === 'any')) return 'en';
+		if (src === 'nl' && (tgt === 'en' || tgt === 'any')) return 'nl';
+		return null;
+	}
+
+	function hideEu() {
+		const sec = document.getElementById('wb-eu');
+		sec.hidden = true;
+		sec.classList.remove('is-loading');
+		document.getElementById('wb-eu-list').innerHTML = '';
+		euShown = { q: '', from: '', offset: 0 };
+	}
+
+	function scheduleConcordance(q) {
+		clearTimeout(euTimer);
+		if (euAbort) euAbort.abort();
+		const from = euFrom();
+		if (!euAvailable || !from || q.length < 2) { hideEu(); return; }
+		// A search option toggle re-runs the search with the same words; the
+		// options don't apply here, so keep what is shown (and its pages).
+		const sec = document.getElementById('wb-eu');
+		if (q === euShown.q && from === euShown.from && !sec.classList.contains('is-loading')) return;
+		// Until the new answer arrives, the sentences on screen belong to the
+		// previous words: dim them and say so, rather than pass them off as
+		// matches for what is in the box now.
+		if (!sec.hidden) {
+			sec.classList.add('is-loading');
+			document.getElementById('wb-eu-count').textContent = `Looking up “${q}”…`;
+			document.getElementById('wb-eu-more').hidden = true;
+		}
+		euTimer = setTimeout(() => loadConcordance(q, from, 0), EU_DELAY_MS);
+	}
+
+	// A CELEX number's kind and year, e.g. 32024R1679 → "Regulation · 2024".
+	// Sector 3 is legislation; its letter gives the type of act.
+	const CELEX_ACTS = { R: 'Regulation', L: 'Directive', D: 'Decision', H: 'Recommendation' };
+	const CELEX_SECTORS = {
+		'1': 'Treaty', '2': 'International agreement', '4': 'Complementary legislation',
+		'5': 'Preparatory act', '6': 'Case law', E: 'EFTA document',
+	};
+	function celexLabel(celex) {
+		const m = /^([0-9A-Z])(\d{4})([A-Z]{1,2})/.exec(celex || '');
+		if (!m) return '';
+		const kind = m[1] === '3' ? (CELEX_ACTS[m[3]] || 'Legal act') : (CELEX_SECTORS[m[1]] || 'EU document');
+		const corr = /\)?R\(\d+\)$/.test(celex) ? ' · corrigendum' : '';
+		return `${kind} · ${m[2]}${corr}`;
+	}
+
+	function renderEuPair(p, from, to, tokens) {
+		const href = `https://eur-lex.europa.eu/legal-content/${from.toUpperCase()}-${to.toUpperCase()}/TXT/?uri=CELEX:${encodeURIComponent(p.celex)}`;
+		const label = celexLabel(p.celex);
+		const times = p.n > 1
+			? ` · <span title="This sentence pair occurs ${p.n} times in EU legislation">${p.n.toLocaleString('en-GB')}×</span>`
+			: '';
+		return `<article class="wb-card wb-eu-pair">
+			<div class="wb-eu-texts">
+				<div class="wb-eu-src" lang="${from}">${hl(p.src, tokens).html}</div>
+				<div class="wb-eu-tgt" lang="${to}">${escapeHtml(p.tgt)}</div>
+			</div>
+			<div class="wb-card-meta"><a class="pill pill-ref" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="Open this document in ${escapeHtml(langName(from))} and ${escapeHtml(langName(to))} on EUR-Lex">${escapeHtml(p.celex)}</a>${label ? ' ' + escapeHtml(label) : ''}${times}</div>
+		</article>`;
+	}
+
+	async function loadConcordance(q, from, offset) {
+		if (euAbort) euAbort.abort();
+		euAbort = new AbortController();
+		const sec = document.getElementById('wb-eu');
+		const list = document.getElementById('wb-eu-list');
+		const more = document.getElementById('wb-eu-more');
+		const count = document.getElementById('wb-eu-count');
+		let data;
+		try {
+			const r = await fetch(apiBase + '/concordance?q=' + encodeURIComponent(q) + '&from=' + from + '&offset=' + offset,
+				{ signal: euAbort.signal, headers: { Accept: 'application/json' } });
+			// An API that predates the concordance answers 404: the site was
+			// deployed before the Worker. Leave the section out, quietly.
+			if (r.status === 404) { euAvailable = false; hideEu(); return; }
+			if (!r.ok) throw new Error('API returned ' + r.status);
+			data = await r.json();
+		} catch (err) {
+			if (err.name === 'AbortError') return;
+			console.warn('EU legislation lookup failed:', err.message);
+			if (offset === 0) {
+				list.innerHTML = '<p class="wb-empty">The EU legislation examples could not be loaded just now.</p>';
+				count.textContent = '';
+				more.hidden = true;
+				sec.classList.remove('is-loading');
+				sec.hidden = false;
+				euShown = { q: '', from: '', offset: 0 };   // so the next search retries
+			}
+			return;
+		}
+		if (data.available === false) { euAvailable = false; hideEu(); return; }
+		// A slow answer for an earlier query or direction must not overwrite a newer one.
+		if (q !== lastQuery || from !== euFrom()) return;
+		const pairs = data.pairs || [];
+		if (offset === 0 && !pairs.length) { hideEu(); return; }
+
+		const tokens = fold(q).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+		const html = pairs.map((p) => renderEuPair(p, from, data.to, tokens)).join('');
+		if (offset === 0) {
+			list.innerHTML = html;
+			const n = data.total || pairs.length;
+			count.textContent = `${n.toLocaleString('en-GB')}${data.capped ? '+' : ''} sentence pair${n === 1 && !data.capped ? '' : 's'} containing “${q}”, shortest first`;
+		} else {
+			list.insertAdjacentHTML('beforeend', html);
+		}
+		euShown = { q, from, offset };
+		more.hidden = !data.more;
+		sec.classList.remove('is-loading');
+		sec.hidden = false;
+	}
+
+	document.getElementById('wb-eu-more').addEventListener('click', () => {
+		if (!euShown.q) return;
+		loadConcordance(euShown.q, euShown.from, euShown.offset + EU_PAGE);
+	});
+
 	async function runSearch() {
 		const input = document.getElementById('wb-q');
 		const box = document.getElementById('wb-results');
 		const q = input.value.trim();
 		lastQuery = q;
+		scheduleConcordance(q);
 		if (!q) {
 			box.hidden = true; box.innerHTML = '';
 			updateCounts(null);
@@ -972,6 +1125,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				input.value = '';
 				lastQuery = '';
 				document.getElementById('wb-results').hidden = true;
+				scheduleConcordance('');
 				updateCounts(null);
 			}
 		});

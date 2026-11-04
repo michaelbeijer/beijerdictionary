@@ -4,6 +4,20 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-11-04
+
+**Site and search API**
+- **EU legislation in context.** Searching English → Dutch or Dutch →
+  English now also shows, in a box under the results, sentences from EU
+  legislation that contain the words as an exact phrase, each beside its
+  official translation and linked to the document on EUR-Lex (both
+  languages side by side). Shortest sentences first, 20 at a time, with
+  "Show more". The sentences come from DGT-TM, the European Commission's
+  translation memory of EU legislation (2021 release, via OPUS): about 3.6
+  million English–Dutch pairs from some 42,000 documents, up to 2020. They
+  live in a separate database from the dictionary, so a dictionary publish
+  never re-uploads them.
+
 ## 2026-10-23
 
 **Site**

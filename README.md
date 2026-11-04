@@ -35,6 +35,10 @@ Four pages, linked from the menu in the header (`src/layouts/Base.astro`):
 - **Search** (`/`, `src/pages/index.astro`): the search box and result
   cards. Results come from the Worker per query; nothing is shipped in bulk.
   `?q=…&from=nl&to=en` runs a search on load (how Superlookup embeds it).
+  For English ↔ Dutch, a second box shows **EU legislation in context**:
+  DGT-TM sentence pairs containing the search as an exact phrase, from the
+  Worker's `/concordance` (a separate D1 database, `dgt-tm`). If the Worker
+  has no such database, or predates it, the box simply isn't shown.
 - **Articles** (`/articles/`): hand-written terminology articles, fetched
   from beijer.ink's feed **at build time** (`src/lib/articles.ts`), each with
   its own page. Matching articles also appear at the top of search results.

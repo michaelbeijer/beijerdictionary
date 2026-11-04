@@ -579,6 +579,79 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	background: var(--subtle);
 }
 
+/* EU legislation in context (DGT-TM): its own box under the dictionary
+   results, one row per sentence pair, the two languages side by side. */
+.wb-eu {
+	margin-top: 1.2em;
+	border: 1px solid rgb(var(--border));
+	border-radius: 8px;
+	overflow: hidden;
+	background: rgb(var(--surface));
+}
+.wb-eu[hidden] { display: none; }
+/* Sentences for the previous words while the new ones load (see scheduleConcordance). */
+.wb-eu.is-loading .wb-eu-list { opacity: 0.4; transition: opacity 0.15s; }
+.wb-eu-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.2em 0.8em;
+	padding: 0.7em 1em;
+	border-bottom: 1px solid rgb(var(--border));
+	background: var(--subtle);
+}
+.wb-eu-title {
+	margin: 0;
+	font-size: 0.95em;
+	font-weight: 700;
+	color: rgb(var(--text));
+}
+.wb-eu-count {
+	font-size: 0.8em;
+	color: rgb(var(--muted));
+}
+.wb-eu-texts {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.35em 1.4em;
+	font-size: 0.95em;
+	line-height: 1.5;
+	color: rgb(var(--text));
+	overflow-wrap: anywhere;
+}
+.wb-eu-pair .wb-card-meta { margin-top: 0.4em; }
+.wb-eu-more {
+	display: block;
+	width: 100%;
+	padding: 0.65em;
+	border: none;
+	border-top: 1px solid rgb(var(--border));
+	background: none;
+	font: inherit;
+	font-size: 0.9em;
+	color: rgb(var(--accent));
+	cursor: pointer;
+}
+.wb-eu-more:hover { background: rgba(var(--accent), 0.06); }
+.wb-eu-more[hidden] { display: none; }
+.wb-eu-credit {
+	margin: 0;
+	padding: 0.6em 1em 0.75em;
+	border-top: 1px solid rgb(var(--border));
+	font-size: 0.75em;
+	line-height: 1.5;
+	color: rgb(var(--muted));
+}
+.wb-eu-credit a { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; }
+@media (max-width: 640px) {
+	/* Stacked on a phone: the target under the source, set off by a rule. */
+	.wb-eu-texts { grid-template-columns: 1fr; }
+	.wb-eu-tgt {
+		padding-left: 0.7em;
+		border-left: 2px solid rgb(var(--border));
+	}
+}
+
 .wb-view { margin-top: 1.6em; }
 
 .wb-loading {
