@@ -23,6 +23,13 @@ API. Newest first.
   tagged under two names now have one each: railways, sport, tax, human
   resources (was also "HR") and health and safety (was also "occupational
   safety").
+- **EU legislation on the Sources page.** DGT-TM, the European Commission's
+  translation memory behind the EU legislation tab, is now listed with the
+  dictionary sources: 4,513,639 sentences from 42,701 documents in six
+  languages, with its publisher, reuse terms and a link to the official
+  page. It has no source chip, since it never appears on a dictionary
+  result, and the source count on the search page now includes it (34).
+  On a phone, multilingual sources no longer read "150 concepts entries".
 - **Readable tables in articles.** The 72 articles with a table (mostly
   example sentences: Dutch | English | Source) now show it with space between
   the columns, each heading over its own column and a line between rows.

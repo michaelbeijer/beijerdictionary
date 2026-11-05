@@ -911,7 +911,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 
 	function updateCounts(resultCount) {
 		const counts = document.getElementById('wb-counts');
-		const sN = meta.counts.sources || 0;
+		// The Sources page lists the sentence corpora (EU legislation) too.
+		const sN = (meta.counts.sources || 0) + (meta.counts.corpora || 0);
 		const eN = meta.counts.entries || 0;
 		// "N sources" links to the Sources page.
 		const link = document.createElement('a');

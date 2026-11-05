@@ -25,7 +25,9 @@ if (apiBase) {
 		const res = await fetch(apiBase + '/meta');
 		if (res.ok) {
 			const data = await res.json();
-			sources = data.sources || [];
+			// `corpora` (the EU legislation tab's sentences) are listed with the
+			// dictionary sources; the API keeps them apart from `sources`.
+			sources = [...(data.sources || []), ...(data.corpora || [])];
 		}
 	} catch {
 		// Leave sources empty — the client script will fetch and render.
@@ -44,8 +46,12 @@ const langsOf = (s) => {
 	return codes.length ? codes.join(' · ') : '—';
 };
 // A multilingual source is shown as concepts (one card per row, with all its
-// languages), not as entries, so its size is a concept count.
-const sizeOf = (s) => s.concept_count
+// languages), not as entries, so its size is a concept count. A sentence
+// corpus (DGT-TM) counts sentences. Only a bare entry count gets the `entries`
+// class, which adds the word " entries" on a phone (the others name their unit).
+const sizeOf = (s) => s.sentence_count
+	? `${s.sentence_count.toLocaleString('en-GB')} sentences`
+	: s.concept_count
 	? `${s.concept_count.toLocaleString('en-GB')} concepts`
 	: (s.entry_count || 0).toLocaleString('en-GB');
 const badgeClassOf = (s) => {
@@ -74,11 +80,11 @@ const badgeClassOf = (s) => {
 				<tbody>
 					{sources.map((s) => (
 						<tr class="clickable" data-slug={s.slug}>
-							<td>{s.title || s.slug}<span class="wb-src-chip" title="The name shown on search results">{s.slug}</span></td>
+							<td>{s.title || s.slug}{!s.sentence_count && <span class="wb-src-chip" title="The name shown on search results">{s.slug}</span>}</td>
 							<td class:list={{ empty: !s.author }}>{s.author || '—'}</td>
 							<td class:list={['num', { empty: !s.year }]}>{s.year || '—'}</td>
 							<td class="langs">{langsOf(s)}</td>
-							<td class="num entries">{sizeOf(s)}</td>
+							<td class:list={['num', { entries: !s.sentence_count && !s.concept_count }]}>{sizeOf(s)}</td>
 							<td><span class:list={['wb-badge', badgeClassOf(s)]}>{s.licence || 'unknown'}</span></td>
 						</tr>
 					))}
@@ -131,9 +137,17 @@ const badgeClassOf = (s) => {
 		return codes.length ? codes.join(' · ') : '—';
 	};
 	// Same as the build-time sizeOf above.
-	const sizeOf = (s) => s.concept_count
+	const sizeOf = (s) => s.sentence_count
+		? `${s.sentence_count.toLocaleString('en-GB')} sentences`
+		: s.concept_count
 		? `${s.concept_count.toLocaleString('en-GB')} concepts`
 		: (s.entry_count || 0).toLocaleString('en-GB');
+	// The dictionary sources plus the sentence corpora, as the build lists them.
+	const listOf = (d) => [...(d.sources || []), ...(d.corpora || [])];
+	// A corpus's slug never appears on a search result, so it gets no chip.
+	const chipOf = (s) => s.sentence_count
+		? ''
+		: `<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span>`;
 
 	// Column sorting. Title order is what the page is built with; clicking a
 	// heading re-sorts by that column, clicking it again reverses it. Numbers
@@ -143,7 +157,7 @@ const badgeClassOf = (s) => {
 		title:   { get: (s) => s.title || s.slug, num: false },
 		author:  { get: (s) => s.author || '', num: false },
 		year:    { get: (s) => Number(s.year) || null, num: true },
-		entries: { get: (s) => s.entry_count || s.concept_count || 0, num: true },
+		entries: { get: (s) => s.entry_count || s.concept_count || s.sentence_count || 0, num: true },
 		licence: { get: (s) => s.licence || '', num: false },
 	};
 	let sortKey = 'title';
@@ -178,11 +192,11 @@ const badgeClassOf = (s) => {
 			const lic = (s.licence || 'unknown').toLowerCase();
 			const badgeClass = ['restricted', 'permissive', 'own-work'].includes(lic) ? lic : '';
 			return `<tr class="clickable" data-slug="${escapeHtml(s.slug)}">
-				<td>${escapeHtml(s.title || s.slug)}<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span></td>
+				<td>${escapeHtml(s.title || s.slug)}${chipOf(s)}</td>
 				<td${s.author ? '' : ' class="empty"'}>${escapeHtml(s.author || '—')}</td>
 				<td class="num${s.year ? '' : ' empty'}">${escapeHtml(String(s.year || '—'))}</td>
 				<td class="langs">${langsOf(s)}</td>
-				<td class="num entries">${sizeOf(s)}</td>
+				<td class="num${s.sentence_count || s.concept_count ? '' : ' entries'}">${sizeOf(s)}</td>
 				<td><span class="wb-badge ${badgeClass}">${escapeHtml(s.licence || 'unknown')}</span></td>
 			</tr>`;
 		}).join('');
@@ -211,7 +225,9 @@ const badgeClassOf = (s) => {
 			['Domain',          s.primary_domain],
 			['Subject tags',    s.subject_tags],
 			['Licence',         s.licence],
-			s.concept_count
+			s.sentence_count
+				? ['Sentences',     `${s.sentence_count.toLocaleString('en-GB')} from ${(s.document_count || 0).toLocaleString('en-GB')} documents, each in up to ${s.languages.length} languages`]
+				: s.concept_count
 				? ['Concepts',      `${s.concept_count.toLocaleString('en-GB')} (${(s.term_count || 0).toLocaleString('en-GB')} terms), each shown as one card with all its languages`]
 				: ['Entries',       (s.entry_count || 0).toLocaleString('en-GB')],
 		].filter(([, v]) => v != null && v !== '');
@@ -222,7 +238,7 @@ const badgeClassOf = (s) => {
 			: '';
 		body.innerHTML =
 			`<h3>${escapeHtml(s.title || s.slug)}</h3>` +
-			`<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span>` +
+			chipOf(s) +
 			(s.author ? `<div class="author">${escapeHtml(s.author)}</div>` : '') +
 			'<dl>' +
 			rows.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd>`).join('') +
@@ -287,7 +303,7 @@ const badgeClassOf = (s) => {
 	// page embeds the list in title order, the API returns it in slug order.
 	const sigList = (list) =>
 		JSON.stringify((list || []).map((s) =>
-			[s.slug, s.title, s.author, s.year, s.entry_count, s.concept_count, s.licence, langsOf(s)])
+			[s.slug, s.title, s.author, s.year, s.entry_count, s.concept_count, s.sentence_count, s.licence, langsOf(s)])
 			.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
 
 	// Background revalidate: refresh /meta after load so the source list and the
@@ -299,7 +315,7 @@ const badgeClassOf = (s) => {
 			const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
 			if (!r.ok) return;
 			const d = await r.json();
-			const fresh = d.sources || [];
+			const fresh = listOf(d);
 			if (fresh.length && sigList(fresh) !== sigList(sources)) {
 				sources = fresh;
 				renderTable(sources);
@@ -320,7 +336,7 @@ const badgeClassOf = (s) => {
 				const r = await fetch(apiBase + '/meta', { headers: { Accept: 'application/json' } });
 				if (r.ok) {
 					const d = await r.json();
-					sources = d.sources || [];
+					sources = listOf(d);
 					renderTable(sources);
 				}
 			} catch {
