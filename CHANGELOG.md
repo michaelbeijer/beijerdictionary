@@ -19,6 +19,10 @@ API. Newest first.
   call them dictionary articles: one term each, with its translations,
   often with examples, sources and notes, rather than "longer notes on how to
   tell tricky terms apart".
+- **One heading per subject on the Articles page.** Five subjects that were
+  tagged under two names now have one each: railways, sport, tax, human
+  resources (was also "HR") and health and safety (was also "occupational
+  safety").
 - **Dictionary and EU legislation tabs.** For English → Dutch and Dutch →
   English searches, the results now have two tabs, each with its number of
   hits: **Dictionary** and **EU legislation**, so the EU sentences no longer

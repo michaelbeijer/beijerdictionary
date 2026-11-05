@@ -58,17 +58,31 @@ const TOKEN = readEnv('BEIJERTERM_EXPORT_TOKEN');
 
 const SAVED = savedFeed as BeijertermArticle[];
 
+// A few subjects were tagged under two names in beijer.ink, which split the
+// Articles page into two headings for one subject. Each maps to one name here,
+// for the live feed and the saved copy alike (lower-case keys).
+const SUBJECT_NAMES: Record<string, string> = {
+	railway: 'railways',
+	sports: 'sport',
+	taxation: 'tax',
+	hr: 'human resources',
+	'occupational safety': 'health and safety',
+};
+function subject(domain: string): string {
+	const d = (domain || '').trim();
+	return SUBJECT_NAMES[d.toLowerCase()] ?? d;
+}
+
 let cache: BeijertermArticle[] | null = null;
 
 export async function getArticles(): Promise<BeijertermArticle[]> {
 	if (cache) return cache;
-	const live = await fetchFeed();
-	if (live.length) {
-		cache = live;
-	} else {
+	let feed = await fetchFeed();
+	if (!feed.length) {
 		console.warn(`[articles] building from the saved copy (${SAVED.length} articles).`);
-		cache = SAVED;
+		feed = SAVED;
 	}
+	cache = feed.map((a) => ({ ...a, domain: subject(a.domain) }));
 	return cache;
 }
 
