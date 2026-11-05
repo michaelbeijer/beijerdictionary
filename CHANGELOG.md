@@ -14,6 +14,11 @@ API. Newest first.
   chose. When the dictionary finds nothing but EU legislation does, the
   empty Dictionary tab offers a link to the EU sentences. Other language
   pairs have no tabs.
+- **Articles in columns.** The Articles page lists the articles in as many
+  columns as fit (three on a desktop, more in Wide mode, one on a phone),
+  each with its language in front, so the page is about half as long.
+  Titles that are whole sentences (several patent phrases) are shortened in
+  the list; the tooltip and the article itself show them in full.
 - **Faster page loads.** The entry count and the list of language pairs
   shown when the page opens are now worked out once per publish instead of
   on every visit, which used to read all 1.3 million entries twice

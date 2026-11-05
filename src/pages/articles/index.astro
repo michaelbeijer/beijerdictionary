@@ -22,6 +22,15 @@ const sortedGroups = [...groups.entries()].sort((a, b) => {
 });
 
 const LANG = (c: string) => (c ? c.toUpperCase() : '');
+// A few titles are whole sentences (patent boilerplate, up to 250 characters).
+// In a column they would stretch their row to a dozen lines, so the list shows
+// the first words and the link's tooltip the rest; the filter still matches
+// the full title.
+const short = (t: string) => {
+	if (t.length <= 45) return t;
+	const cut = t.lastIndexOf(' ', 42);
+	return t.slice(0, cut > 20 ? cut : 42).replace(/[\s,;:.]+$/, '') + '…';
+};
 // What the filter box matches an article against: its title, headword,
 // aliases and subject, folded (lower case, accents dropped) once here at build
 // time so typing only has to compare strings.
@@ -60,7 +69,7 @@ const intro = total
 					<ul class="bt-artlist">
 						{list.map((a) => (
 							<li class="bt-artitem" data-k={filterKey(a, domain)}>
-								<a href={`/articles/${a.slug}/`}>{a.title}</a>
+								<a href={`/articles/${a.slug}/`} lang={a.lang || undefined} title={short(a.title) !== a.title ? a.title : undefined}>{short(a.title)}</a>
 								{a.lang && <span class="bt-artlang">{LANG(a.lang)}</span>}
 							</li>
 						))}
@@ -149,21 +158,42 @@ const intro = total
 		padding-bottom: 0.4em;
 		margin-bottom: 0.6em;
 	}
+	/* As many columns as fit at 12em or more each: one on a phone, two on a
+	   tablet, three on a desktop, more in Wide mode. Alphabetical order runs
+	   along the rows, so a long subject (general language has hundreds) never
+	   sends you back up the page to start the next column. */
 	.bt-artlist {
 		list-style: none;
 		margin: 0;
 		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(12em, 1fr));
+		column-gap: 1.25em;
 	}
+	/* The language chip goes in front, like a list marker, so a title that wraps
+	   keeps a clean left edge and the chip never ends up on a line of its own. */
 	.bt-artitem {
 		display: flex;
 		align-items: baseline;
-		gap: 0.6em;
+		gap: 0.5em;
 		padding: 0.32em 0;
+		min-width: 0;
 	}
+	/* The link carries the article's language, so a long compound such as
+	   nieuwheidsonderzoek is hyphenated where Dutch allows, not just cut. */
 	.bt-artitem a {
 		font-weight: 600;
+		min-width: 0;
+		overflow-wrap: break-word;
+		hyphens: auto;
 	}
 	.bt-artlang {
+		order: -1;
+		flex: none;
+		position: relative;
+		top: -0.1em;
+		min-width: 2.6em;
+		text-align: center;
 		font-size: 0.7em;
 		color: rgb(var(--muted));
 		border: 1px solid rgb(var(--border));
