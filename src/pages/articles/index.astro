@@ -39,13 +39,13 @@ const filterKey = (a: (typeof articles)[number], domain: string) =>
 	fold([a.title, a.headword, ...(a.aliases || []), domain].filter(Boolean).join(' '));
 const total = articles.length;
 const intro = total
-	? `${total.toLocaleString('en-GB')} terminology article${total === 1 ? '' : 's'} — longer, hand-written notes on how to tell tricky terms apart, grouped by subject.`
-	: 'Longer, hand-written terminology notes on how to tell tricky terms apart.';
+	? `${total.toLocaleString('en-GB')} hand-written dictionary article${total === 1 ? '' : 's'}, grouped by subject. Each takes one term and gives its translations, often with examples, sources and notes on how to tell it apart from similar terms.`
+	: 'Hand-written dictionary articles: one term each, with its translations, examples, sources and notes.';
 ---
 
 <Base
-	title="Terminology articles — Beijer Dictionary"
-	description="Hand-written Beijer Dictionary terminology articles: longer notes on how to distinguish tricky terms, grouped by subject domain."
+	title="Dictionary articles — Beijer Dictionary"
+	description="Hand-written Beijer Dictionary articles, grouped by subject: one term each, with its translations, examples, sources and notes on how to tell it apart from similar terms."
 >
 	<section class="wb-hero">
 		<h1>Articles</h1>

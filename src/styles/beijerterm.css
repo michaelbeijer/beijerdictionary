@@ -579,7 +579,7 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	background: var(--subtle);
 }
 
-/* Dictionary / EU legislation tabs above the results (English↔Dutch only),
+/* Dictionary / EU legislation tabs above the results (EU languages only),
    styled like the site's own Search / Articles / Sources tabs. */
 .wb-tabs {
 	display: flex;

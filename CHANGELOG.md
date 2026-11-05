@@ -7,6 +7,18 @@ API. Newest first.
 ## 2026-11-05
 
 **Site and search API**
+- **EU legislation in six languages.** The EU legislation tab now works
+  between any two of English, Dutch, French, German, Italian and Spanish
+  (Dutch → French, German → English, Spanish → Italian, …), not just English
+  and Dutch: about 3.5 million different sentence pairs for each two of
+  them. Garbled characters from the source are repaired along the way (about
+  400,000 sentences showed "愦灭※" for an ellipsis or "愦灭;quot;" for a
+  quotation mark), and sentences misaligned in the source sink to the end
+  of the list.
+- **Articles described as they are.** The Articles page and About page now
+  call them dictionary articles: one term each, with its translations,
+  often with examples, sources and notes, rather than "longer notes on how to
+  tell tricky terms apart".
 - **Dictionary and EU legislation tabs.** For English → Dutch and Dutch →
   English searches, the results now have two tabs, each with its number of
   hits: **Dictionary** and **EU legislation**, so the EU sentences no longer
