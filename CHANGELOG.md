@@ -17,6 +17,10 @@ API. Newest first.
   million English–Dutch pairs from some 42,000 documents, up to 2020. They
   live in a separate database from the dictionary, so a dictionary publish
   never re-uploads them.
+- **Faster page loads.** The entry count and the list of language pairs
+  shown when the page opens are now worked out once per publish instead of
+  on every visit, which used to read all 1.3 million entries twice
+  (about 0.6 s per page load, and 97% of the dictionary database's reads).
 
 ## 2026-10-23
 
