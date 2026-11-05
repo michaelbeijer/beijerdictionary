@@ -7,37 +7,37 @@ Writes public/favicon.svg, public/favicon.ico and public/apple-touch-icon.png,
 and public/og-image.png, the picture a chat app or social site shows when a
 link to the site is pasted.
 
-The mark (chosen 2026-11-05, "option C" of the design review): a lower-case
-b and d drawn as mirror images, two letters facing each other like a source
-and a target language, in white strokes on a bottle-green rounded square
-(#1E6B47, the site's accent). It is drawn from two lines and two circles
-rather than a font, so it stays crisp at 16 pixels and needs no font file.
-It replaced a white "Bd" in Arial Bold on a green gradient disc, which was
-one of a family with Supervertaler's "Sv" and MemDesk's "Md"; this mark
-leaves that family.
+The mark belongs to the same family as Supervertaler's "Sv" and MemDesk's
+"Md": white letters on a disc with a diagonal gradient, 112-radius in a 256
+box, Arial Bold, letters as outlines. Each product has its own colour, so
+Beijer Dictionary is green; blue (Trados), vermillion (memoQ), black
+(Sidekick) and purple (MemDesk) are taken. "B" and "d" share one size, since
+the d's ascender stands at cap height, and the pair is centred as a whole.
 
-Requires Pillow.
+The gradient's bright end was #22C55E until 2026-11-05. The d sits on that
+end, where white fell to 2.8:1 and faded first in a browser tab; #1F9D57
+keeps most of the lift and the d at 3.8:1 or better. (A mirrored-bd mark on
+a rounded square was live for a few hours that day; Michael went back to
+this family look.)
+
+Requires Pillow and fontTools, and Arial Bold - so, in practice, Windows.
 """
 import os
 import re
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
+from fontTools.pens.svgPathPen import SVGPathPen
+from fontTools.ttLib import TTFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PUBLIC = os.path.join(ROOT, "public")
-GREEN = "#1E6B47"                         # the site's accent (themes.css)
+FONT = r"C:\Windows\Fonts\arialbd.ttf"
+TOP, BOTTOM = "#15803D", "#1F9D57"        # green, top-left -> bottom-right
+SIZE, BASELINE = 118, 170.5               # letters and baseline, in the 256 box
 SIZES = [16, 24, 32, 48, 64, 128, 256]
 
-# The mark in its 256 box. The tile is a rounded square; the b's stem is on
-# the left with its bowl to the right, the d mirrors it, and the two bowls
-# touch in the middle.
-TILE, TILE_RADIUS = (8, 8, 248, 248), 56
-STROKE = 28
-STEMS = [(56, 70, 186), (200, 70, 186)]   # x, top, bottom
-BOWLS = [(92, 150), (164, 150)]           # centres
-BOWL_R = 36
-
 M = 1024                                  # master raster size
+K = M / 256.0
 
 
 def rgb(hexcolour):
@@ -45,43 +45,36 @@ def rgb(hexcolour):
 
 
 # --------------------------------------------------------------- the raster
-def draw_mark(full_bleed=False):
-    """The mark at M x M. Drawn at 4x and downsampled for clean edges.
-    `full_bleed` fills the whole square (iOS rounds the corners itself)."""
+def master():
+    top, bottom = rgb(TOP), rgb(BOTTOM)
+    im = Image.new("RGBA", (M, M), (0, 0, 0, 0))
+    grad = Image.new("RGB", (M, M))
+    gp = grad.load()
+    for y in range(M):
+        for x in range(M):
+            t = (x + y) / float(2 * (M - 1))
+            gp[x, y] = tuple(int(top[i] + (bottom[i] - top[i]) * t + 0.5) for i in range(3))
+    # The disc is drawn at 4x and downsampled for a clean edge.
     n = M * 4
-    k = n / 256.0
-    im = Image.new("RGBA", (n, n), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    if full_bleed:
-        d.rectangle([0, 0, n, n], fill=rgb(GREEN))
-    else:
-        x0, y0, x1, y1 = TILE
-        d.rounded_rectangle([x0 * k, y0 * k, x1 * k, y1 * k], radius=TILE_RADIUS * k, fill=rgb(GREEN))
-    # Shapes rather than thick lines: Pillow's wide lines and ellipse
-    # outlines leave notches where they meet a round end. A stem is a bar
-    # with round ends; a bowl is a white disc with a green disc inside it.
-    # The inner discs touch the stems and each other but never overlap them,
-    # so painting them last can't cut into anything.
-    white = (255, 255, 255, 255)
-    h = STROKE * k / 2
-    for x, top, bottom in STEMS:
-        d.rounded_rectangle([x * k - h, top * k - h, x * k + h, bottom * k + h], radius=h, fill=white)
-    for cx, cy in BOWLS:
-        r = BOWL_R * k + h
-        d.ellipse([cx * k - r, cy * k - r, cx * k + r, cy * k + r], fill=white)
-    for cx, cy in BOWLS:
-        r = BOWL_R * k - h
-        d.ellipse([cx * k - r, cy * k - r, cx * k + r, cy * k + r], fill=rgb(GREEN) + (255,))
-    return im.resize((M, M), Image.LANCZOS)
+    mask = Image.new("L", (n, n), 0)
+    r, c = 112 * K * 4, 128 * K * 4
+    ImageDraw.Draw(mask).ellipse([c - r, c - r, c + r, c + r], fill=255)
+    im.paste(grad, (0, 0), mask.resize((M, M), Image.LANCZOS))
+
+    font = ImageFont.truetype(FONT, int(SIZE * K))
+    x = 128 * K - font.getlength("Bd") / 2.0
+    ImageDraw.Draw(im).text((x, BASELINE * K), "Bd", font=font, fill=(255, 255, 255, 255), anchor="ls")
+    return im
 
 
-src = draw_mark()
+src = master()
 src.resize((256, 256), Image.LANCZOS).save(os.path.join(PUBLIC, "favicon.ico"), format="ICO",
                                            sizes=[(s, s) for s in SIZES])
-# iOS rounds the corners of a home-screen icon itself and shows any
-# transparency as black, so this one fills the whole square.
-draw_mark(full_bleed=True).resize((180, 180), Image.LANCZOS).convert("RGB").save(
-    os.path.join(PUBLIC, "apple-touch-icon.png"))
+# iOS squares the corners off against the wallpaper, so flatten onto white.
+apple = Image.new("RGB", (180, 180), (255, 255, 255))
+small = src.resize((180, 180), Image.LANCZOS)
+apple.paste(small, (0, 0), small)
+apple.save(os.path.join(PUBLIC, "apple-touch-icon.png"))
 
 
 # ------------------------------------------------------- the link preview
@@ -93,7 +86,7 @@ draw_mark(full_bleed=True).resize((180, 180), Image.LANCZOS).convert("RGB").save
 # the page title beside the picture, so the name is there anyway.
 with open(os.path.join(ROOT, "src", "styles", "themes.css"), encoding="utf-8") as f:
     ground = re.search(r":root\s*\{[^}]*?--bg:\s*(\d+),\s*(\d+),\s*(\d+);", f.read())
-OG_W, OG_H, OG_MARK = 1200, 630, 500      # the mark's 256 box
+OG_W, OG_H, OG_MARK = 1200, 630, 500      # the mark's 256 box; its disc is 437
 card = Image.new("RGB", (OG_W, OG_H), tuple(int(v) for v in ground.groups()))
 big = src.resize((OG_MARK, OG_MARK), Image.LANCZOS)
 card.paste(big, ((OG_W - OG_MARK) // 2, (OG_H - OG_MARK) // 2), big)
@@ -101,22 +94,51 @@ card.save(os.path.join(PUBLIC, "og-image.png"), optimize=True)
 
 
 # ------------------------------------------------------------------ the SVG
-x0, y0, x1, y1 = TILE
-shapes = "\n    ".join(
-    ['<line x1="%d" y1="%d" x2="%d" y2="%d"/>' % (x, top, x, bottom) for x, top, bottom in STEMS]
-    + ['<circle cx="%d" cy="%d" r="%d"/>' % (cx, cy, BOWL_R) for cx, cy in BOWLS])
-# A green tile stays visible on a dark tab strip, so no dark-mode rule.
+font = TTFont(FONT)
+upem = font["head"].unitsPerEm
+glyphs = font.getGlyphSet()
+cmap = font.getBestCmap()
+
+
+def fmt(v):
+    return ("%.4f" % v).rstrip("0").rstrip(".")
+
+
+def advance(ch):
+    return font["hmtx"][cmap[ord(ch)]][0] * SIZE / float(upem)
+
+
+def outline(ch, x):
+    """The glyph as a path on the baseline at x. Outlines rather than <text>:
+    at 16 pixels a substituted font would be a different mark."""
+    pen = SVGPathPen(glyphs)
+    glyphs[cmap[ord(ch)]].draw(pen)
+    s = SIZE / float(upem)
+    return ('<path transform="translate(%s %s) scale(%s %s)" d="%s"/>'
+            % (fmt(x), fmt(BASELINE), fmt(s), fmt(-s), pen.getCommands()))
+
+
+x0 = 128 - (advance("B") + advance("d")) / 2.0
+paths = "\n    ".join([outline("B", x0), outline("d", x0 + advance("B"))])
+
+# A coloured disc stays visible on a dark tab strip, so no dark-mode rule.
 SVG = """<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
   <!-- Generated by scripts/make-icons.py - do not edit by hand.
        The browser-tab icon, and the logo in the site header. -->
-  <rect x="%d" y="%d" width="%d" height="%d" rx="%d" fill="%s"/>
-  <g fill="none" stroke="#ffffff" stroke-width="%d" stroke-linecap="round">
+  <defs>
+    <linearGradient id="d" x1="0%%" y1="0%%" x2="100%%" y2="100%%">
+      <stop offset="0%%" stop-color="%s"/>
+      <stop offset="100%%" stop-color="%s"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="112" fill="url(#d)"/>
+  <g fill="#ffffff">
     %s
   </g>
 </svg>
 """
 with open(os.path.join(PUBLIC, "favicon.svg"), "w", encoding="utf-8", newline="\n") as f:
-    f.write(SVG % (x0, y0, x1 - x0, y1 - y0, TILE_RADIUS, GREEN, STROKE, shapes))
-print("favicon.svg, favicon.ico (%s), apple-touch-icon.png (180), og-image.png in %s" % (
+    f.write(SVG % (TOP, BOTTOM, paths))
+print("favicon.svg, favicon.ico (%s), apple-touch-icon.png (180) in %s" % (
     ", ".join(str(s) for s in SIZES), PUBLIC))
