@@ -21,6 +21,12 @@ const LANG_LABELS: Record<string, string> = {
 };
 const langLabel = article.lang ? (LANG_LABELS[article.lang] || article.lang.toUpperCase()) : '';
 
+// Each table goes in a box that scrolls sideways, so a wide one (the artrose
+// article has six columns) doesn't widen the page on a phone.
+const body = stripLeadingTitle(article.html, article.title)
+	.replace(/<table\b/gi, '<div class="bt-table-wrap"><table')
+	.replace(/<\/table>/gi, '</table></div>');
+
 const metaDesc =
 	excerpt(article.html, 155) ||
 	`Beijer Dictionary terminology article: ${article.headword}.`;
@@ -48,7 +54,7 @@ const jsonLd = {
 
 		<h1>{article.title}</h1>
 
-		<div class="bt-article-body" set:html={stripLeadingTitle(article.html, article.title)}></div>
+		<div class="bt-article-body" set:html={body}></div>
 
 		<p class="bt-article-back">
 			<a href="/articles/">← All articles</a> · <a href="/">Search</a>
@@ -106,6 +112,42 @@ const jsonLd = {
 		font-size: 0.9em;
 	}
 	.bt-article-body :global(img) { max-width: 100%; height: auto; }
+	/* Tables: mostly example sentences (Dutch | English | Source). Without
+	   these rules the browser put no space between columns, so a row read as
+	   one run-on sentence, and centred the headings over left-aligned text. */
+	.bt-article-body :global(.bt-table-wrap) { overflow-x: auto; margin: 0.9em 0; }
+	.bt-article-body :global(table) {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.92em;
+		line-height: 1.5;
+		/* Not "anywhere" (the body's setting): in a table that lets columns
+		   shrink until words break letter by letter. */
+		overflow-wrap: break-word;
+	}
+	.bt-article-body :global(th),
+	.bt-article-body :global(td) {
+		padding: 0.5em 0.7em;
+		text-align: left;
+		vertical-align: top;
+		border-bottom: 1px solid rgb(var(--border));
+	}
+	.bt-article-body :global(:is(th, td):first-child) { padding-left: 0; }
+	.bt-article-body :global(:is(th, td):last-child) { padding-right: 0; }
+	.bt-article-body :global(th) {
+		font-weight: 600;
+		color: rgb(var(--muted));
+		font-size: 0.85em;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	/* Each cell's text sits in its own <p> (or list): no extra space above or below. */
+	.bt-article-body :global(:is(th, td) > :first-child) { margin-top: 0; }
+	.bt-article-body :global(:is(th, td) > :last-child) { margin-bottom: 0; }
+	.bt-article-body :global(:is(th, td) :is(ul, ol)) { padding-left: 1.1em; }
+	.bt-article-body :global(:is(th, td) li) { margin: 0.15em 0; }
+	/* A full URL as a source shouldn't make its column as wide as the URL. */
+	.bt-article-body :global(:is(th, td) a) { overflow-wrap: anywhere; }
 	.bt-article-body :global(a) { color: rgb(var(--accent)); }
 	.bt-article-back {
 		margin-top: 2.2em;

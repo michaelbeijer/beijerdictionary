@@ -23,6 +23,11 @@ API. Newest first.
   tagged under two names now have one each: railways, sport, tax, human
   resources (was also "HR") and health and safety (was also "occupational
   safety").
+- **Readable tables in articles.** The 72 articles with a table (mostly
+  example sentences: Dutch | English | Source) now show it with space between
+  the columns, each heading over its own column and a line between rows.
+  Before, a row ran together like one long sentence. On a phone, a wide table
+  scrolls sideways in its own box.
 - **Dictionary and EU legislation tabs.** For English → Dutch and Dutch →
   English searches, the results now have two tabs, each with its number of
   hits: **Dictionary** and **EU legislation**, so the EU sentences no longer
