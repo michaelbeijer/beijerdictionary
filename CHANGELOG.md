@@ -4,11 +4,26 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-11-05
+
+**Site and search API**
+- **Dictionary and EU legislation tabs.** For English → Dutch and Dutch →
+  English searches, the results now have two tabs, each with its number of
+  hits: **Dictionary** and **EU legislation**, so the EU sentences no longer
+  sit at the bottom of a long list. The site remembers which tab you last
+  chose. When the dictionary finds nothing but EU legislation does, the
+  empty Dictionary tab offers a link to the EU sentences. Other language
+  pairs have no tabs.
+- **Faster page loads.** The entry count and the list of language pairs
+  shown when the page opens are now worked out once per publish instead of
+  on every visit, which used to read all 1.3 million entries twice
+  (about 0.6 s per page load, and 97% of the dictionary database's reads).
+
 ## 2026-11-04
 
 **Site and search API**
 - **EU legislation in context.** Searching English → Dutch or Dutch →
-  English now also shows, in a box under the results, sentences from EU
+  English now also shows, under the results, sentences from EU
   legislation that contain the words as an exact phrase, each beside its
   official translation and linked to the document on EUR-Lex (both
   languages side by side). Shortest sentences first, 20 at a time, with
@@ -17,10 +32,6 @@ API. Newest first.
   million English–Dutch pairs from some 42,000 documents, up to 2020. They
   live in a separate database from the dictionary, so a dictionary publish
   never re-uploads them.
-- **Faster page loads.** The entry count and the list of language pairs
-  shown when the page opens are now worked out once per publish instead of
-  on every visit, which used to read all 1.3 million entries twice
-  (about 0.6 s per page load, and 97% of the dictionary database's reads).
 
 ## 2026-10-23
 

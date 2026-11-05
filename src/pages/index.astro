@@ -64,10 +64,18 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			</div>
 			<div id="wb-counts" class="wb-counts">Loading…</div>
 		</div>
+		<!-- Dictionary / EU legislation tabs. Shown only for English↔Dutch
+		     searches, the one language pair the EU sentences exist for; for any
+		     other pair the dictionary results show on their own, untabbed. -->
+		<div id="wb-tabs" class="wb-tabs" role="tablist" aria-label="Results" hidden>
+			<button id="wb-tab-dict" type="button" class="wb-tab" role="tab" data-tab="dict" aria-selected="true" aria-controls="wb-results">Dictionary<span id="wb-tab-dict-n" class="wb-tab-n"></span></button>
+			<button id="wb-tab-eu" type="button" class="wb-tab" role="tab" data-tab="eu" aria-selected="false" aria-controls="wb-eu" tabindex="-1">EU legislation<span id="wb-tab-eu-n" class="wb-tab-n"></span></button>
+		</div>
 		<div id="wb-results" class="wb-results" hidden></div>
 		<!-- EU legislation in context: English–Dutch sentence pairs containing the
-		     search as an exact phrase. Loaded separately from the dictionary
-		     results (see loadConcordance), so it can never hold them up. -->
+		     search as an exact phrase, on the EU legislation tab. Loaded
+		     separately from the dictionary results (see loadConcordance), so it
+		     can never hold them up. -->
 		<section id="wb-eu" class="wb-eu" hidden aria-labelledby="wb-eu-title">
 			<div class="wb-eu-head">
 				<h2 id="wb-eu-title" class="wb-eu-title">EU legislation in context</h2>
@@ -816,7 +824,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		articles = articles || [];
 		const articleHtml = articles.map((a) => renderArticleCard(a, tokens)).join('');
 		if (!groups.length && !concepts.length && !articles.length) {
-			box.innerHTML = '<p class="wb-empty">No matches.</p>';
+			// The hint fills in once the EU sentences are counted (updateTabs).
+			box.innerHTML = '<p class="wb-empty">No matches.<span class="wb-eu-hint"></span></p>';
 			box.hidden = false;
 			return;
 		}
@@ -921,6 +930,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			const box = document.getElementById('wb-results');
 			box.hidden = true; box.innerHTML = '';
 			updateCounts(null);
+			dictCount = null;
+			updateTabs();
 			return;
 		}
 		const tokens = fold(lastQuery).split(/\s+/).filter(Boolean);
@@ -929,7 +940,68 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const articles = matchArticles(lastQuery);
 		renderResults(groups, concepts, tokens, articles, lastQuery);
 		updateCounts(groups.length + concepts.length);
+		dictCount = groups.length + concepts.length;
+		updateTabs();
 	}
+
+	// ── Results tabs: Dictionary / EU legislation ─────────────────────────
+	// Only for English↔Dutch (see euApplies). Each tab shows its number of
+	// hits, so neither has to be opened to see whether it has anything. The
+	// chosen tab is remembered on this device, like the search options.
+	let resultsTab = 'dict';
+	try { if (localStorage.getItem('bt-results-tab') === 'eu') resultsTab = 'eu'; } catch { /* ignore */ }
+	let dictCount = null;     // dictionary matches for lastQuery; null until known
+
+	function updateTabs() {
+		const show = euApplies(lastQuery);
+		const tab = show ? resultsTab : 'dict';
+		document.getElementById('wb-tabs').hidden = !show;
+		const results = document.getElementById('wb-results');
+		results.classList.toggle('is-tab-hidden', tab !== 'dict');
+		document.getElementById('wb-eu').hidden = tab !== 'eu';
+		for (const [id, on] of [['wb-tab-dict', tab === 'dict'], ['wb-tab-eu', tab === 'eu']]) {
+			const btn = document.getElementById(id);
+			btn.setAttribute('aria-selected', on ? 'true' : 'false');
+			btn.tabIndex = on ? 0 : -1;
+		}
+		const num = (n, capped) => n.toLocaleString('en-GB') + (capped ? '+' : '');
+		document.getElementById('wb-tab-dict-n').textContent = dictCount == null ? '' : num(dictCount);
+		document.getElementById('wb-tab-eu-n').textContent =
+			euState.status === 'ready' ? num(euState.total, euState.capped)
+			: euState.status === 'loading' ? '…'
+			: euState.status === 'error' ? '–' : '';
+		// An empty dictionary tab points to the EU sentences, when there are some.
+		const hint = results.querySelector('.wb-eu-hint');
+		if (hint) {
+			const n = euState.total;
+			hint.innerHTML = show && euState.status === 'ready' && n > 0
+				? ` <button type="button" class="wb-linkbtn" data-tab="eu">See ${num(n, euState.capped)} sentence pair${n === 1 && !euState.capped ? '' : 's'} in EU legislation</button>`
+				: '';
+		}
+	}
+
+	function chooseTab(tab, focus) {
+		resultsTab = tab === 'eu' ? 'eu' : 'dict';
+		try { localStorage.setItem('bt-results-tab', resultsTab); } catch { /* ignore */ }
+		updateTabs();
+		if (focus) document.getElementById(resultsTab === 'eu' ? 'wb-tab-eu' : 'wb-tab-dict').focus();
+	}
+	const tabBar = document.getElementById('wb-tabs');
+	tabBar.addEventListener('click', (ev) => {
+		const btn = ev.target.closest('[data-tab]');
+		if (btn) chooseTab(btn.dataset.tab);
+	});
+	// The usual tab keys: arrows move between the two, Home and End jump.
+	tabBar.addEventListener('keydown', (ev) => {
+		const to = { ArrowLeft: 'dict', Home: 'dict', ArrowRight: 'eu', End: 'eu' }[ev.key];
+		if (!to) return;
+		ev.preventDefault();
+		chooseTab(ev.key.startsWith('Arrow') ? (resultsTab === 'eu' ? 'dict' : 'eu') : to, true);
+	});
+	document.getElementById('wb-results').addEventListener('click', (ev) => {
+		const btn = ev.target.closest('.wb-linkbtn[data-tab]');
+		if (btn) chooseTab(btn.dataset.tab, true);
+	});
 
 	// ── EU legislation in context (DGT-TM) ────────────────────────────────
 	// English–Dutch sentence pairs from EU legislation that contain the search
@@ -943,6 +1015,9 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 	let euTimer = null;
 	let euAbort = null;
 	let euShown = { q: '', from: '', offset: 0 };
+	// What the EU legislation tab's number shows: idle (no lookup), loading,
+	// ready (total known, maybe 0) or error.
+	let euState = { status: 'idle', total: 0, capped: false };
 
 	// The concordance language for the current direction, or null.
 	function euFrom() {
@@ -953,19 +1028,24 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		return null;
 	}
 
+	// Whether these words get an EU legislation tab at all.
+	function euApplies(q) {
+		return euAvailable && !!euFrom() && (q || '').length >= 2;
+	}
+
 	function hideEu() {
-		const sec = document.getElementById('wb-eu');
-		sec.hidden = true;
-		sec.classList.remove('is-loading');
+		document.getElementById('wb-eu').classList.remove('is-loading');
 		document.getElementById('wb-eu-list').innerHTML = '';
 		euShown = { q: '', from: '', offset: 0 };
+		euState = { status: 'idle', total: 0, capped: false };
+		updateTabs();
 	}
 
 	function scheduleConcordance(q) {
 		clearTimeout(euTimer);
 		if (euAbort) euAbort.abort();
 		const from = euFrom();
-		if (!euAvailable || !from || q.length < 2) { hideEu(); return; }
+		if (!euApplies(q)) { hideEu(); return; }
 		// A search option toggle re-runs the search with the same words; the
 		// options don't apply here, so keep what is shown (and its pages).
 		const sec = document.getElementById('wb-eu');
@@ -973,11 +1053,11 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// Until the new answer arrives, the sentences on screen belong to the
 		// previous words: dim them and say so, rather than pass them off as
 		// matches for what is in the box now.
-		if (!sec.hidden) {
-			sec.classList.add('is-loading');
-			document.getElementById('wb-eu-count').textContent = `Looking up “${q}”…`;
-			document.getElementById('wb-eu-more').hidden = true;
-		}
+		sec.classList.add('is-loading');
+		document.getElementById('wb-eu-count').textContent = `Looking up “${q}”…`;
+		document.getElementById('wb-eu-more').hidden = true;
+		euState = { status: 'loading', total: 0, capped: false };
+		updateTabs();
 		euTimer = setTimeout(() => loadConcordance(q, from, 0), EU_DELAY_MS);
 	}
 
@@ -1035,8 +1115,9 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				count.textContent = '';
 				more.hidden = true;
 				sec.classList.remove('is-loading');
-				sec.hidden = false;
 				euShown = { q: '', from: '', offset: 0 };   // so the next search retries
+				euState = { status: 'error', total: 0, capped: false };
+				updateTabs();
 			}
 			return;
 		}
@@ -1044,7 +1125,16 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// A slow answer for an earlier query or direction must not overwrite a newer one.
 		if (q !== lastQuery || from !== euFrom()) return;
 		const pairs = data.pairs || [];
-		if (offset === 0 && !pairs.length) { hideEu(); return; }
+		if (offset === 0 && !pairs.length) {
+			list.innerHTML = `<p class="wb-empty">No sentences in EU legislation contain “${escapeHtml(q)}” as an exact phrase.</p>`;
+			count.textContent = '';
+			more.hidden = true;
+			sec.classList.remove('is-loading');
+			euShown = { q, from, offset: 0 };
+			euState = { status: 'ready', total: 0, capped: false };
+			updateTabs();
+			return;
+		}
 
 		const tokens = fold(q).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 		const html = pairs.map((p) => renderEuPair(p, from, data.to, tokens)).join('');
@@ -1052,13 +1142,14 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			list.innerHTML = html;
 			const n = data.total || pairs.length;
 			count.textContent = `${n.toLocaleString('en-GB')}${data.capped ? '+' : ''} sentence pair${n === 1 && !data.capped ? '' : 's'} containing “${q}”, shortest first`;
+			euState = { status: 'ready', total: n, capped: !!data.capped };
 		} else {
 			list.insertAdjacentHTML('beforeend', html);
 		}
 		euShown = { q, from, offset };
 		more.hidden = !data.more;
 		sec.classList.remove('is-loading');
-		sec.hidden = false;
+		updateTabs();
 	}
 
 	document.getElementById('wb-eu-more').addEventListener('click', () => {
@@ -1070,6 +1161,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const input = document.getElementById('wb-q');
 		const box = document.getElementById('wb-results');
 		const q = input.value.trim();
+		if (q !== lastQuery) dictCount = null;   // no stale number on the tab
 		lastQuery = q;
 		scheduleConcordance(q);
 		if (!q) {
@@ -1102,6 +1194,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			if (err.name === 'AbortError') return;
 			box.innerHTML = '<p class="wb-empty">Search is temporarily unavailable.</p>';
 			box.hidden = false;
+			dictCount = null;
+			updateTabs();
 		}
 	}
 
