@@ -7,6 +7,12 @@ API. Newest first.
 ## 2026-11-05
 
 **Site: a cleaner, clearer look**
+- **A new mark.** A lower-case b and d drawn as mirror images, two letters
+  facing each other like a source and a target language, in white on the
+  site's bottle green, in a rounded square. It replaces the white "Bd" on a
+  green gradient circle in the header, the browser tab, the phone
+  home-screen icon and link previews. Drawn from simple strokes rather than
+  letters of a font, it stays crisp at tab size.
 - **The front page says what the site is.** A headline ("Technical
   terminology you can trace to its source") and a line on what's in it;
   under the search, the key numbers (sources, entries, multilingual
