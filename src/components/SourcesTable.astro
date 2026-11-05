@@ -9,6 +9,8 @@
 // build couldn't reach the API (graceful fallback, so the table is never
 // empty), and background-revalidates so the list self-heals after a D1 data
 // reload with no site rebuild.
+import { SOURCE_NAMES } from '../lib/source-names';
+
 interface Props {
 	list?: boolean;
 }
@@ -80,7 +82,7 @@ const badgeClassOf = (s) => {
 				<tbody>
 					{sources.map((s) => (
 						<tr class="clickable" data-slug={s.slug}>
-							<td>{s.title || s.slug}{!s.sentence_count && <span class="wb-src-chip" title="The name shown on search results">{s.slug}</span>}</td>
+							<td>{s.title || s.slug}{!s.sentence_count && <span class="wb-src-chip" title="The name shown on search results">{SOURCE_NAMES[s.slug] || s.slug}</span>}</td>
 							<td class:list={{ empty: !s.author }}>{s.author || '—'}</td>
 							<td class:list={['num', { empty: !s.year }]}>{s.year || '—'}</td>
 							<td class="langs">{langsOf(s)}</td>
@@ -110,7 +112,7 @@ const badgeClassOf = (s) => {
 
 <script type="application/json" id="wb-sources-data" is:inline set:html={JSON.stringify(sources)}></script>
 
-<script define:vars={{ apiBase }}>
+<script define:vars={{ apiBase, SOURCE_NAMES }}>
 	// The source list is server-rendered above. This script only adds the
 	// interactive detail dialog (and a client fallback if the build shipped no
 	// data). It reads the embedded JSON — no per-visit API call when the build
@@ -147,7 +149,7 @@ const badgeClassOf = (s) => {
 	// A corpus's slug never appears on a search result, so it gets no chip.
 	const chipOf = (s) => s.sentence_count
 		? ''
-		: `<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(s.slug)}</span>`;
+		: `<span class="wb-src-chip" title="The name shown on search results">${escapeHtml(SOURCE_NAMES[s.slug] || s.slug)}</span>`;
 
 	// Column sorting. Title order is what the page is built with; clicking a
 	// heading re-sorts by that column, clicking it again reverses it. Numbers

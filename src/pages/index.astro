@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import SourcesTable from '../components/SourcesTable.astro';
 import { getArticles, toIndexItem } from '../lib/articles';
+import { SOURCE_NAMES } from '../lib/source-names';
 
 // Search API base. Production sets PUBLIC_WORDBOOK_API to the deployed Worker
 // URL; in `astro dev` it falls back to a local Worker on :8787. The terminology
@@ -17,52 +18,119 @@ const apiBase = (
 // (headword/aliases/domain/excerpt — no full bodies) to the browser is fine and
 // lets article cards surface instantly client-side, with no extra API call.
 const articleIndex = (await getArticles()).map(toIndexItem);
+// For the Articles card on the front page.
+const articleCount = articleIndex.length;
+const subjectCount = new Set(articleIndex.map((a) => a.domain).filter(Boolean)).size;
 ---
 
 <Base
 	title="Beijer Dictionary – multilingual terminology for technical translators"
 	description="A curated, searchable multilingual terminology database for technical translators – Dutch ↔ English and more, with full provenance."
 >
+	<!-- A search link (?q=…, also how SuperLookup embeds the page) opens
+	     straight in results mode (see setExplore), without first flashing the
+	     headline and the front-page sections. Before them, so it runs first. -->
+	<script is:inline>
+		if (new URLSearchParams(location.search).get('q')) document.documentElement.classList.add('bt-searching');
+	</script>
 	<section class="wb-hero wb-hero--home">
-		<!-- The header wordmark is the visible title; this heading is for
-		     search engines and screen readers, so the name shows only once. -->
-		<h1 class="sr-only">Beijer Dictionary</h1>
+		<h1 class="wb-home-title">Technical terminology you can trace to its source</h1>
 		<p class="wb-tag">
-			A curated, searchable multilingual terminology database for technical
-			translators – with full provenance for every source.
+			A curated, searchable terminology database for technical translators.
+			Every result says where it comes from: glossaries and term lists,
+			hand-written dictionary articles, and EU legislation in six languages.
 		</p>
 	</section>
 
 	<section class="wb-view">
-		<div class="wb-search">
-			<label class="sr-only" for="wb-q">Search Beijer Dictionary</label>
-			<input id="wb-q" type="search" placeholder="Type a term…" title="Tip: press / anywhere on the page to jump back to this box" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" />
-			<div class="wb-controls">
-				<label class="sr-only" for="wb-from">From language</label>
-				<select id="wb-from" class="wb-lang" aria-label="From language"></select>
-				<button id="wb-swap" type="button" class="wb-swap" aria-label="Swap languages">⇄</button>
-				<label class="sr-only" for="wb-to">To language</label>
-				<select id="wb-to" class="wb-lang" aria-label="To language"></select>
+		<!-- One bar: the language pair, the term and a Search button. The search
+		     also runs as you type; the button (or Enter) runs it at once. -->
+		<form id="wb-form" class="wb-search" role="search" aria-label="Search Beijer Dictionary">
+			<div class="wb-bar">
+				<div class="wb-langs">
+					<label class="sr-only" for="wb-from">From language</label>
+					<select id="wb-from" class="wb-lang"></select>
+					<button id="wb-swap" type="button" class="wb-swap" aria-label="Swap languages" title="Swap languages">
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 8h15l-4-4M20 16H5l4 4" /></svg>
+					</button>
+					<label class="sr-only" for="wb-to">To language</label>
+					<select id="wb-to" class="wb-lang"></select>
+				</div>
+				<label class="sr-only" for="wb-q">Term</label>
+				<input id="wb-q" type="search" placeholder="Type a term…" title="Tip: press / anywhere on the page to jump back to this box" autocomplete="off" spellcheck="false" autocapitalize="off" inputmode="search" enterkeyhint="search" />
+				<button id="wb-go" type="submit" class="wb-go" aria-label="Search">
+					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+					<span class="wb-go-text">Search</span>
+				</button>
 			</div>
-			<!-- Phones only: the options below fold away behind this button. -->
-			<button id="wb-opts-toggle" type="button" class="wb-opts-toggle" aria-expanded="false" aria-controls="wb-opts">Search options</button>
-			<div id="wb-opts" class="wb-opts">
-				<span class="wb-opts-label">Search in:</span>
-				<label><input type="checkbox" id="opt-in-terms" checked /> terms</label>
-				<label><input type="checkbox" id="opt-in-def" /> definitions</label>
-				<label><input type="checkbox" id="opt-in-notes" /> notes</label>
-				<span class="wb-opts-sep" aria-hidden="true"></span>
-				<label><input type="checkbox" id="opt-exact" /> Exact match</label>
-				<label><input type="checkbox" id="opt-case" /> Case-sensitive</label>
-				<label><input type="checkbox" id="opt-accent" /> Accent-sensitive</label>
-				<label><input type="checkbox" id="opt-whole" /> Whole word</label>
-				<span class="wb-opts-sep" aria-hidden="true"></span>
-				<span class="wb-opts-label">Only entries with:</span>
-				<label><input type="checkbox" id="opt-has-abbr" /> abbreviation</label>
-				<label><input type="checkbox" id="opt-has-def" /> definition</label>
-				<label><input type="checkbox" id="opt-has-notes" /> notes</label>
+			<div class="wb-under">
+				<!-- The search options fold away behind this button. They are
+				     remembered on each device, so its summary says what is on. -->
+				<button id="wb-opts-toggle" type="button" class="wb-opts-toggle" aria-expanded="false" aria-controls="wb-opts">
+					<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" /><circle cx="15" cy="6" r="2" /><circle cx="9" cy="12" r="2" /><circle cx="17" cy="18" r="2" /></svg>
+					Options<span id="wb-opts-sum" class="wb-opts-sum"></span>
+				</button>
+				<p id="wb-try" class="wb-try">
+					<span class="wb-try-label">Try:</span>
+					<a href="/?q=bandraster&amp;from=nl&amp;to=en" data-q="bandraster">bandraster</a>
+					<a href="/?q=tegels&amp;from=nl&amp;to=en" data-q="tegels">tegels</a>
+					<a href="/?q=ter+hoogte+van&amp;from=nl&amp;to=en" data-q="ter hoogte van">ter hoogte van</a>
+					<a href="/?q=aangeleverd&amp;from=nl&amp;to=en" data-q="aangeleverd">aangeleverd</a>
+				</p>
+			</div>
+			<div id="wb-opts" class="wb-opts" hidden>
+				<fieldset>
+					<legend>Search in</legend>
+					<label><input type="checkbox" id="opt-in-terms" checked /> Terms</label>
+					<label><input type="checkbox" id="opt-in-def" /> Definitions</label>
+					<label><input type="checkbox" id="opt-in-notes" /> Notes</label>
+				</fieldset>
+				<fieldset>
+					<legend>Match</legend>
+					<label><input type="checkbox" id="opt-exact" /> Exact match</label>
+					<label><input type="checkbox" id="opt-whole" /> Whole word</label>
+					<label><input type="checkbox" id="opt-case" /> Case-sensitive</label>
+					<label><input type="checkbox" id="opt-accent" /> Accent-sensitive</label>
+				</fieldset>
+				<fieldset>
+					<legend>Only entries with</legend>
+					<label><input type="checkbox" id="opt-has-abbr" /> An abbreviation</label>
+					<label><input type="checkbox" id="opt-has-def" /> A definition</label>
+					<label><input type="checkbox" id="opt-has-notes" /> Notes</label>
+				</fieldset>
 			</div>
 			<div id="wb-counts" class="wb-counts">Loading…</div>
+		</form>
+
+		<!-- What's in it and how to use it: shown until something is searched. -->
+		<div id="wb-explore" class="wb-explore">
+			<ul class="wb-stats" aria-label="What is in Beijer Dictionary">
+				<li><span class="wb-stat-n" id="wb-stat-sources">–</span><span class="wb-stat-l"><a href="/sources/">sources</a>, each with full details</span></li>
+				<li><span class="wb-stat-n" id="wb-stat-entries">–</span><span class="wb-stat-l">dictionary entries</span></li>
+				<li><span class="wb-stat-n" id="wb-stat-concepts">–</span><span class="wb-stat-l">multilingual concepts</span></li>
+				<li id="wb-stat-eu-item"><span class="wb-stat-n" id="wb-stat-eu">–</span><span class="wb-stat-l">sentences of EU legislation</span></li>
+			</ul>
+			<h2 class="wb-ways-title">Three ways to find a term</h2>
+			<div class="wb-ways">
+				<article class="wb-way">
+					<span class="wb-way-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></svg></span>
+					<h3>Dictionary</h3>
+					<p>Glossaries and term lists from IATE, Microsoft, TU Delft, Nuffic and many more, from Dutch–English lists to EU vocabularies in six languages. Each result names its source.</p>
+					<a href="/sources/">See all sources →</a>
+				</article>
+				<article class="wb-way">
+					<span class="wb-way-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 21h18M4 10h16M12 3l8 5H4z" /><path d="M6.5 10v8M10.5 10v8M13.5 10v8M17.5 10v8" /></svg></span>
+					<h3>EU legislation in context</h3>
+					<p>Your words in real EU legislation, beside the official translation, between any two of English, Dutch, French, German, Italian and Spanish. Each sentence links to EUR-Lex.</p>
+					<a href="/?q=tegels&amp;from=nl&amp;to=en" data-q="tegels" data-tab="eu">See “tegels” in context →</a>
+				</article>
+				<article class="wb-way">
+					<span class="wb-way-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" /><path d="M5 17a3 3 0 0 1 3-3h11" /></svg></span>
+					<h3>Articles</h3>
+					<p>{articleCount.toLocaleString('en-GB')} hand-written dictionary articles in {subjectCount} subjects. One term each, with its translations, often with examples, sources and notes on similar terms.</p>
+					<a href="/articles/">Browse the articles →</a>
+				</article>
+			</div>
 		</div>
 		<!-- Dictionary / EU legislation tabs. Shown only when both languages are
 		     among the six the EU sentences exist in (English, Dutch, French,
@@ -100,7 +168,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 
 <script type="application/json" id="bt-articles-data" is:inline set:html={JSON.stringify(articleIndex)}></script>
 
-<script define:vars={{ apiBase }}>
+<script define:vars={{ apiBase, SOURCE_NAMES }}>
 	// ────────────────────────────────────────────────────────────────────
 	// Beijer Dictionary search — server-side via the Cloudflare Worker + D1 API.
 	//
@@ -151,6 +219,20 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		(s ?? '').replace(/[&<>"']/g, (c) => ({
 			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 		}[c]));
+
+	// A source's short name for its chip ("Microsoft"), from src/lib/source-names.ts;
+	// a source not listed there shows its slug. The chip's tooltip gives the
+	// full title once /meta has loaded.
+	const srcName = (slug) => SOURCE_NAMES[slug] || slug;
+	const srcTitle = (slug) => {
+		const s = (meta.sources || []).find((x) => x.slug === slug);
+		return s && s.title ? `${s.title}: about this source` : 'About this source';
+	};
+	const srcChipHtml = (slug) =>
+		`<a class="pill pill-src" href="/#${encodeURIComponent(slug)}" title="${escapeHtml(srcTitle(slug))}">${escapeHtml(srcName(slug))}</a>`;
+	// Subjects come in lower case ("building and public works"); show them in
+	// sentence case, as labels rather than shouted metadata.
+	const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 	// Position-preserving fold: the folded string plus a map from each folded
 	// char index back to the original char index, so a match found in the folded
@@ -258,20 +340,33 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		updateOptsToggle();
 	}
 
-	// On a phone the options fold away behind a button. Options are remembered
-	// on each device, so the button says how many differ from the default:
-	// otherwise a box ticked on an earlier visit would change results unseen.
+	// The options fold away behind the Options button. They are remembered on
+	// each device, so the button sums up what is on ("terms only", "terms +
+	// definitions, exact match"): otherwise a box ticked on an earlier visit
+	// would change the results unseen.
 	function updateOptsToggle() {
 		const btn = document.getElementById('wb-opts-toggle');
-		const changed = OPT_IDS.filter((id) => {
+		const sum = document.getElementById('wb-opts-sum');
+		const scope = [['opt-in-terms', 'terms'], ['opt-in-def', 'definitions'], ['opt-in-notes', 'notes']]
+			.filter(([id]) => isOn(id)).map(([, name]) => name);
+		const parts = [scope.length <= 1 && (!scope.length || scope[0] === 'terms')
+			? 'terms only' : scope.join(' + ')];
+		[['opt-exact', 'exact match'], ['opt-whole', 'whole word'], ['opt-case', 'case-sensitive'],
+			['opt-accent', 'accent-sensitive']].forEach(([id, name]) => { if (isOn(id)) parts.push(name); });
+		const has = [['opt-has-abbr', 'abbreviation'], ['opt-has-def', 'definition'], ['opt-has-notes', 'notes']]
+			.filter(([id]) => isOn(id)).map(([, name]) => name);
+		if (has.length) parts.push('with ' + has.join(' and '));   // the API requires all of them
+		sum.textContent = ' · ' + parts.join(', ');
+		const changed = OPT_IDS.some((id) => {
 			const el = document.getElementById(id);
 			return el && el.checked !== el.defaultChecked;
-		}).length;
-		btn.textContent = changed ? `Search options (${changed} changed)` : 'Search options';
+		});
+		btn.classList.toggle('is-changed', changed);
 	}
 	document.getElementById('wb-opts-toggle').addEventListener('click', (ev) => {
-		const open = document.getElementById('wb-opts').classList.toggle('open');
-		ev.currentTarget.setAttribute('aria-expanded', String(open));
+		const panel = document.getElementById('wb-opts');
+		panel.hidden = !panel.hidden;
+		ev.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
 	});
 
 	function discoverDirections(pairs) {
@@ -492,7 +587,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// card meta row and to surface sources that contribute only a monolingual
 		// entry (definition with no equivalent → no line of their own).
 		const srcChip = (s) => {
-			const chip = `<a class="pill pill-src" href="/#${encodeURIComponent(s)}" title="About this source">${escapeHtml(s)}</a>`;
+			const chip = srcChipHtml(s);
 			if (!ADMIN) return chip;
 			const id = group.idBySource.get(s);
 			const pencil = id != null
@@ -505,9 +600,9 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// multi-source cards so each translation is tied to where it came from.
 		const renderProv = (line) => {
 			const dom = [...line.domains][0];
-			const domHtml = dom ? `<span class="wb-prov-dom">${escapeHtml(dom)}</span>` : '';
+			const domHtml = dom ? `<span class="wb-prov-dom">${escapeHtml(cap(dom))}</span>` : '';
 			const chips = (line.srcKey ? line.srcKey.split(',') : []).map((s) => s.trim()).filter(Boolean).map((s) => {
-				const chip = `<a class="pill pill-src" href="/#${encodeURIComponent(s)}" title="About this source">${escapeHtml(s)}</a>`;
+				const chip = srcChipHtml(s);
 				if (!ADMIN) return chip;
 				const pencil = line.id != null
 					? ` <a class="wb-edit" href="${ADMIN_BASE}/?edit=${line.id}" target="_blank" rel="noopener" title="Edit entry #${line.id} in the local admin">✎</a>`
@@ -631,7 +726,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		// only on single-source cards — multi-source cards carry provenance per
 		// line / per definition block instead.
 		const meta_ = multiSrc ? '' : [
-			...[...group.domains].slice(0, 1).map(escapeHtml),
+			...[...group.domains].slice(0, 1).map((d) => escapeHtml(cap(d))),
 			...[...group.sources].map(srcChip),
 			...(looseLinkChips ? [looseLinkChips] : []),
 		].join(' · ');
@@ -755,8 +850,8 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const pencil = ADMIN && c.id != null
 			? ` <a class="wb-edit" href="${ADMIN_BASE}/?concept=${encodeURIComponent(c.id)}" target="_blank" rel="noopener" title="Edit concept #${escapeHtml(String(c.id))} in the local admin">✎</a>`
 			: '';
-		const src = `<a class="pill pill-src" href="/#${encodeURIComponent(c.src)}" title="About this source">${escapeHtml(c.src)}</a>${pencil}`;
-		const meta_ = [c.dom ? escapeHtml(c.dom) : '', src, links].filter(Boolean).join(' · ');
+		const src = `${srcChipHtml(c.src)}${pencil}`;
+		const meta_ = [c.dom ? escapeHtml(cap(c.dom)) : '', src, links].filter(Boolean).join(' · ');
 
 		// With one term per language the source has paired them itself. With
 		// several, it only says the words belong together (apart from the
@@ -807,7 +902,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 
 	function renderArticleCard(a, tokens) {
 		const title = hl(a.title || a.headword || '', tokens).html;
-		const domain = a.domain ? `<span class="wb-article-chip">${escapeHtml(a.domain)}</span>` : '';
+		const domain = a.domain ? `<span class="wb-article-chip">${escapeHtml(cap(a.domain))}</span>` : '';
 		const lang = a.lang ? `<span class="wb-article-chip">${escapeHtml(a.lang.toUpperCase())}</span>` : '';
 		const teaser = a.excerpt ? `<div class="wb-article-teaser">${escapeHtml(a.excerpt)}</div>` : '';
 		return `<a class="wb-card wb-article" href="/articles/${encodeURIComponent(a.slug)}/">
@@ -909,8 +1004,34 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		}
 	}
 
+	// The numbers on the front page (#wb-explore), from /meta.
+	function fillStats() {
+		const fmt = (n) => n.toLocaleString('en-GB');
+		const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+		set('wb-stat-sources', fmt((meta.counts.sources || 0) + (meta.counts.corpora || 0)));
+		set('wb-stat-entries', fmt(meta.counts.entries || 0));
+		set('wb-stat-concepts', fmt(meta.counts.concepts || 0));
+		const sentences = (meta.corpora || []).reduce((t, c) => t + (c.sentence_count || 0), 0);
+		const euItem = document.getElementById('wb-stat-eu-item');
+		if (euItem) euItem.hidden = !sentences;
+		set('wb-stat-eu', sentences >= 1e6
+			? (sentences / 1e6).toFixed(1).replace(/\.0$/, '') + ' million'
+			: fmt(sentences));
+	}
+
+	// The headline, the "Try:" searches, the numbers and the three ways show
+	// only while the search box is empty. Once something is searched the
+	// results take their place and start near the top of the screen, as they
+	// should for someone looking up term after term ("results mode", a class on
+	// <html> that beijerterm.css acts on).
+	function setExplore(show) {
+		document.documentElement.classList.toggle('bt-searching', !show);
+	}
+
 	function updateCounts(resultCount) {
 		const counts = document.getElementById('wb-counts');
+		// With nothing searched the front page's numbers say all this already.
+		counts.hidden = resultCount == null;
 		// The Sources page lists the sentence corpora (EU legislation) too.
 		const sN = (meta.counts.sources || 0) + (meta.counts.corpora || 0);
 		const eN = meta.counts.entries || 0;
@@ -1174,6 +1295,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		const q = input.value.trim();
 		if (q !== lastQuery) dictCount = null;   // no stale number on the tab
 		lastQuery = q;
+		setExplore(!q);
 		scheduleConcordance(q);
 		if (!q) {
 			box.hidden = true; box.innerHTML = '';
@@ -1232,7 +1354,31 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 				document.getElementById('wb-results').hidden = true;
 				scheduleConcordance('');
 				updateCounts(null);
+				setExplore(true);
 			}
+		});
+
+		// The Search button and Enter: search now rather than after the typing
+		// pause, and on a phone put the keyboard away to show the results.
+		document.getElementById('wb-form').addEventListener('submit', (ev) => {
+			ev.preventDefault();
+			clearTimeout(debounceTimer);
+			runSearch();
+			if (window.matchMedia('(max-width: 640px)').matches) input.blur();
+		});
+
+		// "Try:" searches and the EU legislation example: Dutch → English
+		// searches run in place (the links also work as plain URLs).
+		document.querySelector('.wb-view').addEventListener('click', (ev) => {
+			const a = ev.target.closest('a[data-q]');
+			if (!a || ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
+			ev.preventDefault();
+			const nlEn = discoverDirections(meta.lang_pairs || []).find((d) => d.src === 'nl' && d.tgt === 'en');
+			if (nlEn) { direction = nlEn; updateDirControls(); }
+			input.value = a.dataset.q;
+			if (a.dataset.tab) chooseTab(a.dataset.tab);
+			clearTimeout(debounceTimer);
+			runSearch();
 		});
 
 		// Direction now steers the API's ranking as well as the client-side
@@ -1274,6 +1420,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 			meta = await getJSON('/meta');
 		} catch (err) {
 			counts.textContent = 'Could not reach the Beijer Dictionary search API. ' + err.message;
+			document.querySelector('.wb-stats').hidden = true;   // no numbers to show
 			return;
 		}
 		const dirs = discoverDirections(meta.lang_pairs || []);
@@ -1287,6 +1434,7 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 		loadOpts();        // restore the user's last search-option toggles
 		bindSearch();
 		updateCounts(null);
+		fillStats();
 
 		// Deep-link support: ?q=…&from=nl&to=en runs a search on load. This is
 		// how Beijer Dictionary embeds as a SuperLookup web resource (and makes search
@@ -1314,51 +1462,224 @@ const articleIndex = (await getArticles()).map(toIndexItem);
 </script>
 
 <style>
-	.wb-opts {
+	/* ── The search bar: language pair, term and Search button in one box ── */
+	.wb-bar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: stretch;
+		gap: 0.3em;
+		padding: 0.3em;
+		background: rgb(var(--surface));
+		border: 1px solid rgb(var(--border));
+		border-radius: 12px;
+		box-shadow: 0 1px 2px rgba(20, 19, 15, 0.05);
+	}
+	.wb-bar:focus-within { border-color: rgb(var(--focus)); }
+	.wb-langs {
+		display: flex;
+		align-items: center;
+		gap: 0.2em;
+		padding: 0 0.2em;
+		border-right: 1px solid rgb(var(--border));
+	}
+	.wb-langs .wb-lang {
+		border: none;
+		background: transparent;
+		font-weight: 600;
+		padding: 0.45em 0.3em;
+	}
+	.wb-langs .wb-lang:hover { color: rgb(var(--accent)); }
+	.wb-swap {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2em;
+		height: 2em;
+		padding: 0;
+		border: 1px solid rgb(var(--border));
+		border-radius: 999px;
+		background: rgb(var(--bg));
+		color: rgb(var(--text));
+		cursor: pointer;
+	}
+	.wb-swap:hover { border-color: rgb(var(--accent)); color: rgb(var(--accent)); }
+	.wb-swap svg, .wb-go svg, .wb-opts-toggle svg, .wb-way-icon svg {
+		fill: none; stroke: currentColor; stroke-width: 1.8;
+		stroke-linecap: round; stroke-linejoin: round;
+	}
+	/* The box itself is the bar now: no border of its own. */
+	.wb-bar #wb-q {
+		flex: 1 1 12em;
+		min-width: 0;
+		border: none;
+		background: transparent;
+		padding: 0.5em 0.6em;
+	}
+	.wb-go {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.45em;
+		min-height: 2.6em;
+		padding: 0 1.2em;
+		border: none;
+		border-radius: 9px;
+		background: rgb(var(--accent));
+		color: #fff;
+		font: inherit;
+		font-size: 0.92em;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.wb-go:hover { filter: brightness(1.1); }
+	html[data-theme='dark'] .wb-go { color: #0d1f16; }
+	.wb-go svg { stroke-width: 2.2; }
+
+	/* ── Under the bar: Options and the "Try:" searches ── */
+	.wb-under {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.35rem 0.9rem;
-		margin-top: 0.6rem;
-		font-size: 0.85rem;
+		gap: 0.5em 1.1em;
+		margin-top: 0.7em;
+		font-size: 0.85em;
+	}
+	.wb-opts-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4em;
+		min-height: 2.3em;
+		padding: 0 0.9em;
+		border: 1px solid rgb(var(--border));
+		border-radius: 999px;
+		background: transparent;
+		color: rgb(var(--text));
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.wb-opts-toggle:hover { border-color: rgb(var(--text)); }
+	.wb-opts-toggle[aria-expanded='true'] { border-color: rgb(var(--accent)); }
+	.wb-opts-sum { font-weight: 400; color: rgb(var(--muted)); }
+	/* An option ticked on an earlier visit: the summary in green, so it shows. */
+	.wb-opts-toggle.is-changed .wb-opts-sum { color: rgb(var(--accent)); font-weight: 600; }
+	.wb-try { margin: 0; display: flex; flex-wrap: wrap; gap: 0.2em 0.9em; }
+	.wb-try[hidden] { display: none; }
+	.wb-try-label { color: rgb(var(--muted)); }
+	.wb-try a { font-weight: 600; }
+
+	/* ── The options panel, three groups ── */
+	.wb-opts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
+		gap: 1em 1.5em;
+		margin-top: 0.7em;
+		padding: 1em 1.2em;
+		background: rgb(var(--surface));
+		border: 1px solid rgb(var(--border));
+		border-radius: 12px;
+		font-size: 0.88em;
+	}
+	.wb-opts[hidden] { display: none; }
+	.wb-opts fieldset {
+		margin: 0;
+		padding: 0;
+		border: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3em;
+	}
+	.wb-opts legend {
+		padding: 0;
+		margin-bottom: 0.4em;
+		font-size: 0.78em;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 		color: rgb(var(--muted));
 	}
 	.wb-opts label {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.3rem;
+		gap: 0.5em;
 		cursor: pointer;
-		white-space: nowrap;
 	}
-	.wb-opts input { cursor: pointer; margin: 0; }
-	.wb-opts-label { color: rgba(var(--muted), 0.8); }
-	.wb-opts-sep {
-		align-self: stretch;
-		width: 1px;
-		min-height: 1.1em;
-		background: currentColor;
-		opacity: 0.25;
+	.wb-opts input {
+		width: 1.05em;
+		height: 1.05em;
+		margin: 0;
+		cursor: pointer;
+		accent-color: rgb(var(--accent));
 	}
-	@media (max-width: 520px) { .wb-opts-sep { display: none; } }
-	/* The options fold away on phones (see updateOptsToggle); wider screens
-	   always show them and never see this button. */
-	.wb-opts-toggle { display: none; }
+	.wb-counts[hidden] { display: none; }
+
+	/* ── Front page below the search: numbers and the three ways ── */
+	.wb-explore[hidden] { display: none; }
+	.wb-stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(10em, 1fr));
+		margin: 2.4em 0 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid rgb(var(--border));
+		border-bottom: 1px solid rgb(var(--border));
+	}
+	.wb-stats[hidden], .wb-stats li[hidden] { display: none; }
+	.wb-stats li { padding: 1em 1em 1em 0; }
+	.wb-stat-n {
+		display: block;
+		font-size: 1.55em;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.25;
+		font-variant-numeric: tabular-nums;
+	}
+	.wb-stat-l { display: block; font-size: 0.82em; line-height: 1.45; color: rgb(var(--muted)); }
+	.wb-ways-title {
+		margin: 2em 0 0.8em;
+		font-size: 1.3em;
+		letter-spacing: -0.015em;
+	}
+	.wb-ways {
+		display: grid;
+		/* Three across in the normal page width, one on a phone. */
+		grid-template-columns: repeat(auto-fit, minmax(12em, 1fr));
+		gap: 1em;
+	}
+	.wb-way {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5em;
+		padding: 1.2em 1.3em;
+		background: rgb(var(--surface));
+		border: 1px solid rgb(var(--border));
+		border-radius: 14px;
+	}
+	.wb-way h3 { margin: 0; font-size: 1.05em; }
+	.wb-way p { margin: 0; font-size: 0.86em; line-height: 1.6; color: rgb(var(--muted)); }
+	.wb-way a { margin-top: auto; font-size: 0.86em; font-weight: 600; }
+	.wb-way-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.2em;
+		height: 2.2em;
+		border-radius: 10px;
+		background: rgba(var(--accent), 0.12);
+		color: rgb(var(--accent));
+	}
+
+	/* ── Phones ── */
 	@media (max-width: 640px) {
-		.wb-opts-toggle {
-			display: inline-block;
-			margin-top: 0.5rem;
-			padding: 0.25rem 0;
-			font: inherit;
-			font-size: 0.85rem;
-			color: rgb(var(--muted));
-			background: none;
-			border: none;
-			cursor: pointer;
-		}
-		.wb-opts-toggle::after { content: ' ▾'; }
-		.wb-opts-toggle[aria-expanded='true']::after { content: ' ▴'; }
-		.wb-opts:not(.open) { display: none; }
-		.wb-opts { margin-top: 0.2rem; }
+		/* The language pair on its own row, the term and button below it. */
+		.wb-langs { flex-basis: 100%; border-right: none; border-bottom: 1px solid rgb(var(--border)); padding-bottom: 0.2em; }
+		/* The term and the (icon-only) button share the second row. */
+		.wb-bar #wb-q { flex: 1 1 0; font-size: 1.05em; }
+		.wb-go { padding: 0 0.9em; }
+		.wb-go-text { display: none; }
+		/* The numbers two by two. */
+		.wb-stats { margin-top: 1.6em; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.wb-stat-n { font-size: 1.3em; }
 	}
 	.sense-num { display: inline-block; min-width: 1.35em; color: rgba(var(--muted), 0.75); font-weight: 600; font-variant-numeric: tabular-nums; }
 	.wb-sense { margin-top: 5px; }

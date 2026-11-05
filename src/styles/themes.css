@@ -11,16 +11,19 @@
 	--text: 20, 19, 15;
 	--muted: 96, 92, 80;
 	--border: 219, 215, 201;
-	--accent: 51, 102, 204;     /* links */
-	/* The logo's green: the dark end of its gradient here, the bright end in
-	   dark mode. Both stay readable as small text. */
-	--brand: 21, 128, 61;
+	/* One green for links, buttons, labels and the active tab: "bottle
+	   green", 5.6:1 on the page and 6.5:1 under white text. In dark mode the
+	   same roles take a lighter green. */
+	--accent: 30, 107, 71;      /* #1E6B47 */
+	--brand: 30, 107, 71;
 	--subtle: rgba(60, 50, 20, 0.04);
-	--tab-line: 20, 19, 15;     /* underline of the active tab */
-	--focus: 20, 19, 15;        /* search box border while typing */
+	--tab-line: 30, 107, 71;    /* underline of the active tab */
+	--focus: 30, 107, 71;       /* search box border while typing */
 	--chip-bg: #e6e2d5;
 	--chip-text: 68, 65, 58;
 	--font: 'Inter', system-ui, -apple-system, sans-serif;
+	/* Headwords and article titles: a book serif, for a dictionary's look. */
+	--serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 	--base-size: 19px;          /* the same in dark mode, so text doesn't jump */
 	color-scheme: light;
 }
@@ -30,11 +33,11 @@ html[data-theme='dark'] {
 	--text: 232, 233, 236;
 	--muted: 150, 152, 158;
 	--border: 52, 54, 60;
-	--accent: 124, 169, 255;
-	--brand: 34, 197, 94;
+	--accent: 76, 195, 138;     /* #4CC38A */
+	--brand: 76, 195, 138;
 	--subtle: rgba(255, 255, 255, 0.06);
-	--tab-line: 124, 169, 255;
-	--focus: 232, 233, 236;
+	--tab-line: 76, 195, 138;
+	--focus: 76, 195, 138;
 	--chip-bg: rgba(255, 255, 255, 0.06);
 	--chip-text: 150, 152, 158;
 	color-scheme: dark;

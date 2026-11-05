@@ -6,6 +6,38 @@ API. Newest first.
 
 ## 2026-11-05
 
+**Site: a cleaner, clearer look**
+- **The front page says what the site is.** A headline ("Technical
+  terminology you can trace to its source") and a line on what's in it;
+  under the search, the key numbers (sources, entries, multilingual
+  concepts, sentences of EU legislation) and three cards for the
+  Dictionary, EU legislation in context and the Articles; and "Try:"
+  example searches. Once you search, the results take their place near the
+  top of the screen, and they come back when the box is emptied. Search
+  links (?q=…, as SuperLookup uses) open straight on the results.
+- **One search bar.** The languages, the box and a Search button sit in one
+  bar. The search still runs as you type; the button or Enter runs it at
+  once and, on a phone, puts the keyboard away.
+- **Search options behind one button, on every screen.** The eleven
+  checkboxes that filled a line under the box are now behind an Options
+  button, grouped into Search in, Match and Only entries with. The button
+  sums up what is on ("terms only", "terms + definitions, exact match"),
+  in green when an option from an earlier visit is still on.
+- **One green.** Links, buttons, the active tab and labels now share one
+  bottle green instead of blue links and two greens (a lighter green in
+  dark mode).
+- **Readable source names.** Result chips say "Microsoft", "IATE" or
+  "Joost de Vree" instead of codes in capitals ("MICROSOFT-TERMINOLOGY"),
+  with the full title in the tooltip; the Sources page shows the same
+  names. Subjects are in normal case ("Building and public works").
+- **Headwords in a serif.** Headwords on results and article titles are set
+  in Source Serif, like a printed dictionary; everything else stays in
+  Inter.
+- **Tidier header and footer.** The dark-mode button is a line icon, the
+  "MB" button is gone (the footer links to beijer.uk), and the footer links
+  are plain text rather than buttons. Each results tab shows its number in
+  a small pill.
+
 **Site and search API**
 - **EU legislation in six languages.** The EU legislation tab now works
   between any two of English, Dutch, French, German, Italian and Spanish

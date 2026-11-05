@@ -17,19 +17,37 @@
 	line-height: 1.6;
 	max-width: 46em;
 }
-/* Home page: no visible title (the header wordmark is the brand), so the
-   tagline opens the page as a slightly larger lead line. */
+/* Results mode (see setExplore in index.astro): once something is searched,
+   the results take the place of the headline, the "Try:" searches and the
+   front-page sections, and come back when the box is emptied. */
+html.bt-searching .wb-hero--home,
+html.bt-searching #wb-try,
+html.bt-searching #wb-explore { display: none; }
+/* In results mode the search bar opens the page. */
+html.bt-searching .wb-hero--home + .wb-view { margin-top: 0; }
+html.bt-searching .wb-hero--home + .wb-view > .wb-search { margin-top: 0; }
+
+/* Home page: a headline saying what the site is, then a lead line. */
 .wb-hero--home {
-	margin-top: 0;
+	margin: 0.4em 0 1.8em;
+}
+.wb-hero--home .wb-home-title {
+	max-width: 19em;
+	font-size: 2.3em;
+	line-height: 1.12;
+	letter-spacing: -0.025em;
+	margin-bottom: 0.4em;
 }
 .wb-hero--home .wb-tag {
-	font-size: 1.1em;
+	font-size: 1.05em;
+	max-width: 40em;
 }
-/* Phones: the lead line at normal size and less space around it, so the
-   search box and the first result sit higher on the screen. */
+/* Phones: a smaller headline and no lead line, so the search box and the
+   first result sit as high on the screen as before the headline came. */
 @media (max-width: 640px) {
-	.wb-hero--home { margin-bottom: 1.2em; }
-	.wb-hero--home .wb-tag { font-size: 1em; }
+	.wb-hero--home { margin-bottom: 1em; }
+	.wb-hero--home .wb-home-title { font-size: 1.45em; margin-bottom: 0; }
+	.wb-hero--home .wb-tag { display: none; }
 	.wb-hero--home + .wb-view,
 	.wb-hero--home + .wb-view > .wb-search { margin-top: 0; }
 }
@@ -119,7 +137,7 @@
 .wb-results {
 	margin-top: 1.2em;
 	border: 1px solid rgb(var(--border));
-	border-radius: 8px;
+	border-radius: 12px;
 	overflow: hidden;
 	background: rgb(var(--surface));
 }
@@ -164,17 +182,19 @@
 	padding: 0.12em 0.5em;
 	border-radius: 999px;
 }
+/* Dark mode's green is light, so text on it is dark (white would be 2:1). */
+html[data-theme='dark'] .wb-article-badge,
+html[data-theme='dark'] .to-top { color: #0d1f16; }
 .wb-article-chip {
-	font-size: 0.68em;
+	font-size: 0.72em;
 	color: rgb(var(--muted));
 	border: 1px solid rgb(var(--border));
 	border-radius: 999px;
-	padding: 0.06em 0.5em;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
+	padding: 0.06em 0.55em;
 }
 .wb-article-title {
-	font-size: 1.05em;
+	font-family: var(--serif);
+	font-size: 1.15em;
 	font-weight: 600;
 	color: rgb(var(--text));
 }
@@ -184,11 +204,20 @@
 	color: rgb(var(--muted));
 	line-height: 1.5;
 }
+/* Headwords in the book serif, as in a printed dictionary. */
 .wb-headword {
-	font-size: 1.05em;
+	font-family: var(--serif);
+	font-size: 1.2em;
 	font-weight: 600;
+	line-height: 1.3;
 	color: rgb(var(--text));
 }
+/* The labels beside a headword (qualifier, abbreviation, badges) stay in the
+   interface font; only the term itself, highlight included, is serif. */
+.wb-headword .qual,
+.wb-headword .wb-abbr,
+.wb-headword .wb-pref,
+.wb-headword .wb-concept-badge { font-family: var(--font); }
 .wb-headword .qual {
 	font-weight: 400;
 	color: rgb(var(--muted));
@@ -267,9 +296,7 @@
 	   card on its own, so nowrap here pushed it past the edge. Only the chips
 	   themselves must stay unbroken. */
 	white-space: normal;
-	font-size: 0.82em;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	font-size: 0.8em;
 }
 .wb-prov-dom {
 	color: rgb(var(--muted));
@@ -338,9 +365,7 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 }
 .wb-def-prov {
 	margin-top: 0.3em;
-	font-size: 0.7em;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
+	font-size: 0.78em;
 	color: rgb(var(--muted));
 }
 .wb-def-more {
@@ -412,22 +437,20 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	font-style: italic;
 	opacity: 0.8;
 }
+/* Subject and source under a card, in sentence case ("Building · Joost de
+   Vree"): labels to read, not shouted metadata. */
 .wb-card-meta {
 	margin-top: 0.5em;
-	font-size: 0.7em;
+	font-size: 0.78em;
 	color: rgb(var(--muted));
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
 }
 /* Pills/chips appear both in the card-level meta row and in per-line
    provenance (.wb-prov), so these are scoped to the whole card. */
 .wb-card .pill {
 	display: inline-block;
-	/* line-height:1 makes the line-box hug the text; a small top>bottom bias
-	   optically centres the descenderless all-caps labels. Values dialled in
-	   against the live render (pill ≈ 21px tall for ~12px of cap ink). */
-	padding: 0.22em 0.6em 0.14em;
-	line-height: 1;
+	/* Names in normal case now, with descenders, so the padding is even. */
+	padding: 0.18em 0.65em;
+	line-height: 1.2;
 	vertical-align: middle;
 	/* text-indent is inherited; the sense-lines set it negative for their hanging
 	   indent, which would otherwise drag the pill's own text out past its left
@@ -436,7 +459,7 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
 	margin-right: 0.3em;
-	font-weight: 600;
+	font-weight: 500;
 	background: var(--chip-bg);
 }
 /* Source chip in a result card → a link to that source on /sources. */
@@ -607,10 +630,21 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	color: rgb(var(--text));
 	border-bottom-color: rgb(var(--tab-line));
 }
+/* Each tab's number in a small pill, green on the open tab. */
 .wb-tab-n {
-	margin-left: 0.4em;
-	font-weight: 400;
-	color: rgb(var(--muted));
+	margin-left: 0.5em;
+	padding: 0.05em 0.6em;
+	border-radius: 999px;
+	background: var(--chip-bg);
+	color: rgb(var(--chip-text));
+	font-size: 0.85em;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+.wb-tab-n:empty { display: none; }
+.wb-tab[aria-selected='true'] .wb-tab-n {
+	background: rgba(var(--accent), 0.13);
+	color: rgb(var(--accent));
 }
 .wb-tabs:not([hidden]) ~ .wb-results,
 .wb-tabs:not([hidden]) ~ .wb-eu { margin-top: 0.8em; }
@@ -705,34 +739,30 @@ html[data-theme='dark'] .wb-srcblock + .wb-srcblock {
 	color: rgb(var(--muted));
 }
 
+/* Footer links: plain text, not buttons (the menu in the header is the
+   navigation; these are a quiet repeat of it). */
 .site-foot-links {
-	margin-top: 1em;
+	margin-top: 0.9em;
 	display: flex;
-	gap: 0.5em;
+	gap: 0.4em 1.4em;
 	flex-wrap: wrap;
 }
 .site-foot-links a {
 	display: inline-block;
-	padding: 0.4em 0.95em;
-	border: 1px solid rgb(var(--border));
-	border-radius: 8px;
+	padding: 0.2em 0;
 	color: rgb(var(--muted));
-	font-size: 0.9em;
 	font-weight: 600;
 	text-decoration: none;
 }
 .site-foot-links a:hover {
 	color: rgb(var(--text));
-	border-color: rgb(var(--text));
-	text-decoration: none;
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 /* [hidden] must win over the inline-block above. */
 .site-foot-links a[hidden] { display: none; }
-/* Owner-only Admin button: lighter + dashed, visually set apart. */
-.site-foot-links a.admin-link {
-	border-style: dashed;
-	opacity: 0.6;
-}
+/* Owner-only Admin link: dimmer, set apart. */
+.site-foot-links a.admin-link { opacity: 0.6; }
 .site-foot-links a.admin-link:hover { opacity: 1; }
 
 /* Full sources table — all metadata at a glance. */
@@ -789,16 +819,14 @@ table.wb-sources-table {
 	display: block;
 	width: fit-content;
 	margin-top: 0.3em;
-	padding: 0.2em 0.6em 0.12em;
+	padding: 0.15em 0.6em;
 	border: 1px solid rgb(var(--border));
 	border-radius: 99px;
 	background: var(--chip-bg);
 	color: rgb(var(--chip-text));
-	font-size: 0.7em;
-	font-weight: 600;
+	font-size: 0.75em;
+	font-weight: 500;
 	line-height: 1.2;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
 }
 #wb-detail-body .wb-src-chip { margin: 0 0 0.6em; }
 .wb-sources-table tr.clickable { cursor: pointer; }
