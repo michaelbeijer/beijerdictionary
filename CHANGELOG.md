@@ -4,6 +4,18 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-11-06
+
+**Sources added**
+- Common Procurement Vocabulary (CPV 2008), the EU's codes for public
+  procurement: 10,357 concepts in English, Dutch, German, French, Italian and
+  Spanish, each with its CPV code, plus 16 extra synonyms from Michael's own
+  CPV glossary ("potato chips (US)" beside "potato crisps").
+- ESCO, the EU's classification of occupations and skills (version 1.2.1):
+  2,938 occupations, with the male and female forms where a language has
+  them (Schweißer, Schweißerin), and 2,901 fields of knowledge, in the same
+  six languages.
+
 ## 2026-11-05
 
 **Site: a cleaner, clearer look**
