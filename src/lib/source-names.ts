@@ -4,6 +4,7 @@
 // here falls back to its slug, so a newly imported source still shows; add it
 // here to give it a proper name.
 export const SOURCE_NAMES: Record<string, string> = {
+	'aat': 'Getty AAT',
 	'airgloss': 'AIRGLOSS',
 	'annual-reports': 'Annual Reports Glossary',
 	'beijer-dictionary': 'Beijer Dictionary',

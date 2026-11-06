@@ -15,6 +15,14 @@ API. Newest first.
   2,938 occupations, with the male and female forms where a language has
   them (Schweißer, Schweißerin), and 2,901 fields of knowledge, in the same
   six languages.
+- The Getty's Art & Architecture Thesaurus (AAT): 51,757 concepts for
+  architecture, building components, materials, tools and equipment,
+  furnishings, techniques and styles, with terms in at least two of the six
+  languages (42,838 with Dutch, 30,424 with Spanish, 18,036 with French).
+  The preferred term comes first, often plural as the AAT has it ("dakgoten",
+  then "dakgoot"), then synonyms; most have an English definition, and the
+  Dutch one is in the notes. Each card links to its page at the Getty, which
+  credits the sources of every term. Licence ODC-By 1.0.
 
 **Site**
 - **The summary for AI tools is current again.** beijerdictionary.com/llms.txt

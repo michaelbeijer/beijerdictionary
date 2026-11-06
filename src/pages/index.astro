@@ -547,7 +547,9 @@ const subjectCount = new Set(articleIndex.map((a) => a.domain).filter(Boolean)).
 	function refLabel(url) {
 		try {
 			const h = new URL(url).hostname.replace(/^www\./, '');
-			return /eur-lex\.europa\.eu$/i.test(h) ? 'EUR-Lex' : h;
+			if (/eur-lex\.europa\.eu$/i.test(h)) return 'EUR-Lex';
+			if (/^vocab\.getty\.edu$/i.test(h)) return 'Getty';
+			return h;
 		} catch { return 'link'; }
 	}
 	const refChip = (u) =>
@@ -777,6 +779,8 @@ const subjectCount = new Set(articleIndex.map((a) => a.domain).filter(Boolean)).
 	// tools/prep_eurovoc.py (private repo) puts first. In the other multilingual
 	// sources the first term is only the first one listed (André Fairchild's
 	// first Dutch word for "abandon" is "afstand doen"), so nothing is marked.
+	// Not the Getty AAT: its first term is the preferred one, except where a
+	// language has only synonyms (18% of its Italian, 2-5% of the others).
 	const PREFERRED_FIRST = new Set(['eurovoc']);
 
 	// Like an entry, a concept belongs in a direction only if it has a term in
