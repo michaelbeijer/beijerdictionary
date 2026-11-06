@@ -121,7 +121,7 @@ def main():
         "> multilingual terminology site for technical translators, Dutch–English",
         f"> at heart: {counts['entries']:,} term pairs and {counts['concepts']:,}"
         " multilingual concepts",
-        f"> from {counts['sources']} glossaries, termbases and EU vocabularies,"
+        f"> from {counts['sources']} glossaries, termbases and thesauri,"
         " built over 30+ years",
         "> of patent and technical translation.",
         "",

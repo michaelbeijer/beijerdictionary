@@ -42,12 +42,12 @@ export const GET: APIRoute = async ({ site }) => {
 		...(counts
 			? [
 					`> Dutch–English at heart: ${n(counts.entries)} term pairs and ${n(counts.concepts)}`,
-					`> multilingual concepts from ${counts.sources} glossaries, termbases and EU`,
-					'> vocabularies, in English, Dutch, German, French, Italian and Spanish,',
+					`> multilingual concepts from ${counts.sources} glossaries, termbases and`,
+					'> thesauri, in English, Dutch, German, French, Italian and Spanish,',
 				]
 			: [
 					'> Dutch–English at heart: term pairs and multilingual concepts from',
-					'> glossaries, termbases and EU vocabularies, in English, Dutch, German,',
+					'> glossaries, termbases and thesauri, in English, Dutch, German,',
 					'> French, Italian and Spanish,',
 				]),
 		'> built over 30+ years of patent and technical translation. Searches between',
