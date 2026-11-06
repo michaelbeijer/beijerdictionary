@@ -19,6 +19,7 @@ export const SOURCE_NAMES: Record<string, string> = {
 	'eu-legislation': 'EU Legislation Glossary',
 	'eu-legislation-en': 'EU Legislation Glossary (EN)',
 	'eurovoc': 'EuroVoc',
+	'gemet': 'GEMET',
 	'iate-abbreviations': 'IATE abbreviations',
 	'iate-acronyms': 'IATE acronyms',
 	'iate-acronyms-nl': 'IATE acronyms (NL)',

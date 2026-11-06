@@ -549,6 +549,7 @@ const subjectCount = new Set(articleIndex.map((a) => a.domain).filter(Boolean)).
 			const h = new URL(url).hostname.replace(/^www\./, '');
 			if (/eur-lex\.europa\.eu$/i.test(h)) return 'EUR-Lex';
 			if (/^vocab\.getty\.edu$/i.test(h)) return 'Getty';
+			if (/^eionet\.europa\.eu$/i.test(h)) return 'EEA';
 			return h;
 		} catch { return 'link'; }
 	}

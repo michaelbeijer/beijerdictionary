@@ -23,6 +23,12 @@ API. Newest first.
   then "dakgoot"), then synonyms; most have an English definition, and the
   Dutch one is in the notes. Each card links to its page at the Getty, which
   credits the sources of every term. Licence ODC-By 1.0.
+- GEMET, the European Environment Agency's General Multilingual
+  Environmental Thesaurus (version 4.2.3, the current release): 5,352
+  concepts on pollution, waste, water, air, soil, energy, nature and
+  environmental policy, nearly all in all six languages, most with an
+  English definition. The subject is the concept's GEMET themes ("waste /
+  water"), and each card links to the concept at the EEA. Licence CC BY 4.0.
 
 **Site**
 - **The summary for AI tools is current again.** beijerdictionary.com/llms.txt
