@@ -2,8 +2,8 @@
 
 > Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's
 > multilingual terminology site for technical translators, Dutch–English
-> at heart: 1,277,189 term pairs and 78,834 multilingual concepts
-> from 36 glossaries, termbases and thesauri, built over 30+ years
+> at heart: 1,277,189 term pairs and 84,186 multilingual concepts
+> from 37 glossaries, termbases and thesauri, built over 30+ years
 > of patent and technical translation.
 
 This file contains a REPRESENTATIVE SAMPLE, not the full database:
@@ -51,6 +51,7 @@ https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).
 - Common Procurement Vocabulary (CPV 2008) — 10,357 concepts, 62,173 terms (English, Dutch, German, French, Italian, Spanish)
 - EuroVoc — the EU's multilingual thesaurus — 7,436 concepts, 86,092 terms (Dutch, English, German, French, Spanish)
 - ESCO – European Skills, Competences, Qualifications and Occupations — 5,839 concepts, 44,377 terms (English, Dutch, German, French, Italian, Spanish)
+- GEMET – General Multilingual Environmental Thesaurus — 5,352 concepts, 32,204 terms (English, Dutch, German, French, Italian, Spanish)
 - Textile Glossary (Dutch, English, German, French) — 1,999 concepts, 11,075 terms (Dutch, English, German, French)
 - Multilingual Criminological Terms (compiled by Jaap de Waard) — 680 concepts, 2,661 terms (Dutch, English, French, German)
 - VVT Terminologielijst 2024 — vertalingen (verticaal transport) — 379 concepts, 2,055 terms (Dutch, English, German, French)
