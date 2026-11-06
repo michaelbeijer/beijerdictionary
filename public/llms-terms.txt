@@ -1,206 +1,225 @@
 # Beijer Dictionary – curated terminology sample
 
-> Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English
-> terminology site: a searchable database of 1,895,252 term pairs from 27 sources,
-> built over 30+ years of patent and technical translation.
+> Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's
+> multilingual terminology site for technical translators, Dutch–English
+> at heart: 1,277,189 term pairs and 27,077 multilingual concepts
+> from 35 glossaries, termbases and EU vocabularies, built over 30+ years
+> of patent and technical translation.
 
 This file contains a REPRESENTATIVE SAMPLE, not the full database:
-~1000 entries from Michael's own Beijer Dictionary and
-~100 from the permissively licensed ERA Railway Terminology
-Collection. Other indexed sources are catalogued below by name only –
-their content is not republished here for copyright reasons. For real
-lookups, use the search at https://beijerdictionary.com/.
+996 entries from Michael's own Beijer Dictionary. The other
+sources are catalogued below by name only – their content is not
+republished here, for copyright reasons. For real
+lookups, use the search at https://beijerdictionary.com/ (a link such as
+https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).
 
-## Source catalogue (entry counts)
+## Source catalogue
 
-- EuroVoc — the EU's multilingual thesaurus — 600,607 entries
-- IATE Dutch-English termbase — 561,129 entries
-- Beijer Dictionary – Dutch–English Technical Dictionary — 497,336 entries
-- Jakob Vlietstra – Technical Glossary (Dutch-English) — 43,197 entries
-- Terminologie Financieel Management (Dutch-English) — 35,117 entries
-- Microsoft Terminology Collection (Dutch-English) — 30,352 entries
-- IATE abbreviations (Dutch-English) — 27,940 entries
-- Textile Glossary (Dutch, English, German, French) — 22,111 entries
-- Dutch-English Online Dictionary — 19,349 entries
-- Dutch-English Construction Terms (joostdevree.nl) — 12,302 entries
-- IATE acronyms (Dutch) — 11,254 entries
-- EU Legislation Glossary (Dutch-English) — 10,492 entries
-- IATE acronyms (Dutch-English) — 10,315 entries
-- Wind Turbine Glossary (Dutch-English) — 7,908 entries
-- ERA Railway Terminology Collection — 5,527 entries
-- Statistics Glossary (Dutch-English) — 5,226 entries
-- VVT Terminologielijst 2024 — vertalingen (verticaal transport) — 4,149 entries
-- Dutch-English Medical Glossary — 1,834 entries
-- AIRGLOSS: Air Infiltration Glossary (English-Dutch/Nederlands-Engels) Supplement — 1,588 entries
-- Van Houtum woordenlijst (5-language technical glossary) — 1,217 entries
-- Construction Abbreviations (American English) — 1,126 entries
-- EU Legislation Glossary (English terms) — 1,099 entries
-- Dutch-English Legal Terms — 711 entries
-- Septic Tank & Wastewater Terminology — 191 entries
-- Annual Reports Glossary (Dutch-English) — 177 entries
-- VVT Terminologielijst 2024 — definities (verticaal transport) — 156 entries
-- Glossary of Conservation-Relevant Plant Species — 71 entries
+### Term-pair sources (entry counts)
 
-## Sample: Beijer Dictionary – Dutch–English Technical Dictionary (497,336 entries total)
+- IATE Dutch-English termbase — 561,848 entries (Dutch, English)
+- Beijer Dictionary – Dutch–English Technical Dictionary — 497,464 entries (Dutch, English)
+- Jakob Vlietstra – Technical Glossary (Dutch-English) — 43,226 entries (Dutch, English)
+- Terminologie Financieel Management (Dutch-English) — 35,684 entries (Dutch, English)
+- Microsoft Terminology Collection (Dutch-English) — 32,955 entries (Dutch, English)
+- IATE abbreviations (Dutch-English) — 27,970 entries (Dutch, English)
+- Dutch-English Online Dictionary — 19,386 entries (Dutch, English)
+- IATE acronyms (Dutch) — 16,708 entries (Dutch)
+- IATE acronyms (Dutch-English) — 15,631 entries (Dutch, English)
+- Dutch-English Construction Terms (joostdevree.nl) — 12,485 entries (Dutch, English)
+- EU Legislation Glossary (Dutch-English) — 10,504 entries (Dutch, English)
+- Wind Turbine Glossary (Dutch-English) — 8,138 entries (Dutch, English)
+- ERA Railway Terminology Collection — 7,800 entries (English)
+- Statistics Glossary (Dutch-English) — 5,242 entries (Dutch, English)
+- TU Delft terminologielijst (Dutch-English) — 2,680 entries (Dutch, English)
+- Nuffic Glossary (Dutch-English) — 2,015 entries (Dutch, English)
+- Dutch-English Medical Glossary — 1,834 entries (Dutch, English)
+- AIRGLOSS: Air Infiltration Glossary (English-Dutch/Nederlands-Engels) Supplement — 1,595 entries (Dutch, English)
+- Construction Abbreviations (American English) — 1,131 entries (English)
+- EU Legislation Glossary (English terms) — 1,103 entries (English)
+- Dutch-English Legal Terms — 741 entries (Dutch, English)
+- NICHE terminology list (English-French) — 572 entries (English, French)
+- Annual Reports Glossary (Dutch-English) — 228 entries (Dutch, English)
+- Septic Tank & Wastewater Terminology — 194 entries (English)
+- VVT Terminologielijst 2024 — definities (verticaal transport) — 161 entries (Dutch)
+- Glossary of Conservation-Relevant Plant Species — 71 entries (Latin, Dutch)
+- Nuffic Glossary (English terms) — 39 entries (English)
+
+### Multilingual sources (one concept per row, with its terms in each language)
+
+- Common Procurement Vocabulary (CPV 2008) — 10,357 concepts, 62,173 terms (English, Dutch, German, French, Italian, Spanish)
+- EuroVoc — the EU's multilingual thesaurus — 7,436 concepts, 86,092 terms (Dutch, English, German, French, Spanish)
+- ESCO – European Skills, Competences, Qualifications and Occupations — 5,839 concepts, 44,377 terms (English, Dutch, German, French, Italian, Spanish)
+- Textile Glossary (Dutch, English, German, French) — 1,999 concepts, 11,075 terms (Dutch, English, German, French)
+- Multilingual Criminological Terms (compiled by Jaap de Waard) — 680 concepts, 2,661 terms (Dutch, English, French, German)
+- VVT Terminologielijst 2024 — vertalingen (verticaal transport) — 379 concepts, 2,055 terms (Dutch, English, German, French)
+- Van Houtum woordenlijst (5-language technical glossary) — 237 concepts, 873 terms (Dutch, German, English, French, Spanish)
+- Blood Pressure Monitoring Glossary (EN-NL-DE-FR-ES-IT) — 150 concepts, 888 terms (English, Dutch, German, French, Spanish, Italian)
+
+### EU legislation in context (sentences, not dictionary entries)
+
+- DGT-TM: translation memory of EU legislation — 4,513,639 sentences (English, Dutch, French, German, Italian, Spanish)
+
+## Sample: Beijer Dictionary – Dutch–English Technical Dictionary (497,464 entries total)
 
 © Michael Beijer. Format: Dutch term = English term (domain).
 
-aal = eel
-rover = robber
-aanvallig = delightful
-afbuigstroom = deflection current
-afval = trash
-apenrots = primate house
-baggeren = wade
-begeleiding = assistance
-beslagen = good
-bijstoken = co-fuel
-bomen = quant
-brood = loaf
-cerviduct = wildlife passage(way)/tunnel
-constructie = design
-datadefinitiewoordenboek = data definition dictionary
-dieptewerking = depth
-doorratelen = rush on
-droogtransporteur = drying conveyor
-eerbiedwaardigheid = venerableness
-erfzonde = ↑ inborn tendency
-fijntrappen = tread fine
-functionele simulator = functional simulator
-geesteloos = vapid
-generatiewisseling = metagenesis
-gezichtsafstand = eyeshot
-gouverneur-generaal = governor-general
-haarkleurmiddel = hair-dye
-hartversterkertje = bracer
-histologie = histology
-houtstapel = (funeral) pile
-indagen = summon
-instituut = institution
-kaarsvet = tallow
-kerfnagel = guided drive-pin
-klemspanning = clamping stress
-koffiekransje = coffee klatsch
-kracht = force
-kwaliteit = superiority
-lasvorm = shape of a weld
-lichtschakering = chiaroscuro
-losse vlam = loose flame
-mallejan = timber wagon/truck
-melkkoe = gravy train
-missen = afford
-naamloze vennootschap = public limited company
-nierontsteking = inflammation of the kidney
-olieraffinaderij = oil refinery
-onderhoudsplicht = liability keep in (good) repair
-ontkurken = uncork
-opdweilen = swab up
-opwekking = raising
-paalkap = pole cover
-percuteren = percuss
-plastiek = model
-potgewas = pot plant
-puberen = arrive at (the age of) puberty
-rechtlijnige frequentiekarakteristiek = linear frequency curve
-reservefonds = reserve fund
-rolschelp = volute
-samengebonden = tied together
-schijf = (tax) bracket
-schutkolk = lock chamber
-sleets = worn
-snoepkraam ((Brits-Engels), (Amerikaans-Engels)) = sweets stall
-splitsen = splice
-stearinezuur = stearic acid
-storingsbereik = error range
-suppleren = make an additional payment/deposit
-telecommunicatiesatelliet = communications satellite
-toegankelijk = receptive
-trekpaal = tension pile
-uitgaand = return
-v.l.n.r. = from left to right
-verankering = establishing
-verlaging = cheapening
-vertolker = interpreter
-vlak gewelf = flat arch
-voorjaarsvakantie = spring
-waarachter = behind what/which
-watervlies = amnion
-wetsovertreding = (penal) offence
-zaadje = seed grain
-zilverbad = silvering bath
+aaien = stroke
+vergissing = error
+aanvalligheid = loveliness
+afchecken = check
+afval = swarf
+aperij = apery
+baggermengsel = dredge core composition
+begeleidingsverschijnsel = accompaniment
+beslechten = settle
+bijsturen = adjust
+bomkrater = (bomb) crater
+brooddeeg = dough
+cesuur = cut-off line/point
+constructiebankwerker = lathe operator
+datalijn = data line
+dieptreurig = (very) distressing
+doorreizen = traveling
+droogvloer = drying floor
+eerherstel = atonement
+erg = critical
+fijnzinnig = discerning
+fundament = fundament
+geestesgaven = mental power(s)
+generatorgas = producer gas
+gezichtshoek = point of view
+gps-navigatie = GPS navigation
+haarkrulset = (set of) heated rollers
+hashfunctie = hash function
+historiograaf = historian
+houtverduurzamingsmiddel = wood preserving agent
+indamptoestel = evaporating apparatus
+instraalhoek = angle of incidence
+kaartenetui = card case
+kerfvertanding = serration
+klemzitten = be jammed
+koffieproductie = coffee production
+krachtarm = power arm
+kwaliteitsborgingsgoedkeuringen = quality assurance approvals
+laten = get
+lichtsterkte = luminous intensity
+lossing = repayment
+malt = malt whiskey
+melkpap = milk porridge
+missnede = wrong cut
+naar = from
+niet constant = unstable
+olieschokbreker = oil damper
+onderhuids = subcutaneous
+ontladingsstand = discharging position
+opeenstapeling = pile-up
+opwerken = work one's way up
+paander = (shopping) basket
+perfidie = perfidiousness
+plastisch = shap(e)able
+potloodtekening = pencil drawing
+publicitair = advertising
+rechtsbeginsel = legal maxim
+reserveturbine = standby turbine
+roltrommelwagen = rotary drum vehicle
+samengestelde hypothese = composite hypothesis
+schijfgeheugen = disc memory
+schutter = goal-getter
+slepen = track
+snoes = darling
+spoedbestelling = express/special delivery
+steek = slot
+stormaanval = assault
+suppressief = lathe tool post
+telefoonbotje = funny/
+toegestaan = allowed
+treksluiting = zipper
+uitgangsdikte = initial thickness
+vaalgrijs = dun(-coloured)
+verarmen (arm(er) worden) = sink into poverty
+verlaten = forsaken
+vertraagd = slowing/slowed down
+vlakke kruk = flat crank
+voorkomen = incidence
+waarde = principle
+waterwingebied = water-collection area
+wettigen = justify
+zaagbladfreesmachine = saw-blade milling machine
+zilverplevier = grey plover
 .inf-bestand = .inf file (computing)
 addressering middels logische blokken = logical block addressing (computing)
 antivirussoftware = antivirus software (computing)
 beheerd serviceaccount = managed service account (computing)
 bigint = bigint (computing)
 cabinetbestand = cabinet file (computing)
-Configuratiescherm = Control Panel (computing)
+configuratieset = configuration set (computing)
 digitale id = Digital ID (computing)
 eigenschappenpagina = property page (computing)
-formuliersjabloon = form template (computing)
-gegevensfeed = data feed (computing)
-grammaticacontrole = grammar checker (computing)
-hubs trapsgewijs koppelen = cascading hubs (computing)
-intercompany-dimensie = intercompany dimension (computing)
-knipperende rand = moving border (computing)
-lokale gebruiker = local user (computing)
-multimodellenkoppeling = cross-model association (computing)
-OLE-container = OLE container (computing)
-opzoekveld = Lookup field (computing)
-portal-site = portal site (computing)
-rebinding-status = rebinding state (computing)
-samenwerkingsserviceprovider = collaboration service provider (computing)
-sjabloonknooppunt = template node (computing)
-statusbeleidsvalidatie = health policy validation (computing)
-Takenbalk = To-Do Bar (computing)
-toepassingsdatabase = application database (computing)
-vakmodus = boxed mode (computing)
-vertrouwensketen = chain of trust (computing)
-vooruitbetaling afgetrokken = prepayment amount deducted (computing)
-werkstroomoptie = workflow option (computing)
-aanmeldingstijd = login time (computing)
-achterwaarts bestandsherstel = backward file recovery (computing)
-afdrukkop = print head (computing)
-alineaformaat = paragraph format (computing)
-archiefbestand = archive (computing)
-automatiseringsmiddelen = automation resources (computing)
-beeldmodificatie = image editing (computing)
-beschermbaar = protectable (computing)
-beveiligingsprogrammatuur = security software (computing)
-bolkopprinter = spherical writing-head printer (computing)
-camcorder = camcorder (computing)
-collectorgebied = collector zone (computing)
-computerlogica = computer logic (computing)
-CRT-beeldbuis = cathode-ray tube (computing)
-detectiemodule = detection module (computing)
-draadgeheugen = plated-wire memory (computing)
-einde-bestand-code = EOF mark (computing)
-fiksen = fix (computing)
-gadgetplatform = gadget platform (computing)
+formuliersjabloonbestand = form template file (computing)
+gegevensgroep = data group (computing)
+grensindicatie = boundary feedback (computing)
+huidig gebied = current region (computing)
+intercompany-hoofdplan = intercompany master plan (computing)
+knippunten = trim points (computing)
+lokale groep = local group (computing)
+multimodellentoewijzing = cross-model mapping (computing)
+OLE-containerelement = OLE container control (computing)
+OR-beperking = OR constraint (computing)
+portfolio = portfolio (computing)
+rechtereinde = right end (computing)
+samplefrequentie = sampling rate (computing)
+sjabloononderdeel = template part (computing)
+statusberichteigenschap = status message property (computing)
+takenlijst = to-do list (computing)
+toepassingsdomeinhost = application domain host (computing)
+validatieformule = validation formula (computing)
+vertrouwenslicentie = trust license (computing)
+vooruitbetalingspercentage = prepayment percentage (computing)
+werkstroomregistratie = workflow registration (computing)
+aanmeldingsverzoek = logon request (computing)
+achterwaarts compatibel = downwards compatible (computing)
+afdrukmarge = print margin (computing)
+alineanummering = paragraph numbering (computing)
+archiefbit = archive bit (computing)
+automatiseringsproject = automation project (computing)
+beeldmodus = video mode (computing)
+beschermingsexceptie = protection exception (computing)
+beveiligingsrisico = vulnerability (computing)
+bom = logical bomb (computing)
+camcorder = camera recorder (computing)
+collectorgrenslaag = collector junction (computing)
+computermicrografie = computer micrographics (computing)
+CRT-scherm = CRT display (computing)
+detectievoortgang = detection progress (computing)
+draadloos beheer = wireless manager (computing)
+einde-blok = end of block (computing)
+fileserver = file server (computing)
+galerie met basispagina’s = master page gallery (computing)
 geheugenbankfoutenregister = memory bank error register (computing)
 getalteken = numeral (computing)
 herbetreedbaarheid = reentrancy (computing)
 implementeren = implement (computing)
 ingangspunt = entry point (computing)
 interruptiesignaal = interrupt request (computing)
-kaartsleuf = card slot (computing)
-kleurenscanner = color scanner (computing)
-lees-/schrijfcyclus = read/write cycle (computing)
-lokaliseren = localization (computing)
-mediaformaat = media format (computing)
-monospraakprocessor = mono-voice processor (computing)
-netwerkdienst = network service (computing)
-objectenbibliotheek = object library (computing)
-ontbrekend = missing (computing)
-oproeptijd = call time (computing)
-paneel = print panel (computing)
-platformonafhankelijkheid = platform independence (computing)
-probleemafhandeling = problem processing (computing)
-programmareferentietabel = program reference table (computing)
-rapportbestand = report file (computing)
-return = return (computing)
-Schottky-technologie = Schottky technology (computing)
-slakkenpost = snail mail (computing)
+kaartvalidatiecode = card validation code (computing)
+kleurintensiteit = color intensity (computing)
+lees-/schrijffout = read/write error (computing)
+lokaliseren van software = software localization (computing)
+mediafragment = media clip (computing)
+monospraaksysteem = mono-voice system (computing)
+netwerkexploitant = network carrier (computing)
+objectformaat = object size (computing)
+ontbrekend = omitted (computing)
+opschonen = clean up (computing)
+paneel = PCB (computing)
+PLD = programmable logic device (computing)
+probleemafhandeling = problem handling (computing)
+programmaregel = code line (computing)
+rapportnaam = report name (computing)
+return-toets = return key (computing)
+schrappen = delete (computing)
+slechtstegevalanalyse = worst-case analysis (computing)
 stamband = master tape (computing)
 stuurprogrammapad = driver path (computing)
 tablet-pc instellingen = tablet settings (computing)
@@ -460,89 +479,89 @@ yttriumfosfide = yttrium phosphide (chemical technology)
 zinkboraat = zinc borate (chemical technology)
 zirkoonhydroxide = zirconium hydroxide (chemical technology)
 zuurgraadbepaling = pH-determination (chemical technology)
-aansprakelijkheid voor milieuschade = environmental liability (environment)
-bodemconcentratie = ground level concentration (environment)
-invloed op het milieu = environmental impact (environment)
-plankton = plankton (environment)
-natuurbeschermingsgebied = nature reserve (environment)
-aanval = attack (environment)
-afbraakdestillatie = destructive distillation (environment)
-afschermmuur = acoustical barrier (environment)
-afvaldumpen = waste-tipping (environment)
-afvalopslagplaats = refuse storage area (environment)
-afvalverbrandingsoven = waste incinerating furnace (environment)
-afvalwater van metaaloppervlakveredeling = metal-finishing effluents (environment)
-afvoer van radioactieve afvalstoffen = active waste disposal (environment)
-algemeen aanvaarde norm = widely accepted standard (environment)
-approximatieve letale dosis = approximate lethal dosis (environment)
-aërobe afbraak = aerobic decomposition (environment)
-bebouwde structuur = urban structure (environment)
-belangrijk verontreinigingsmiddel = major pollutant (environment)
-beroep = profession (environment)
-beste milieutechnische optie = best practicable environmental option (environment)
-bezuiniging = saving on expenditure (environment)
-biocide = biocide (environment)
-biologisch afbreekbaar = biologically degradable (environment)
-biologische cyclus = biocycle (environment)
-bioon = bion (environment)
-bladstrooisel = plant litter (environment)
-bodemkunde = soil engineering (environment)
-boomrijk = arboreous (environment)
-boswetgeving = forestry legislation (environment)
-breekasfaltcement = crushed macadam (environment)
-candu-reactor = Candu reactor (environment)
-CFK-concentratie = CFC concentration (environment)
-chemotroof = chemotrophic (environment)
-cogeneratiesysteem = co-generation system (environment)
-conditioneringsproces = conditioning process (environment)
-cultureel erfgoed = cultural heritage (environment)
-cytosoom = cytosome (environment)
-detectielimiet = detection limit (environment)
-directkleurstoffen = direct dyes (environment)
-drijvend slib = floating sludge (environment)
-dun bevolkt = sparsely populated (environment)
-ecologie = ecology (environment)
-ecologische bestudering = ecological study (environment)
-ecostaat = ecostate (environment)
-eutectische temperatuur = eutectic temperature (environment)
-filterspoelen = filter washing (environment)
-galvanisch afvalwater = galvanic effluent (environment)
-geluidsmeting in woonwijk(en) = residential noise measurement (environment)
-gft-afval = putrescible waste (environment)
-grondgebonden verontreinigingsbron = land-based source of pollution (environment)
-homosfeer = homosphere (environment)
-industrieel effluent = industrial effluent (environment)
-isolatie: afzondering = isolation (environment)
-kringloopindustrie = reclamation industry (environment)
-landinrichtingsplan = country planning (environment)
-lawaaiverminderende opstijgprocedure = noise abatement climb procedure (environment)
-luchtmeting = aerometry (environment)
-magnetisch scheiden = magnetic separation (environment)
-mechanische behandeling = mechanical treatment (environment)
-meting van de luchtvervuiling = air pollution monitoring (environment)
-milieu-effectrapportage = environmental impact study (environment)
-milieubewustzijn verhogen = encourage environmental awareness (environment)
-milieukwaliteitssysteem = environmental quality system (environment)
-milieuverontreiniger = environmental pollutant (environment)
-myxomatose = myxomatosis (environment)
-natuurlijke leefomgeving = natural habitat (environment)
-NOx-afname = NOx reduction (environment)
-opgaand landschapselement = upward-growing landscape element (environment)
-ozonmeetnet = ozone monitoring network (environment)
-primaire bron = major source (environment)
-recycleerbaar materiaal = recyclable materiaal (environment)
-rookhinder = smoke nuisance (environment)
-scherfverwerking = cullet processing (environment)
-stadsvuilverwijdering = municipal refuse disposal (environment)
-stofmeting = particle measurement (environment)
-terugwinning van uitgewerkte olie = spent oil regeneration (environment)
-tropische (klimaat)omstandigheden = tropical conditions (environment)
-Valdez-principes = Valdez principles (environment)
-verontreiniging afkomstig van afzonderlijke bron = point-source pollution (environment)
-vervuilingstoestand = pollution state (environment)
-voedselschaarste = food shortage (environment)
-waterverkwisting = water wastage (environment)
-windenergie-installatie = wind-power plant (environment)
+bioreactor = bioreactor (environment)
+biotoop = habitat (environment)
+ecologische equivalentie = ecological equivalence (environment)
+Wet chemische afvalstoffen = Chemical Waste Act (environment)
+aardafschuiving = earth slip (environment)
+afbraakorganisme = decomposer (environment)
+afschrikpolitiek = policy of deterrence (environment)
+afvalgas = residual gas (environment)
+afvalopslagterrein = refuse storage site (environment)
+afvalverdichter = refuse compactor (environment)
+afvalwater van melkfabrieken = dairy wastewater (environment)
+afvoer van afwateringssysteem = outfall of drain system (environment)
+algemeen aanvaarde norm = generally accepted standard (environment)
+antikatalysator = stabilizer (environment)
+aërobe afbraak = aerobic degradation (environment)
+bebouwde structuur = urban fabric (environment)
+bel = pocket (environment)
+bermtoerisme = roadside picknicking (environment)
+best beschikbare techniek tegen aanvaardbare kosten = best available techniques not entailing excessive cost(s) (environment)
+bezinkingssnelheid = rate of sedimentation (environment)
+biochemische oceaanstroming = biochemical ocean flux (environment)
+biokatalysator = enzyme (environment)
+biologische bestrijding in de landbouw = biological control in agriculture (environment)
+biomeetsysteem = biomonitoring system (environment)
+biowetenschappen = life sciences (environment)
+bodemcultuur = soil cultivation (environment)
+bond = federation (environment)
+bossterfte = dieback (environment)
+brandstofverwerkingscentrale = fuel-processing plant (environment)
+calciumcarbonaatequivalent = neutralizing power (environment)
+Centrale Raad voor Milieuhygiëne = Central Council on Environmental Protection (environment)
+chemische wapens = chemical weapons (environment)
+CO2-uitstoot = CO2-emission (environment)
+concentratiegebied = zone of concentration (environment)
+crotonaldehyde = crotonaldehyde (environment)
+cycloonscrubber = cyclone spray (environment)
+desagglomeratie = desagglomeration (environment)
+dipool- = dipolar (environment)
+dor = arid (environment)
+druppel = droplet (environment)
+ecofact = ecofact (environment)
+ecologisch verdraagzaam = ecologically compatible (environment)
+ecoloog = naturalist (environment)
+energiezuinige apparaten = energy-efficient appliances (environment)
+fijnerts = ore dust (environment)
+fosfortoevoer = phosphorus input (environment)
+gedoogbeschikking = temporary exemption order (environment)
+gevaarlijk materiaal = dangerous material (environment)
+groei van plankton = plankton growth (environment)
+hernieuwbare hulpbronnen = renewable resources (environment)
+immissieniveau = immission limit (environment)
+interactie tussen mens en milieu = man-environment interaction (environment)
+koolmonoxidedebiet = carbon monoxide output (environment)
+Landbouwadviescommissie = Agricultural Advisory Committee (environment)
+langdurige blootstelling = long-term exposure (environment)
+lozen op zee = dumping at sea (environment)
+lyofobisch = lyophobic (environment)
+maximaal toelaatbare grens(waarde) = maximum allowable limit (environment)
+mesothelioom = mesothelioma (environment)
+mijnontwatering = mine dewatering (environment)
+milieubelasting = environmental impact (environment)
+milieugroep = ecology group (environment)
+milieuterrorist = ecoterrorist (environment)
+minder vervuilend voertuig = non-polluting vehicle (environment)
+natuurbeschermingsgebied = national park (environment)
+niet verontreinigd = unpolluted (environment)
+ongecontoleerde stortingen = phantom dumping (environment)
+organische verbindingen = organic compounds (environment)
+persistente stoffen = persistent substances (environment)
+puinwasslib = wash-sludge from demolition waste (environment)
+regeneratie van actieve koolstof = reactivation of activated carbon (environment)
+saproob organisme = saprobic organism (environment)
+silicomangaanslak = silicon manganese sludge (environment)
+sterke verontreiniging = high level of pollution (environment)
+stuurgrootheid = control indicator (environment)
+toezicht op het milieu = environmental monitoring (environment)
+uitgewerkte olie = waste oil (environment)
+verbetering = remediation (environment)
+verontreiniging van oppervlaktewateren = pollution of surface waters (environment)
+verwijdering = removal (environment)
+voorkoming van verontreiniging = prevention of pollution (environment)
+weerstand tegen milieueffecten = environmental resistance (environment)
+windpark = windpower farm (environment)
 A-raamwerkkering = A-frame dam (hydrology / civil engineering)
 aardbevingsduur = seismic duration (hydrology / civil engineering)
 afdichtingsdrukstuk = sealing gland (hydrology / civil engineering)
@@ -875,174 +894,169 @@ voorrangtoekenning = preemption (telecommunications / electronics)
 waarschuwingsontvanger = warning receiver (telecommunications / electronics)
 werkelijke overdrachtssnelheid = actual transfer ratio (telecommunications / electronics)
 wisselstroomweerstand = ac collector resistance (telecommunications / electronics)
-aandraaier = piecer (textiles)
-afgewerkt in = made in (textiles)
-afwikkelmachine = unwinding machine (textiles)
-arcadekoord = harness cord (textiles)
-ballonbegrenzer = balloon control ring (textiles)
-bijblazer = auxiliary nozzle (textiles)
-bobijner = bobbiner (textiles)
-bouclé = bouclé (textiles)
-breikop = bow (textiles)
-chloorvezel = chlorofibre (textiles)
-damast = damask (textiles)
-dompelrol = immersion roller (textiles)
-draadspanning = thread tension (textiles)
-dubbeldraaistwijnen = two-for-one-twisting (textiles)
-elastaan = elastane (textiles)
-fantasiebinding = figured weave (textiles)
-foutaanduiding = fault indication (textiles)
-garenspanner = thread tensioner (textiles)
-gesloten steek = closed stitch (textiles)
-gronddoek = carpet backing (textiles)
-hertorsen = retwist (textiles)
-inslag = filling (textiles)
-interlock = interlock fabric (textiles)
-kaardassortiment = cards set (textiles)
+aanbloeden = stain (textiles)
+aanverfbaarheid = dye affinity (textiles)
+afnemen = doff (textiles)
+alkalisch extraheren = boil off (textiles)
+appretproduct = chemical finishing agent (textiles)
+badstof = towelling (textiles)
+basse-lisse-weeftoestel = low warp loom (textiles)
+binding = weave (textiles)
+bobijner = winder (textiles)
+boord = border (textiles)
+breekverlenging = breaking elongation (textiles)
+cashgora = cashgora (textiles)
+conusscheermachine = cone warping machine (textiles)
+deelketting = back beam (textiles)
+doorhaalplan = drafting plan (textiles)
+draagweefsel = substrate (textiles)
+dubbeldraads twijnen = two-ply yarn (textiles)
+effen = single-coloured (textiles)
+extrusieafdeling = extrusion installation (textiles)
+foulard = padder (textiles)
+garenlengte = yarn length (textiles)
+gazeermachine = singeing machine (textiles)
+glassmelt = glass melt (textiles)
+grondkruising = ground of fancy cloth (textiles)
+heat-setting = heat-setting (textiles)
+huishoudtextiel = household linen (textiles)
+inslaginbrengsysteem = weft insertion system (textiles)
+inwevingsfactor = working-in (textiles)
+jutelaag = layer of jute (textiles)
+kaardetand = card teeth (textiles)
 kantdraad = selvedge thread (textiles)
-kettingbreisel = warp knit fabric (textiles)
-kleeflaag = glue film (textiles)
-knoop = nub (textiles)
-krip = crêpe (textiles)
-lamel = lamella (textiles)
-linters = linters (textiles)
-lussentapijt = loop pile carpet (textiles)
-meeloper = back grey (textiles)
-motief = motif (textiles)
-natspinnen = wet spinning (textiles)
-nopjeseffect = knop effect (textiles)
-onttwijnen = untwist (textiles)
-oververven = cross-dye (textiles)
-platine = lifter (textiles)
-poolgarenboom = pile warp beam (textiles)
-PVC-vezel = chlorofibre (textiles)
-rechtse steek = face stitch (textiles)
-rijgplan = entering plan (textiles)
-satijngetal = satin number (textiles)
-schrankstok = lease bar (textiles)
-smeltbalk = spinning beam (textiles)
-spinbalk = bushing (textiles)
-spinvloeistof = fibrous material (textiles)
-stapellengte = staple length (textiles)
-stockeren = stock (textiles)
-strijken = iron (textiles)
-tempelhuis = temple cover (textiles)
-tongnaald = tongue needle (textiles)
-tuftpistool = tufting gun (textiles)
-uitputtingsgraad = exhaustion degree (textiles)
-veiligheidshandschoen = safety glove (textiles)
-verfkeuken = dye kitchen (textiles)
-vertangelen = entangling (textiles)
-vezelfijnheid = fineness (textiles)
-visiteertafel = control table (textiles)
-vlokkerig = flock-like (textiles)
-voorgarenbreuk = roving breakage (textiles)
-warpen = warp (textiles)
-weefselboom = warp beam (textiles)
-wiekgeleider = roving guide (textiles)
-Z-twist = Z-twist (textiles)
-zwierder = hydroextractor (textiles)
-appreteren = finish (textiles)
-blamier = layering unit (textiles)
-drijfkoord = picking cord (textiles)
-grondbinding = ground weave (textiles)
-jaarlingwol = first year’s wool (textiles)
-kabelpatroon = cable pattern (textiles)
-katoenen stof = cotton cloth (textiles)
-katoenwaren = cotton fabrics (textiles)
-kruismaat = gauge (textiles)
-mickey-mouse = eccentric sheave (textiles)
-ooiwol = sheep’s wool (textiles)
-ruitkeper = diamond twill (textiles)
-spoel = bobbin (textiles)
-tapisseriewerk = tapestry (textiles)
-vetvlek = grease patch (textiles)
-walsdruk = cylinder printing (textiles)
+katoenbouw = cotton cultivation (textiles)
+katoenmachine = cotton covering machine (textiles)
+keperbinding = twill weave (textiles)
+keukenhanddoek = kitchen towel (textiles)
+kleurstofkaart = shade card (textiles)
+knopen = net (textiles)
+kruisbobijn = cone (textiles)
+ladearm = lathe arm (textiles)
+lignopectine = pectin (textiles)
+lontwachter = sliver stop motion (textiles)
+manchester = cord velvet (textiles)
+merceriseerechtheid = fastness to mercerisation (textiles)
+molekuulketen = molecular chain (textiles)
+naaldplaat = needle plate (textiles)
+negge = selvedge (textiles)
+onderwinding = underwinding (textiles)
+ontwerpen = design (textiles)
+overtorsie = overtwisting (textiles)
+piama = pyjamas (textiles)
+polyprop = polypropylene fibre (textiles)
+precisiewinding = constant pitch winding (textiles)
+rakkoord = repeat of pattern (textiles)
+repelen = ripple (textiles)
+ringspinnerij = ring spinning mill (textiles)
+schachtapparaat = dobbyloom (textiles)
+schilderdoek = canvas (textiles)
+slaan = cast off (textiles)
+sonnette = marking thread (textiles)
+spinextruder = spin extruder (textiles)
+splicen = splicing (textiles)
+staal = sample (textiles)
+sterktrog = sizing trough (textiles)
+stopstand = mending table (textiles)
+T-shirt = T-shirt (textiles)
+tempelscheur = temple rip (textiles)
+toevoegvat = dosaging vat (textiles)
+tubing = tubing (textiles)
+twist = twist (textiles)
+uitwassen = launder (textiles)
+verdeelplank = divider plate (textiles)
+verftijd = dyeing time (textiles)
+vervilten = milling (textiles)
+vezellengte = length of fibre (textiles)
+visiteertafel = inspection table (textiles)
+vliesreiniger = web clearer (textiles)
+voeringlaken = lining cloth (textiles)
+voortrommel = breast roller (textiles)
+warpketting = warp (textiles)
+weefproces = weaving process (textiles)
+weefspanner = templet (textiles)
+witschade = chalking (textiles)
+worgrol = condensing roll (textiles)
 aanbiedingsprijs = offered price (building)
-aansluitvorst = hip tile (building)
-afdektegel = coping brick (building)
-afvloeiingsdiagram = hydrograph (building)
-bezoding = sodding (building)
+aanvullingsgrond = fill (building)
+afdekplastic = plastic sheet (building)
+afstrijklat = lute (building)
+bezinkingsmaterialen = ballasting materials (building)
 bodemruwheid = bed roughness (building)
-bouwinspecteur = building inspector (building)
-cementbrij = grout (building)
-dagmaat = clear width (building)
-funderingsplaat = sole plate (building)
-injectie = grouting (building)
-kubuskapiteel = cushion capital (building)
-ogief = ogive (building)
-rozet = rosette (building)
-stootvoeg = head joint (building)
-voegwerk = pointing (building)
-aanbinder = strap (building)
-aanlegbreedte = base thickness (building)
-aanslag = rabbeted stop (building)
-aardbevingstechniek = antiseismic engineering (building)
-achtergevel = rear wall (building)
-afdak = sloping roof (building)
-afkant = edge (building)
-afsplinteren = chip (building)
-akoestische specifieke golfweerstand = specific acoustic impedance (building)
-baksteenbekleding = masonry veneer (building)
-balklaag = supporting wall (building)
+bouwfase = stage of construction (building)
+cementbrij = cement slurry (building)
+cementvloer = cement floor (building)
+gedrongen bouw = compact construction (building)
+invallen = incide (building)
+metselaar = mason (building)
+plankendeur = batten door (building)
+slijtlaag = wearing course (building)
+verhoogde boog = stilted arch (building)
+aanbouw = outhouse (building)
+aanloop = springing (building)
+aanslag = support of a gate (building)
+aardboog = dry arch (building)
+achtergevel = rear view (building)
+afdak = cantilever roof (building)
+afknotten = chamfer (building)
+afstandhouder = separator (building)
+aluminiumfacade = aluminium front (building)
+balk = girder (building)
+balkligger = joist (building)
 bekistingsplaat = sheathing board (building)
-betonstaalvlechter = bar-bender (building)
-binnenblad = inner leaf (building)
-bodemfiltratie = bed filtration (building)
-boordvorzieningen = bank protection works (building)
-bouwfonds = building association (building)
-bouwplaats = construction site (building)
-brandvertragend = fire-retardant (building)
-buitenvlak = outer face (building)
-cellenbetonblok = aercrete block (building)
-contactgeluid = impact sound (building)
-dakdekker = shingler (building)
-dakkraan = roof crane (building)
-dakproef = roof test (building)
-dakterras = roof-top terrace (building)
-detaillering = working details (building)
-draaivenster = tiltable window (building)
-elektrische drainage = drying out walls by electro-osmosis (building)
-fundamentdiepte = depth of foundation (building)
-funderingslaag = road base (building)
-geboorte = skewback (building)
-gevelmuur = facade (building)
-gotische boog = Gothic arch (building)
-halfsteensverband = stretcher bond (building)
-hoekkolom = corner column (building)
-in de grond gevormd = cast in place (building)
-installatie-oppervlakte = mechanical area (building)
-kantplank = guard board (building)
-kinderbalk = bridging joist (building)
-koud tegen elkaar = square joint (building)
-lampfitting = bulb socket (building)
-lessenaarsdak = skillion roof (building)
-membraan = skin (building)
-muurafdekking = wall coping (building)
-nokconstructie = ridge (building)
-ongepleisterd = unplastered (building)
-opperman = builder’s labourer (building)
-parellijst = bead and dart moulding (building)
-potdekselen = lap siding (building)
-randbekisting = edge formwork (building)
-renovatie = restoration (building)
-roosterdeksel = grate cover (building)
-scheidingsconstructie = partition (building)
-schoorpaal = shoring pole (building)
-skelet = supporting frame (building)
-sociale woning = subsidized housing (building)
-staande felsverbinding = elbow seam (building)
-steunbalk = shore (building)
-teerholte = pitch pocket (building)
-U-balk = U-beam (building)
-vakwerkboog = arched brace (building)
-vensterglas = glazing pane (building)
-veranderlijke belasting = imposed load (building)
-vierkant bezaagd hout = squared timber (building)
-vormleer = theory of form(s) (building)
+betonspuitinstallatie = air placer (building)
+binnenafwerking = inside trim (building)
+blokkeringsmechanisme = locking device (building)
+boogtrommel = tympanum (building)
+bouwelement = assembly part (building)
+bouwmuur = load-bearing wall (building)
+bovenpan = course tile (building)
+buitendeur = back door (building)
+castiglianomethode = Castigliano principle (building)
+cementplint = base course (building)
+dakconstructie = roof construction (building)
+dakhuid = outer roofing layer (building)
+dakpanvormig = tegular (building)
+dakspantverbinding = purlin (building)
+dekpan = covering tile (building)
+draagbalk = support beam (building)
+dwarslat = cross-latch (building)
+facade = facing wall (building)
+funderen = found (building)
+galon = ornamental ribbon (building)
+geschaafde en geploegde delen = tongued and grooved boards (building)
+glijbekisting = sliding formwork (building)
+grondvest = basement (building)
+helm = hard hat (building)
+hoofdtrap = main staircase (building)
+infiltratieverlies = heat loss by infiltration (building)
+jalon = nail stake (building)
+kegeldak = conical roof (building)
+koepelbouw = cupola construction (building)
+kruisbalk = traverse (building)
+lattenstucwerk = lath and plasterwork (building)
+loden dakbekleding = lead roofing (building)
+metselkalk = mortar (building)
+natte cel = wet cell (building)
+NVO = NFA (building)
+ontwikkelaar = project developer (building)
+opvulsel = infill (building)
+pijlerwand = buttress wall (building)
+proefkube = test cube (building)
+rasterwerk = lattice work (building)
+revisietekening = as-built drawing (building)
+ruiter = ridge board (building)
+scheidingswand = wall partition (building)
+schroot = lath (building)
+slakkenmeel = fine slag (building)
+solide = solid (building)
+staartbalk = tail joist (building)
+steunwand = sheeting (building)
+tengelband = lath strap (building)
+U-balk = channel steel (building)
+vakwerkelement = truss element (building)
+venstergrendel = window bolt (building)
+verbindingsbalk = cross beam (building)
+vierkant bezaagd hout = rectangular timber (building)
+vorst = ridge (building)
 welfdak = vaulted roof (building)
-
-## Sample: ERA Railway Terminology Collection (5,527 entries total)
-
-© European Union Agency for Railways, reused with attribution.
-

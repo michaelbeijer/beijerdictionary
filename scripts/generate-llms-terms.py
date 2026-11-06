@@ -4,29 +4,42 @@ for AI agents.
 
 Reads the local Wordbook database (D:\\SynologyDrive\\Dev\\beijerterm-database\\data\\
 wordbook.db – NOT available in CI, which is why the output is committed)
-and writes a copyright-clean subset:
+and the live search API's /meta, and writes a copyright-clean subset:
 
-  * a catalogue of ALL sources with entry counts (titles and counts are
-    facts – no third-party content is republished);
+  * a catalogue of ALL sources with their counts, taken from /meta so the
+    numbers are the ones the site shows (the master store counts the pairs
+    behind multilingual sources too, which the site shows as concepts);
+    titles and counts are facts – no third-party content is republished;
   * ~1,000 entries sampled from the "Beijer Dictionary – Dutch–English Technical
     Dictionary" source ONLY (Michael's own work, his copyright),
-    stratified across subject domains;
-  * ~100 entries from the ERA Railway Terminology Collection (tagged
-    `permissive`; © European Union Agency for Railways, reused with
-    attribution).
+    stratified across subject domains.
+
+Until 2026-11-06 it also promised ~100 entries from the ERA Railway
+Terminology Collection, but ERA is English terms with definitions, so the
+pair sample always came out empty; it was dropped.
 
 Sources tagged `restricted` or `unknown` are listed by name only.
-Rerun after major termbase updates:  python scripts/generate-llms-terms.py
+Rerun after a new source or a large import, with the search API's address
+(the site's PUBLIC_WORDBOOK_API) in the environment:
+
+    PUBLIC_WORDBOOK_API=https://wordbook-search.<subdomain>.workers.dev \
+        python scripts/generate-llms-terms.py
 """
 
+import json
+import os
 import sqlite3
+import sys
+import urllib.request
 from pathlib import Path
 
 DB = r"D:\SynologyDrive\Dev\beijerterm-database\data\wordbook.db"
 OUT = Path(__file__).resolve().parent.parent / "public" / "llms-terms.txt"
 
+LANG_NAMES = {"en": "English", "nl": "Dutch", "de": "German", "fr": "French",
+              "it": "Italian", "es": "Spanish", "la": "Latin"}
+
 BEIJERTERM_SAMPLE = 1000
-ERA_SAMPLE = 100
 MIN_LEN, MAX_LEN = 3, 60
 
 
@@ -64,63 +77,99 @@ def sample_source(con, source_id, budget):
     return out[:budget]
 
 
+def fetch_meta():
+    api = os.environ.get("PUBLIC_WORDBOOK_API", "").rstrip("/")
+    if not api:
+        sys.exit("Set PUBLIC_WORDBOOK_API to the search API's address "
+                 "(the same one the site is built with).")
+    req = urllib.request.Request(
+        api + "/meta", headers={"Accept": "application/json",
+                                "User-Agent": "generate-llms-terms"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.load(r)
+
+
+def langs(s):
+    return ", ".join(LANG_NAMES.get(c, c) for c in s.get("languages") or [])
+
+
 def main():
-    con = sqlite3.connect(DB)
+    meta = fetch_meta()
+    counts = meta["counts"]
+    by_slug = {s["slug"]: s for s in meta["sources"]}
+    pairs = sorted((s for s in meta["sources"] if s.get("entry_count")),
+                   key=lambda s: -s["entry_count"])
+    concepts = sorted((s for s in meta["sources"] if s.get("concept_count")),
+                      key=lambda s: -s["concept_count"])
+    corpora = meta.get("corpora") or []
+
+    con = sqlite3.connect(Path(DB).as_uri() + "?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
-
-    total = con.execute("select count(*) from entries").fetchone()[0]
-    sources = con.execute(
-        """select s.id, s.title, s.licence, count(distinct es.entry_id) n
-           from sources s
-           join raw_entries re on re.source_id = s.id
-           join entry_sources es on es.raw_entry_id = re.id
-           group by s.id order by n desc""").fetchall()
-
-    bt = next(s for s in sources if (s["title"] or "").startswith("Beijer Dictionary"))
-    era = next(s for s in sources if "ERA Railway" in (s["title"] or ""))
+    bt = by_slug["beijer-dictionary"]
+    bt_id = con.execute("select id from sources where slug = 'beijer-dictionary'"
+                        ).fetchone()[0]
+    sample = sample_source(con, bt_id, BEIJERTERM_SAMPLE)
+    # A query that quietly matches nothing (as the ERA sample once did) must
+    # not produce a file that promises a sample and holds none.
+    if len(sample) < BEIJERTERM_SAMPLE // 2:
+        sys.exit(f"Only {len(sample)} sample entries found; nothing written.")
 
     lines = [
         "# Beijer Dictionary – curated terminology sample",
         "",
-        "> Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's Dutch–English",
-        "> terminology site: a searchable database of "
-        f"{total:,} term pairs from {len(sources)} sources,",
-        "> built over 30+ years of patent and technical translation.",
+        "> Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's",
+        "> multilingual terminology site for technical translators, Dutch–English",
+        f"> at heart: {counts['entries']:,} term pairs and {counts['concepts']:,}"
+        " multilingual concepts",
+        f"> from {counts['sources']} glossaries, termbases and EU vocabularies,"
+        " built over 30+ years",
+        "> of patent and technical translation.",
         "",
         "This file contains a REPRESENTATIVE SAMPLE, not the full database:",
-        f"~{BEIJERTERM_SAMPLE} entries from Michael's own Beijer Dictionary and",
-        f"~{ERA_SAMPLE} from the permissively licensed ERA Railway Terminology",
-        "Collection. Other indexed sources are catalogued below by name only –",
-        "their content is not republished here for copyright reasons. For real",
-        "lookups, use the search at https://beijerdictionary.com/.",
+        f"{len(sample):,} entries from Michael's own Beijer Dictionary. The other",
+        "sources are catalogued below by name only – their content is not",
+        "republished here, for copyright reasons. For real",
+        "lookups, use the search at https://beijerdictionary.com/ (a link such as",
+        "https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).",
         "",
-        "## Source catalogue (entry counts)",
+        "## Source catalogue",
+        "",
+        "### Term-pair sources (entry counts)",
         "",
     ]
-    for s in sources:
-        lines.append(f"- {s['title']} — {s['n']:,} entries")
+    for s in pairs:
+        lines.append(f"- {s['title']} — {s['entry_count']:,} entries ({langs(s)})")
+
+    lines += [
+        "",
+        "### Multilingual sources (one concept per row, with its terms in each language)",
+        "",
+    ]
+    for s in concepts:
+        lines.append(f"- {s['title']} — {s['concept_count']:,} concepts, "
+                     f"{s['term_count']:,} terms ({langs(s)})")
+
+    if corpora:
+        lines += [
+            "",
+            "### EU legislation in context (sentences, not dictionary entries)",
+            "",
+        ]
+        for c in corpora:
+            lines.append(f"- {c['title']} — {c['sentence_count']:,} sentences "
+                         f"({langs(c)})")
 
     lines += [
         "",
         f"## Sample: Beijer Dictionary – Dutch–English Technical Dictionary "
-        f"({bt['n']:,} entries total)",
+        f"({bt['entry_count']:,} entries total)",
         "",
         "© Michael Beijer. Format: Dutch term = English term (domain).",
         "",
     ]
-    for term_a, term_b, dom in sample_source(con, bt["id"], BEIJERTERM_SAMPLE):
+    for term_a, term_b, dom in sample:
         suffix = f" ({dom})" if dom else ""
         lines.append(f"{term_a} = {term_b}{suffix}")
-
-    lines += [
-        "",
-        f"## Sample: ERA Railway Terminology Collection ({era['n']:,} entries total)",
-        "",
-        "© European Union Agency for Railways, reused with attribution.",
-        "",
-    ]
-    for term_a, term_b, dom in sample_source(con, era["id"], ERA_SAMPLE):
-        lines.append(f"{term_a} = {term_b}")
 
     lines.append("")
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")

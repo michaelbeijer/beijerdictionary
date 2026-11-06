@@ -16,6 +16,14 @@ API. Newest first.
   them (Schweißer, Schweißerin), and 2,901 fields of knowledge, in the same
   six languages.
 
+**Site**
+- **The summary for AI tools is current again.** beijerdictionary.com/llms.txt
+  and llms-terms.txt, which AI assistants read to learn what the site is,
+  still described a Dutch–English site with "~1.9 million term pairs from 27
+  glossaries". They now describe it as multilingual, with the EU legislation
+  tab, and list all 35 sources with the numbers the site shows. The numbers
+  in llms.txt now come from the search API at each site build.
+
 ## 2026-11-05
 
 **Site: a cleaner, clearer look**
