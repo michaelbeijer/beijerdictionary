@@ -550,6 +550,7 @@ const subjectCount = new Set(articleIndex.map((a) => a.domain).filter(Boolean)).
 			if (/eur-lex\.europa\.eu$/i.test(h)) return 'EUR-Lex';
 			if (/^vocab\.getty\.edu$/i.test(h)) return 'Getty';
 			if (/^eionet\.europa\.eu$/i.test(h)) return 'EEA';
+			if (/^op\.europa\.eu$/i.test(h)) return 'EU Vocabularies';
 			return h;
 		} catch { return 'link'; }
 	}

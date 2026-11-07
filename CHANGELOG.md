@@ -15,6 +15,24 @@ API. Newest first.
   computing, telecommunications, chemistry, biology, oil and gas, and
   transport. Each card links to the record on FranceTerme. Licence Ouverte
   (free reuse with credit).
+- Three EU reference lists from the Publications Office, in English, Dutch,
+  German, French, Italian and Spanish, each card linking to its entry on the
+  EU Vocabularies site:
+  - EU institutions and bodies: 1,793 bodies, among them the Commission's
+    directorates-general, the agencies, Council working parties, Parliament
+    committees, delegations, and about 400 international organisations,
+    each with its long and short names and acronyms ("Directorate-General
+    for Translation", "DG Translation", "DGT"). About 700 are former bodies,
+    with their years.
+  - Countries and territories: the EU's names for 341 countries and
+    territories, with official long names, former names and acronyms
+    ("Germany", "Federal Republic of Germany", "FRG"), including 36 former
+    ones such as the Soviet Union, plus 257 cards of adjectives ("Dutch",
+    "niederländisch", "néerlandais").
+  - NACE Rev. 2.1, the EU's classification of economic activities: all
+    1,047 codes, from sections such as "construction" down to classes such
+    as "electrical installation", with Eurostat's English notes on what each
+    includes and excludes.
 
 **Sources updated**
 - EuroVoc is now in Italian too, and up to date: release 4.24 (July 2026)

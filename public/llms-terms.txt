@@ -2,8 +2,8 @@
 
 > Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's
 > multilingual terminology site for technical translators, Dutch–English
-> at heart: 1,277,189 term pairs and 92,268 multilingual concepts
-> from 38 glossaries, termbases and thesauri, built over 30+ years
+> at heart: 1,277,189 term pairs and 95,706 multilingual concepts
+> from 41 glossaries, termbases and thesauri, built over 30+ years
 > of patent and technical translation.
 
 This file contains a REPRESENTATIVE SAMPLE, not the full database:
@@ -54,7 +54,10 @@ https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).
 - ESCO – European Skills, Competences, Qualifications and Occupations — 5,839 concepts, 44,377 terms (English, Dutch, German, French, Italian, Spanish)
 - GEMET – General Multilingual Environmental Thesaurus — 5,352 concepts, 32,204 terms (English, Dutch, German, French, Italian, Spanish)
 - Textile Glossary (Dutch, English, German, French) — 1,999 concepts, 11,075 terms (Dutch, English, German, French)
+- EU institutions and bodies – EU Vocabularies — 1,793 concepts, 16,498 terms (English, Dutch, German, French, Italian, Spanish)
+- NACE Rev. 2.1 – statistical classification of economic activities — 1,047 concepts, 6,282 terms (English, Dutch, German, French, Italian, Spanish)
 - Multilingual Criminological Terms (compiled by Jaap de Waard) — 680 concepts, 2,661 terms (Dutch, English, French, German)
+- Countries and territories – EU Vocabularies — 598 concepts, 6,669 terms (English, Dutch, German, French, Italian, Spanish)
 - VVT Terminologielijst 2024 — vertalingen (verticaal transport) — 379 concepts, 2,055 terms (Dutch, English, German, French)
 - Van Houtum woordenlijst (5-language technical glossary) — 237 concepts, 873 terms (Dutch, German, English, French, Spanish)
 - Blood Pressure Monitoring Glossary (EN-NL-DE-FR-ES-IT) — 150 concepts, 888 terms (English, Dutch, German, French, Spanish, Italian)
