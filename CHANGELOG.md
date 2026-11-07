@@ -4,6 +4,23 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-11-07
+
+**Sources added**
+- FranceTerme, the French government's official scientific and technical
+  terms: 8,003 records published in the Journal officiel by the Commission
+  d'enrichissement de la langue française, each French term with its English
+  equivalent, and for a few also German, Italian or Spanish. Most have a
+  French definition and many a note. Strongest in space, nuclear energy,
+  computing, telecommunications, chemistry, biology, oil and gas, and
+  transport. Each card links to the record on FranceTerme. Licence Ouverte
+  (free reuse with credit).
+
+**Sources updated**
+- EuroVoc is now in Italian too, and up to date: release 4.24 (July 2026)
+  replaces 4.20 (2024), with 7,515 concepts in all six languages. A stray
+  "EuroVoc" entry (the name of the thesaurus itself) is gone.
+
 ## 2026-11-06
 
 **Sources added**
