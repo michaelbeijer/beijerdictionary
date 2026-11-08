@@ -8,6 +8,7 @@ export const SOURCE_NAMES: Record<string, string> = {
 	'airgloss': 'AIRGLOSS',
 	'annual-reports': 'Annual Reports Glossary',
 	'beijer-dictionary': 'Beijer Dictionary',
+	'beijer-patent-glossary': 'Beijer Patent Glossary',
 	'bgl': 'Van der Meijden',
 	'blood-pressure-monitoring': 'Blood Pressure Glossary',
 	'conservation-plants': 'FLORON',

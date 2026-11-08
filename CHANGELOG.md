@@ -4,6 +4,19 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-11-08
+
+**Sources added**
+- Beijer Patent Glossary (Dutch-English): 23,414 Dutch–English pairs from
+  Michael's patent translation work and the patent glossaries he collected
+  over the years. 3,416 are patent language: claim wording ("omvattende",
+  "comprising"; "met het kenmerk dat", "characterized in that"), document
+  headings, patent procedure and office terms checked against the Dutch
+  Patents Act, and standard description phrases. The other 19,998 are
+  technical terms from patent texts, with the domain "technology /
+  engineering". Notes say where Belgian and Netherlands Dutch, or US and UK
+  English, differ in patent usage.
+
 ## 2026-11-07
 
 **Sources added**

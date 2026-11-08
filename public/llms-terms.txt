@@ -2,8 +2,8 @@
 
 > Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's
 > multilingual terminology site for technical translators, Dutch–English
-> at heart: 1,277,189 term pairs and 97,282 multilingual concepts
-> from 45 glossaries, termbases and thesauri, built over 30+ years
+> at heart: 1,300,521 term pairs and 97,282 multilingual concepts
+> from 46 glossaries, termbases and thesauri, built over 30+ years
 > of patent and technical translation.
 
 This file contains a REPRESENTATIVE SAMPLE, not the full database:
@@ -23,6 +23,7 @@ https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).
 - Terminologie Financieel Management (Dutch-English) — 35,684 entries (Dutch, English)
 - Microsoft Terminology Collection (Dutch-English) — 32,955 entries (Dutch, English)
 - IATE abbreviations (Dutch-English) — 27,970 entries (Dutch, English)
+- Beijer Patent Glossary (Dutch-English) — 23,414 entries (Dutch, English)
 - Dutch-English Online Dictionary — 19,386 entries (Dutch, English)
 - IATE acronyms (Dutch) — 16,708 entries (Dutch)
 - IATE acronyms (Dutch-English) — 15,631 entries (Dutch, English)
