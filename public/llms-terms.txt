@@ -2,8 +2,8 @@
 
 > Beijer Dictionary (https://beijerdictionary.com) is Michael Beijer's
 > multilingual terminology site for technical translators, Dutch–English
-> at heart: 1,300,521 term pairs and 97,282 multilingual concepts
-> from 46 glossaries, termbases and thesauri, built over 30+ years
+> at heart: 712,263 term pairs and 481,099 multilingual concepts
+> from 45 glossaries, termbases and thesauri, built over 30+ years
 > of patent and technical translation.
 
 This file contains a REPRESENTATIVE SAMPLE, not the full database:
@@ -17,13 +17,11 @@ https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).
 
 ### Term-pair sources (entry counts)
 
-- IATE Dutch-English termbase — 561,848 entries (Dutch, English)
 - Beijer Dictionary – Dutch–English Technical Dictionary — 497,464 entries (Dutch, English)
 - Jakob Vlietstra – Technical Glossary (Dutch-English) — 43,226 entries (Dutch, English)
 - Terminologie Financieel Management (Dutch-English) — 35,684 entries (Dutch, English)
 - Microsoft Terminology Collection (Dutch-English) — 32,955 entries (Dutch, English)
-- IATE abbreviations (Dutch-English) — 27,970 entries (Dutch, English)
-- Beijer Patent Glossary (Dutch-English) — 23,414 entries (Dutch, English)
+- Beijer Patent Glossary (Dutch-English) — 23,495 entries (Dutch, English)
 - Dutch-English Online Dictionary — 19,386 entries (Dutch, English)
 - IATE acronyms (Dutch) — 16,708 entries (Dutch)
 - IATE acronyms (Dutch-English) — 15,631 entries (Dutch, English)
@@ -48,6 +46,7 @@ https://beijerdictionary.com/?q=tegels&from=nl&to=en opens a search).
 
 ### Multilingual sources (one concept per row, with its terms in each language)
 
+- IATE (Interactive Terminology for Europe) — 383,817 concepts, 2,257,869 terms (English, Dutch, German, French, Italian, Spanish)
 - Art & Architecture Thesaurus (AAT) — 51,757 concepts, 314,903 terms (English, Dutch, German, French, Italian, Spanish)
 - Common Procurement Vocabulary (CPV 2008) — 10,357 concepts, 62,173 terms (English, Dutch, German, French, Italian, Spanish)
 - FranceTerme – official French scientific and technical terms — 8,003 concepts, 21,975 terms (French, English, German, Italian, Spanish)
