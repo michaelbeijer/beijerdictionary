@@ -20,6 +20,13 @@ API. Newest first.
 - Search shows up to 50 multilingual cards per search, 30 from one source
   (was 20 and 12), so IATE's many entries for common words have room.
 
+**Search**
+- Multilingual cards that have your "To" language now come before cards
+  that lack it, among cards that match the search equally well. Searching
+  "douane" Dutch→English no longer starts with an IATE card that has no
+  English, and English→Dutch searches show far fewer cards without Dutch
+  at the top.
+
 ## 2026-11-08
 
 **Sources added**
