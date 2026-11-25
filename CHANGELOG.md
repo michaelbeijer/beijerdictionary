@@ -4,6 +4,22 @@ Notable changes to Beijer Dictionary (called Beijerterm until October 2026) —
 the website (this repo) and the underlying terminology database and search
 API. Newest first.
 
+## 2026-11-25
+
+**Sources changed**
+- IATE, the EU's terminology database, now comes from IATE's own download of
+  November 2026 and is shown in all six languages: 383,817 cards, each one
+  IATE entry with its terms in English, Dutch, German, French, Italian and
+  Spanish (2.26 million terms). The best term comes first; superseded and
+  deprecated terms are marked. Each card links to the entry at IATE, which
+  gives its definitions, contexts and references. It replaces the
+  Dutch–English extraction of IATE's 2015 export (588,000 pairs), which was
+  no longer current: IATE has since removed or corrected many of its
+  entries. Terms of four words or more, which that extraction left out, are
+  now included.
+- Search shows up to 50 multilingual cards per search, 30 from one source
+  (was 20 and 12), so IATE's many entries for common words have room.
+
 ## 2026-11-08
 
 **Sources added**
